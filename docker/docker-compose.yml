@@ -2,8 +2,8 @@ version: "3.8"
 services:
   frontend:
     build:
-      context: ../frontend
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: frontend/Dockerfile
     ports:
       - "3000:80"
     depends_on:
@@ -12,7 +12,7 @@ services:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    command: deno run --allow-net --allow-read --allow-write --allow-env app.ts
+    command: deno run --allow-net --allow-read --allow-write --allow-env --unstable-fs app.ts
     ports:
       - "8000:8000"
     volumes:

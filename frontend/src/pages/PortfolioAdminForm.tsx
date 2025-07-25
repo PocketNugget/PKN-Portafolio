@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { createPortfolioItem, updatePortfolioItem } from "../api";
 import { PortfolioItem } from "@shared/types";
 import { marked } from "marked";
+import { useEffect } from "react";
 
 interface PortfolioAdminFormProps {
   item?: PortfolioItem;
@@ -18,6 +19,16 @@ export default function PortfolioAdminForm({
   const [image, setImage] = useState(item?.image || "");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [htmlPreview, setHtmlPreview] = useState("");
+
+  useEffect(() => {
+    const parseResult = marked.parse(description);
+    if (parseResult instanceof Promise) {
+      parseResult.then(setHtmlPreview);
+    } else {
+      setHtmlPreview(parseResult);
+    }
+  }, [description]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -105,7 +116,7 @@ export default function PortfolioAdminForm({
         <h4>Description Preview</h4>
         <div
           style={{ background: "#181c24", padding: 16, borderRadius: 8 }}
-          dangerouslySetInnerHTML={{ __html: marked.parse(description) }}
+          dangerouslySetInnerHTML={{ __html: htmlPreview }}
         />
       </div>
     </form>

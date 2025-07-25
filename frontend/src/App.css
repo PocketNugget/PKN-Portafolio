@@ -1,16 +1,36 @@
+/* Tokyo Night Palette */
+:root {
+  --tokyo-bg: #1a1b26;
+  --tokyo-fg: #a9b1d6;
+  --tokyo-blue: #7aa2f7;
+  --tokyo-purple: #bb9af7;
+  --tokyo-green: #9ece6a;
+  --tokyo-cyan: #7dcfff;
+  --tokyo-magenta: #f7768e;
+  --tokyo-yellow: #e0af68;
+}
+
 body {
-  background: #0f111a;
-  color: #39ff14;
+  background: var(--tokyo-bg);
+  color: var(--tokyo-fg);
   font-family: "Fira Mono", "Consolas", monospace;
   margin: 0;
   min-height: 100vh;
   letter-spacing: 0.02em;
-  background-image: radial-gradient(
-    circle at 20% 20%,
-    #1a1f2b 0%,
-    #0f111a 100%
-  );
+  background-image: none;
   transition: background 0.5s;
+}
+
+/* Matrix background canvas */
+#matrix-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.18;
 }
 
 .main-page,
@@ -23,16 +43,17 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  font-size: 2rem;
-  background: rgba(15, 17, 26, 0.95);
-  color: #39ff14;
-  text-shadow: 0 0 8px #39ff14, 0 0 2px #00fff7;
+  font-size: 1.2rem;
+  background: rgba(26, 27, 38, 0.97);
+  color: var(--tokyo-fg);
+  text-shadow: none;
   border-radius: 18px;
   margin: 2rem auto;
-  box-shadow: 0 0 32px #39ff1460, 0 0 8px #00fff760;
-  max-width: 900px;
+  box-shadow: 0 0 32px var(--tokyo-blue) 60, 0 0 8px var(--tokyo-purple) 60;
+  max-width: 1200px;
   padding: 2rem 2.5rem 3rem 2.5rem;
   animation: fadeIn 0.8s cubic-bezier(0.4, 0.2, 0.2, 1);
+  z-index: 1;
 }
 
 @keyframes fadeIn {
@@ -50,25 +71,29 @@ h1,
 h2,
 h3,
 h4 {
-  color: #00fff7;
-  text-shadow: 0 0 8px #00fff7, 0 0 2px #39ff14;
+  color: var(--tokyo-blue);
+  text-shadow: 0 0 8px var(--tokyo-blue), 0 0 2px var(--tokyo-green);
   margin-bottom: 0.5em;
   letter-spacing: 0.04em;
 }
 
 a {
-  color: #00fff7;
+  color: var(--tokyo-cyan);
   text-decoration: none;
   transition: color 0.2s, text-shadow 0.2s;
 }
 a:hover {
-  color: #39ff14;
-  text-shadow: 0 0 8px #39ff14;
+  color: var(--tokyo-green);
+  text-shadow: 0 0 8px var(--tokyo-green);
 }
 
 button {
-  background: linear-gradient(90deg, #00fff7 0%, #39ff14 100%);
-  color: #0f111a;
+  background: linear-gradient(
+    90deg,
+    var(--tokyo-blue) 0%,
+    var(--tokyo-green) 100%
+  );
+  color: var(--tokyo-bg);
   border: none;
   border-radius: 8px;
   padding: 0.6em 1.4em;
@@ -76,14 +101,18 @@ button {
   font-family: inherit;
   font-weight: bold;
   margin: 0.5em 0.5em 0.5em 0;
-  box-shadow: 0 0 8px #00fff7, 0 0 2px #39ff14;
+  box-shadow: 0 0 8px var(--tokyo-blue), 0 0 2px var(--tokyo-green);
   cursor: pointer;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.1s;
 }
 button:hover {
-  background: linear-gradient(90deg, #39ff14 0%, #00fff7 100%);
-  color: #0f111a;
-  box-shadow: 0 0 16px #39ff14, 0 0 8px #00fff7;
+  background: linear-gradient(
+    90deg,
+    var(--tokyo-green) 0%,
+    var(--tokyo-blue) 100%
+  );
+  color: var(--tokyo-bg);
+  box-shadow: 0 0 16px var(--tokyo-green), 0 0 8px var(--tokyo-blue);
   transform: scale(1.04);
 }
 

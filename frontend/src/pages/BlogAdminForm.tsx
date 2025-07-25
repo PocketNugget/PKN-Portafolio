@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { createBlogPost, updateBlogPost } from "../api";
 import { BlogPost } from "@shared/types";
 import { marked } from "marked";
+import { useEffect } from "react";
 
 interface BlogAdminFormProps {
   post?: BlogPost;
@@ -13,6 +14,16 @@ export default function BlogAdminForm({ post, onSuccess }: BlogAdminFormProps) {
   const [content, setContent] = useState(post?.content || "");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [htmlPreview, setHtmlPreview] = useState("");
+
+  useEffect(() => {
+    const parseResult = marked.parse(content);
+    if (parseResult instanceof Promise) {
+      parseResult.then(setHtmlPreview);
+    } else {
+      setHtmlPreview(parseResult);
+    }
+  }, [content]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +68,7 @@ export default function BlogAdminForm({ post, onSuccess }: BlogAdminFormProps) {
         <h4>Markdown Preview</h4>
         <div
           style={{ background: "#181c24", padding: 16, borderRadius: 8 }}
-          dangerouslySetInnerHTML={{ __html: marked.parse(content) }}
+          dangerouslySetInnerHTML={{ __html: htmlPreview }}
         />
       </div>
     </form>

@@ -23,21 +23,6 @@ export default function NavBar() {
       >
         Blog
       </Link>
-      {isAdmin ? (
-        <Link
-          to="/admin/dashboard"
-          className={location.pathname === "/admin/dashboard" ? "active" : ""}
-        >
-          Dashboard
-        </Link>
-      ) : (
-        <Link
-          to="/admin/login"
-          className={location.pathname === "/admin/login" ? "active" : ""}
-        >
-          Admin Login
-        </Link>
-      )}
     </nav>
   );
 }
