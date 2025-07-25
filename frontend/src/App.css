@@ -8,6 +8,8 @@
   --tokyo-cyan: #7dcfff;
   --tokyo-magenta: #f7768e;
   --tokyo-yellow: #e0af68;
+  --tokyo-card: #24283b;
+  --tokyo-border: #292e42;
 }
 
 body {
@@ -21,7 +23,6 @@ body {
   transition: background 0.5s;
 }
 
-/* Matrix background canvas */
 #matrix-bg {
   position: fixed;
   top: 0;
@@ -30,7 +31,18 @@ body {
   height: 100vh;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.18;
+  opacity: 0.1;
+}
+
+.tech-icons-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.1;
 }
 
 .main-page,
@@ -43,28 +55,16 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  font-size: 1.2rem;
-  background: rgba(26, 27, 38, 0.97);
+  font-size: 1.1rem;
+  background: var(--tokyo-card);
   color: var(--tokyo-fg);
-  text-shadow: none;
   border-radius: 18px;
   margin: 2rem auto;
-  box-shadow: 0 0 32px var(--tokyo-blue) 60, 0 0 8px var(--tokyo-purple) 60;
-  max-width: 1200px;
+  box-shadow: 0 2px 16px 0 rgba(0, 0, 0, 0.1);
+  max-width: 1100px;
   padding: 2rem 2.5rem 3rem 2.5rem;
   animation: fadeIn 0.8s cubic-bezier(0.4, 0.2, 0.2, 1);
-  z-index: 1;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(40px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  z-index: 2;
 }
 
 h1,
@@ -72,27 +72,23 @@ h2,
 h3,
 h4 {
   color: var(--tokyo-blue);
-  text-shadow: 0 0 8px var(--tokyo-blue), 0 0 2px var(--tokyo-green);
   margin-bottom: 0.5em;
   letter-spacing: 0.04em;
+  font-weight: 700;
+  text-shadow: none;
 }
 
 a {
-  color: var(--tokyo-cyan);
-  text-decoration: none;
-  transition: color 0.2s, text-shadow 0.2s;
+  color: var(--tokyo-blue);
+  text-decoration: underline;
+  transition: color 0.2s;
 }
 a:hover {
   color: var(--tokyo-green);
-  text-shadow: 0 0 8px var(--tokyo-green);
 }
 
 button {
-  background: linear-gradient(
-    90deg,
-    var(--tokyo-blue) 0%,
-    var(--tokyo-green) 100%
-  );
+  background: var(--tokyo-blue);
   color: var(--tokyo-bg);
   border: none;
   border-radius: 8px;
@@ -101,26 +97,22 @@ button {
   font-family: inherit;
   font-weight: bold;
   margin: 0.5em 0.5em 0.5em 0;
-  box-shadow: 0 0 8px var(--tokyo-blue), 0 0 2px var(--tokyo-green);
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.08);
   cursor: pointer;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.1s;
 }
 button:hover {
-  background: linear-gradient(
-    90deg,
-    var(--tokyo-green) 0%,
-    var(--tokyo-blue) 100%
-  );
+  background: var(--tokyo-green);
   color: var(--tokyo-bg);
-  box-shadow: 0 0 16px var(--tokyo-green), 0 0 8px var(--tokyo-blue);
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.12);
   transform: scale(1.04);
 }
 
 input,
 textarea {
-  background: #181c24;
-  color: #39ff14;
-  border: 1.5px solid #00fff7;
+  background: var(--tokyo-bg);
+  color: var(--tokyo-fg);
+  border: 1.5px solid var(--tokyo-border);
   border-radius: 6px;
   padding: 0.7em 1em;
   font-size: 1.1rem;
@@ -132,27 +124,30 @@ textarea {
 }
 input:focus,
 textarea:focus {
-  border: 1.5px solid #39ff14;
-  box-shadow: 0 0 8px #39ff14;
+  border: 1.5px solid var(--tokyo-blue);
+  box-shadow: 0 0 4px var(--tokyo-blue);
   outline: none;
 }
 
+.card,
 .blog-post,
 .portfolio-item {
-  background: rgba(24, 28, 36, 0.98);
+  background: var(--tokyo-bg);
   border-radius: 12px;
-  box-shadow: 0 0 16px #00fff760, 0 0 4px #39ff1460;
+  box-shadow: 0 1px 8px 0 rgba(0, 0, 0, 0.1);
   margin: 1.5em 0;
   padding: 1.5em 2em;
   width: 100%;
   max-width: 700px;
   animation: fadeIn 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
   transition: box-shadow 0.2s, transform 0.2s;
+  border: 1px solid var(--tokyo-border);
 }
+.card:hover,
 .blog-post:hover,
 .portfolio-item:hover {
-  box-shadow: 0 0 32px #39ff14, 0 0 16px #00fff7;
-  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.14);
+  transform: translateY(-2px) scale(1.01);
 }
 
 .blog-admin-form,
@@ -210,20 +205,21 @@ li button {
 
 ::-webkit-scrollbar {
   width: 10px;
-  background: #181c24;
+  background: var(--tokyo-bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: #00fff7;
+  background: var(--tokyo-border);
   border-radius: 8px;
 }
 
-.about {
-  background: linear-gradient(135deg, rgba(24, 28, 36, 0.98) 80%, #181c24 100%);
+.about,
+.about-cards {
+  background: var(--tokyo-card);
   border-radius: 16px;
-  box-shadow: 0 0 32px #00fff760, 0 0 8px #39ff1460;
-  padding: 2.2em 2.2em 2.2em 2.2em;
-  margin-bottom: 2.5em;
-  border: 2px solid #00fff7;
+  box-shadow: 0 1px 8px 0 rgba(0, 0, 0, 0.1);
+  padding: 2em 2em 2em 2em;
+  margin-bottom: 2em;
+  border: 1px solid var(--tokyo-border);
   position: relative;
   z-index: 2;
   animation: fadeIn 1s cubic-bezier(0.4, 0.2, 0.2, 1);
@@ -231,14 +227,13 @@ li button {
 
 .about h2,
 .about h3 {
-  color: #00fff7;
-  text-shadow: 0 0 8px #00fff7, 0 0 2px #39ff14;
+  color: var(--tokyo-blue);
   margin-bottom: 0.7em;
   letter-spacing: 0.04em;
 }
 
 .about p {
-  color: #eafff7;
+  color: var(--tokyo-fg);
   font-size: 1.13rem;
   margin-bottom: 1.5em;
   line-height: 1.6;
@@ -250,26 +245,19 @@ li button {
 }
 
 .about li {
-  background: linear-gradient(90deg, #181c24 80%, #232b39 100%);
-  border-left: 4px solid #39ff14;
+  background: var(--tokyo-bg);
+  border-left: 4px solid var(--tokyo-border);
   border-radius: 8px;
   margin-bottom: 1.1em;
   padding: 1em 1.2em 1em 1.2em;
-  color: #eafff7;
-  box-shadow: 0 0 8px #00fff760;
+  color: var(--tokyo-fg);
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.08);
   transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
 }
 .about li:hover {
-  box-shadow: 0 0 24px #39ff14, 0 0 12px #00fff7;
-  border-left: 4px solid #00fff7;
-  transform: scale(1.02);
-}
-
-.about .about-cards {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 32px;
-  justify-content: space-between;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.12);
+  border-left: 4px solid var(--tokyo-blue);
+  transform: scale(1.01);
 }
 
 @media (max-width: 900px) {
@@ -282,6 +270,7 @@ li button {
     padding: 1.2rem 0.5rem 2rem 0.5rem;
     margin: 1rem auto;
   }
+  .card,
   .blog-post,
   .portfolio-item {
     max-width: 98vw;
@@ -316,14 +305,9 @@ li button {
   h2 {
     font-size: 1.2rem;
   }
+  .card,
   .blog-post,
   .portfolio-item {
-    font-size: 1rem;
-    padding: 0.7em 0.3em;
-    border-radius: 7px;
-  }
-  .blog-admin-form,
-  .portfolio-admin-form {
     font-size: 1rem;
     padding: 0.7em 0.3em;
     border-radius: 7px;

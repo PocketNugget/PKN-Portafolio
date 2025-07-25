@@ -5,23 +5,25 @@
   align-items: center;
   background: var(--tokyo-bg);
   padding: 1rem 0;
-  box-shadow: 0 0 16px var(--tokyo-blue) 60, 0 0 2px var(--tokyo-green) 60;
-  border-bottom: 2px solid var(--tokyo-blue);
+  box-shadow: none;
+  border-bottom: 1.5px solid var(--tokyo-border);
 }
 
 .navbar a {
-  color: var(--tokyo-cyan);
+  color: var(--tokyo-blue);
   font-family: "Fira Mono", "Consolas", monospace;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   text-decoration: none;
   padding: 0.5rem 1rem;
   border-radius: 6px;
-  transition: background 0.2s, color 0.2s;
+  border-bottom: 2px solid transparent;
+  transition: border-bottom 0.2s, color 0.2s;
 }
 
 .navbar a.active,
 .navbar a:hover {
-  background: var(--tokyo-purple);
-  color: var(--tokyo-bg);
-  box-shadow: 0 0 8px var(--tokyo-purple);
+  color: var(--tokyo-green);
+  border-bottom: 2px solid var(--tokyo-green);
+  background: none;
+  box-shadow: none;
 }

@@ -14,6 +14,7 @@ import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import { ThemeProvider } from "./components/ThemeContext";
+import TechIconsBackground from "./components/TechIconsBackground";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuth = Boolean(localStorage.getItem("jwt"));
@@ -22,7 +23,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   React.useEffect(() => {
-    // Matrix rain animation
+    // Matrix rain animation (minimalist)
     const canvas = document.getElementById(
       "matrix-bg"
     ) as HTMLCanvasElement | null;
@@ -33,17 +34,17 @@ function App() {
     let height = window.innerHeight;
     canvas.width = width;
     canvas.height = height;
-    const fontSize = 18;
+    const fontSize = 16;
     const columns = Math.floor(width / fontSize);
     const drops = Array(columns).fill(1);
     const chars =
-      "アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      "アァカサタナハマヤャラワガザダバパイィキシPOCKETNUGGETチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     function draw() {
       if (!ctx) return;
-      ctx.fillStyle = "rgba(26,27,38,0.08)";
+      ctx.fillStyle = "rgba(26,27,38,0.05)";
       ctx.fillRect(0, 0, width, height);
       ctx.font = fontSize + "px Fira Mono, monospace";
-      ctx.fillStyle = "#9ece6a";
+      ctx.fillStyle = "#7aa2f7";
       for (let i = 0; i < drops.length; i++) {
         const text = chars[Math.floor(Math.random() * chars.length)];
         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
@@ -71,6 +72,7 @@ function App() {
     <ThemeProvider>
       <Router>
         <canvas id="matrix-bg"></canvas>
+        <TechIconsBackground />
         <NavBar />
         <Routes>
           <Route path="/" element={<MainPage />} />
