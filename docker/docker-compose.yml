@@ -1,0 +1,28 @@
+version: "3.8"
+services:
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    command: deno run --allow-net --allow-read --allow-write --allow-env app.ts
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../backend:/app
+    depends_on:
+      - db
+  db:
+    image: nouchka/sqlite3:latest
+    container_name: sqlite
+    volumes:
+      - sqlite_data:/data
+volumes:
+  sqlite_data:

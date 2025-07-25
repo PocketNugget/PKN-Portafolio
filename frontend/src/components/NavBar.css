@@ -1,0 +1,27 @@
+.navbar {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  align-items: center;
+  background: #181c24;
+  padding: 1rem 0;
+  box-shadow: 0 0 16px #39ff1460, 0 0 2px #00fff760;
+  border-bottom: 2px solid #39ff14;
+}
+
+.navbar a {
+  color: #00fff7;
+  font-family: "Fira Mono", "Consolas", monospace;
+  font-size: 1.2rem;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.navbar a.active,
+.navbar a:hover {
+  background: #232b39;
+  color: #39ff14;
+  box-shadow: 0 0 8px #39ff14;
+}
