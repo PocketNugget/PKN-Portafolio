@@ -31,8 +31,9 @@ async function requireAuth(ctx: any, next: any) {
 // Login route (POST /api/auth)
 router.post("/api/auth", async (ctx) => {
   try {
-    const body = await ctx.request.body;
+    const body = await ctx.request.body({ type: "json" }).value;
     const { username, password } = body;
+
     // Find user in DB
     const user = [
       ...db.query(
@@ -40,6 +41,7 @@ router.post("/api/auth", async (ctx) => {
         [username]
       ),
     ][0];
+
     if (!user) {
       ctx.response.status = 401;
       ctx.response.body = { error: "Invalid credentials" };
@@ -102,8 +104,13 @@ router.get("/api/analytics", requireAuth, (ctx) => {
 // --- BLOG CRUD ---
 // Create blog post (protected)
 router.post("/api/blog", requireAuth, async (ctx) => {
-  const { title, content } = await ctx.request.body().value;
-  db.query("INSERT INTO blog (title, content) VALUES (?, ?)", [title, content]);
+  const { title, content, tags } = await ctx.request.body({ type: "json" })
+    .value;
+  db.query("INSERT INTO blog (title, content, tags) VALUES (?, ?, ?)", [
+    title,
+    content,
+    tags || "",
+  ]);
   ctx.response.body = { message: "Blog post created" };
 });
 
@@ -111,13 +118,14 @@ router.post("/api/blog", requireAuth, async (ctx) => {
 router.get("/api/blog", async (ctx) => {
   const posts = [
     ...db.query(
-      "SELECT id, title, content, created_at FROM blog ORDER BY created_at DESC"
+      "SELECT id, title, content, created_at, tags FROM blog ORDER BY created_at DESC"
     ),
-  ].map(([id, title, content, created_at]) => ({
+  ].map(([id, title, content, created_at, tags]) => ({
     id,
     title,
     content,
     created_at,
+    tags: tags || "",
   })) as any[];
   // Render markdown for each post
   for (const post of posts) {
@@ -131,7 +139,7 @@ router.get("/api/blog/:id", async (ctx) => {
   const id = ctx.params.id;
   const row = [
     ...db.query(
-      "SELECT id, title, content, created_at FROM blog WHERE id = ?",
+      "SELECT id, title, content, created_at, tags FROM blog WHERE id = ?",
       [id]
     ),
   ][0];
@@ -140,18 +148,27 @@ router.get("/api/blog/:id", async (ctx) => {
     ctx.response.body = { error: "Not found" };
     return;
   }
-  const [pid, title, content, created_at] = row;
+  const [pid, title, content, created_at, tags] = row;
   const html = await renderMarkdown(content);
-  ctx.response.body = { id: pid, title, content, created_at, html };
+  ctx.response.body = {
+    id: pid,
+    title,
+    content,
+    created_at,
+    tags: tags || "",
+    html,
+  };
 });
 
 // Update blog post (protected)
 router.put("/api/blog/:id", requireAuth, async (ctx) => {
   const id = ctx.params.id;
-  const { title, content } = await ctx.request.body().value;
-  db.query("UPDATE blog SET title = ?, content = ? WHERE id = ?", [
+  const { title, content, tags } = await ctx.request.body({ type: "json" })
+    .value;
+  db.query("UPDATE blog SET title = ?, content = ?, tags = ? WHERE id = ?", [
     title,
     content,
+    tags || "",
     id,
   ]);
   ctx.response.body = { message: "Blog post updated" };
@@ -167,7 +184,9 @@ router.delete("/api/blog/:id", requireAuth, (ctx) => {
 // --- PORTFOLIO CRUD ---
 // Create portfolio item (protected)
 router.post("/api/portfolio", requireAuth, async (ctx) => {
-  const { title, description, link, image } = await ctx.request.body().value;
+  const { title, description, link, image } = await ctx.request.body({
+    type: "json",
+  }).value;
   db.query(
     "INSERT INTO portfolio (title, description, link, image) VALUES (?, ?, ?, ?)",
     [title, description, link, image]

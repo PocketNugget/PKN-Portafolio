@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   FaBookOpen,
   FaSearch,
@@ -10,13 +11,14 @@ import {
   FaEye,
 } from "react-icons/fa";
 import { fetchBlogPosts } from "../api";
+
 // Local interface for development - will use shared types in production
 interface BlogPost {
   id: number;
   title: string;
   content: string;
-  html?: string;
   created_at: string;
+  html: string;
 }
 
 export default function BlogPage() {
@@ -24,6 +26,7 @@ export default function BlogPage() {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchBlogPosts()
@@ -67,6 +70,10 @@ export default function BlogPage() {
 
   const featuredPost = filtered[0];
   const regularPosts = filtered.slice(1);
+
+  const handleReadMore = (post: BlogPost) => {
+    navigate(`/blog/${post.id}`);
+  };
 
   if (loading) {
     return (
@@ -163,7 +170,10 @@ export default function BlogPage() {
                 ? `${featuredPost.content.substring(0, 300)}...`
                 : featuredPost.content}
             </div>
-            <button className="read-more-btn">
+            <button
+              className="read-more-btn"
+              onClick={() => handleReadMore(featuredPost)}
+            >
               Read Full Article <FaArrowRight />
             </button>
           </div>
@@ -212,11 +222,16 @@ export default function BlogPage() {
                   </div>
                 </div>
 
-                <div className="post-excerpt">
-                  {post.content.length > 150
-                    ? `${post.content.substring(0, 150)}...`
-                    : post.content}
-                </div>
+                <div
+                  className="post-excerpt"
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      (post.html || "").replace(/<[^>]+>/g, "").slice(0, 200) +
+                      ((post.html || "").replace(/<[^>]+>/g, "").length > 200
+                        ? "..."
+                        : ""),
+                  }}
+                />
 
                 <div className="post-tags">
                   {post.content.toLowerCase().includes("cybersecurity") && (
@@ -233,31 +248,16 @@ export default function BlogPage() {
                   )}
                 </div>
 
-                <button className="read-more-btn small">
+                <button
+                  className="read-more-btn small"
+                  onClick={() => handleReadMore(post)}
+                >
                   Read More <FaArrowRight />
                 </button>
               </motion.article>
             ))}
           </div>
         )}
-      </motion.div>
-
-      {/* Newsletter Signup */}
-      <motion.div
-        className="newsletter-signup"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6, duration: 0.7 }}
-      >
-        <h3>Stay Updated</h3>
-        <p>
-          Get the latest cybersecurity insights and AI research delivered to
-          your inbox
-        </p>
-        <div className="newsletter-form">
-          <input type="email" placeholder="Enter your email" />
-          <button>Subscribe</button>
-        </div>
       </motion.div>
     </div>
   );

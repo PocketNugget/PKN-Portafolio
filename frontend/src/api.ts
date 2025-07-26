@@ -12,7 +12,7 @@ export async function fetchBlogPost(id: number) {
 }
 
 export async function createBlogPost(
-  data: { title: string; content: string },
+  data: { title: string; content: string; tags?: string },
   token: string
 ) {
   const res = await fetch(`${API_BASE}/blog`, {
@@ -28,7 +28,7 @@ export async function createBlogPost(
 
 export async function updateBlogPost(
   id: number,
-  data: { title: string; content: string },
+  data: { title: string; content: string; tags?: string },
   token: string
 ) {
   const res = await fetch(`${API_BASE}/blog/${id}`, {

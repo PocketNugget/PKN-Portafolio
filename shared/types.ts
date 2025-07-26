@@ -6,6 +6,7 @@ export interface BlogPost {
   content: string;
   created_at: string;
   html?: string;
+  tags?: string;
 }
 
 export interface PortfolioItem {

@@ -2,7 +2,8 @@ import { signJWT, validateJWT, markdownToHtml } from "./deps.ts";
 import { hash, compare } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const JWT_SECRET =
-  Deno.env.get("JWT_SECRET") || "supersecretkeythatshouldbeenv";
+  Deno.env.get("JWT_SECRET") ||
+  "thisisareallylongsecretkeythatisdefinitelymorethan32characterslongandshouldworkwiththejwtlibrary";
 
 export async function createJWT(payload: Record<string, unknown>) {
   return await signJWT(payload, JWT_SECRET);

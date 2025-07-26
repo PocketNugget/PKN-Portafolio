@@ -3,6 +3,7 @@ import { createBlogPost, updateBlogPost } from "../api";
 import { BlogPost } from "@shared/types";
 import { marked } from "marked";
 import { useEffect } from "react";
+import { FaSave, FaEye, FaTimes } from "react-icons/fa";
 
 interface BlogAdminFormProps {
   post?: BlogPost;
@@ -15,6 +16,8 @@ export default function BlogAdminForm({ post, onSuccess }: BlogAdminFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [htmlPreview, setHtmlPreview] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
+  const [tags, setTags] = useState(post?.tags || "");
 
   useEffect(() => {
     const parseResult = marked.parse(content);
@@ -32,9 +35,9 @@ export default function BlogAdminForm({ post, onSuccess }: BlogAdminFormProps) {
     const token = localStorage.getItem("jwt") || "";
     try {
       if (post) {
-        await updateBlogPost(post.id, { title, content }, token);
+        await updateBlogPost(post.id, { title, content, tags }, token);
       } else {
-        await createBlogPost({ title, content }, token);
+        await createBlogPost({ title, content, tags }, token);
       }
       if (onSuccess) onSuccess();
     } catch (err) {
@@ -46,30 +49,80 @@ export default function BlogAdminForm({ post, onSuccess }: BlogAdminFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="blog-admin-form">
-      <input
-        type="text"
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        required
-      />
-      <textarea
-        placeholder="Markdown Content"
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        rows={10}
-        required
-      />
-      <button type="submit" disabled={loading}>
-        {post ? "Update" : "Create"} Post
-      </button>
-      {error && <div style={{ color: "#ff3860" }}>{error}</div>}
-      <div style={{ marginTop: 24 }}>
-        <h4>Markdown Preview</h4>
-        <div
-          style={{ background: "#181c24", padding: 16, borderRadius: 8 }}
-          dangerouslySetInnerHTML={{ __html: htmlPreview }}
-        />
+      <div className="form-body">
+        <div className="form-section">
+          <label htmlFor="title">Title</label>
+          <input
+            id="title"
+            type="text"
+            placeholder="Enter blog post title..."
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            className="form-input"
+          />
+        </div>
+
+        <div className="form-section">
+          <label htmlFor="tags">Tags (comma-separated)</label>
+          <input
+            id="tags"
+            type="text"
+            placeholder="e.g. Cybersecurity, AI Research, CTF"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            className="form-input"
+          />
+        </div>
+
+        <div className="form-section">
+          <div className="section-header">
+            <label htmlFor="content">Content (Markdown)</label>
+            <button
+              type="button"
+              className="preview-toggle"
+              onClick={() => setShowPreview(!showPreview)}
+            >
+              <FaEye size={14} />
+              {showPreview ? " Hide Preview" : " Show Preview"}
+            </button>
+          </div>
+          <textarea
+            id="content"
+            placeholder="Write your blog post content in Markdown..."
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            rows={15}
+            required
+            className="form-textarea"
+          />
+        </div>
+
+        {showPreview && (
+          <div className="form-section">
+            <label>Preview</label>
+            <div className="markdown-preview">
+              <div
+                className="preview-content"
+                dangerouslySetInnerHTML={{ __html: htmlPreview }}
+              />
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="error-message">
+            <FaTimes size={14} />
+            {error}
+          </div>
+        )}
+
+        <div className="form-actions">
+          <button type="submit" disabled={loading} className="submit-btn">
+            <FaSave size={14} />
+            {loading ? "Saving..." : post ? "Update Post" : "Create Post"}
+          </button>
+        </div>
       </div>
     </form>
   );

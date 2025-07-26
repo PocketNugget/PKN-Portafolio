@@ -10,6 +10,7 @@ import NavBar from "./components/NavBar";
 import MainPage from "./pages/MainPage";
 import LinksPage from "./pages/LinksPage";
 import BlogPage from "./pages/BlogPage";
+import BlogPostPage from "./pages/BlogPostPage";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -31,6 +32,7 @@ function App() {
           <Route path="/" element={<MainPage />} />
           <Route path="/links" element={<LinksPage />} />
           <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:id" element={<BlogPostPage />} />
           <Route path="/admin/login" element={<LoginPage />} />
           <Route
             path="/admin/dashboard"

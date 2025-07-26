@@ -15,9 +15,11 @@ services:
     command: deno run --allow-net --allow-read --allow-write --allow-env --unstable-fs app.ts
     ports:
       - "8000:8000"
+    environment:
+      - JWT_SECRET=thisisareallylongsecretkeythatisdefinitelymorethan32characterslongandshouldworkwiththejwtlibrary
     volumes:
       - ../backend:/app
-      - sqlite_data:/app/data
+      - sqlite_data:/data
     depends_on:
       - db
   db:

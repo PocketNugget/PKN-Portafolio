@@ -1,7 +1,7 @@
 import { DB } from "./deps.ts";
 
 // Open a database (creates file if not exists)
-const db = new DB("./data/data.db");
+const db = new DB("/data/data.db");
 
 // Example: create tables if not exist
 // Blog table: id, title, content, created_at
@@ -27,6 +27,25 @@ db.execute(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
+
+// Add missing columns if they don't exist (for existing databases)
+try {
+  db.execute("ALTER TABLE portfolio ADD COLUMN link TEXT;");
+} catch (error) {
+  // Column already exists, ignore error
+}
+
+try {
+  db.execute("ALTER TABLE portfolio ADD COLUMN image TEXT;");
+} catch (error) {
+  // Column already exists, ignore error
+}
+
+try {
+  db.execute("ALTER TABLE blog ADD COLUMN tags TEXT;");
+} catch (error) {
+  // Column already exists, ignore error
+}
 
 db.execute(`
   CREATE TABLE IF NOT EXISTS user (
