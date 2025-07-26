@@ -510,24 +510,14 @@ body {
 }
 
 .avatar-core {
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  background: var(--gradient-primary);
+  width: 400px;
+  height: 400px;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-glow);
   position: relative;
   z-index: 3;
-}
-
-.avatar-core::before {
-  content: "";
-  position: absolute;
-  inset: 4px;
-  background: var(--primary-bg);
-  border-radius: 50%;
 }
 
 .avatar-placeholder {
@@ -1962,25 +1952,13 @@ body {
   }
 
   .hero-avatar {
-    width: 200px;
-    height: 200px;
+    width: 300px;
+    height: 300px;
   }
 
-  .ring-1 {
-    width: 200px;
-    height: 200px;
-  }
-  .ring-2 {
-    width: 170px;
-    height: 170px;
-  }
-  .ring-3 {
-    width: 140px;
-    height: 140px;
-  }
   .avatar-core {
-    width: 120px;
-    height: 120px;
+    width: 300px;
+    height: 300px;
   }
 }
 
@@ -1990,8 +1968,13 @@ body {
   }
 
   .hero-avatar {
-    width: 200px;
-    height: 200px;
+    width: 300px;
+    height: 300px;
+  }
+
+  .avatar-core {
+    width: 300px;
+    height: 300px;
   }
 
   .avatar-placeholder {
@@ -4101,4 +4084,14 @@ body {
   box-shadow: none;
   cursor: default;
   transition: background 0.18s, color 0.18s;
+}
+
+.nugg-avatar-img {
+  width: 400px;
+  height: 400px;
+  object-fit: contain;
+  background: transparent;
+  display: block;
+  margin: 0 auto;
+  border-radius: 0;
 }

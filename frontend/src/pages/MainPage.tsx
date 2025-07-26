@@ -711,12 +711,13 @@ export default function MainPage() {
 
           <div className="hero-visual">
             <div className="hero-avatar">
-              <div className="avatar-ring ring-1"></div>
-              <div className="avatar-ring ring-2"></div>
-              <div className="avatar-ring ring-3"></div>
               <div className="avatar-core">
                 <div className="avatar-placeholder">
-                  <i className="fas fa-user-secret"></i>
+                  <img
+                    src="/Nugg.png"
+                    alt="PocketNugget"
+                    className="nugg-avatar-img"
+                  />
                 </div>
               </div>
             </div>
