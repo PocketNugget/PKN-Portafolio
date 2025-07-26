@@ -1,7 +1,7 @@
 import { DB } from "./deps.ts";
 
 // Open a database (creates file if not exists)
-const db = new DB("./data.db");
+const db = new DB("./data/data.db");
 
 // Example: create tables if not exist
 // Blog table: id, title, content, created_at

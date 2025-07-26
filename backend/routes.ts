@@ -30,28 +30,35 @@ async function requireAuth(ctx: any, next: any) {
 
 // Login route (POST /api/auth)
 router.post("/api/auth", async (ctx) => {
-  const { username, password } = await ctx.request.body({ type: "json" }).value;
-  // Find user in DB
-  const user = [
-    ...db.query(
-      "SELECT id, username, password_hash FROM user WHERE username = ?",
-      [username]
-    ),
-  ][0];
-  if (!user) {
-    ctx.response.status = 401;
-    ctx.response.body = { error: "Invalid credentials" };
-    return;
+  try {
+    const body = await ctx.request.body;
+    const { username, password } = body;
+    // Find user in DB
+    const user = [
+      ...db.query(
+        "SELECT id, username, password_hash FROM user WHERE username = ?",
+        [username]
+      ),
+    ][0];
+    if (!user) {
+      ctx.response.status = 401;
+      ctx.response.body = { error: "Invalid credentials" };
+      return;
+    }
+    // Secure: compare bcrypt hash
+    const valid = await verifyPassword(password, user[2]);
+    if (!valid) {
+      ctx.response.status = 401;
+      ctx.response.body = { error: "Invalid credentials" };
+      return;
+    }
+    const token = await createJWT({ id: user[0], username: user[1] });
+    ctx.response.body = { token };
+  } catch (error) {
+    console.error("Login error:", error);
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Internal server error" };
   }
-  // Secure: compare bcrypt hash
-  const valid = await verifyPassword(password, user[2]);
-  if (!valid) {
-    ctx.response.status = 401;
-    ctx.response.body = { error: "Invalid credentials" };
-    return;
-  }
-  const token = await createJWT({ id: user[0], username: user[1] });
-  ctx.response.body = { token };
 });
 
 // Protected dashboard route
@@ -95,7 +102,7 @@ router.get("/api/analytics", requireAuth, (ctx) => {
 // --- BLOG CRUD ---
 // Create blog post (protected)
 router.post("/api/blog", requireAuth, async (ctx) => {
-  const { title, content } = await ctx.request.body({ type: "json" }).value;
+  const { title, content } = await ctx.request.body().value;
   db.query("INSERT INTO blog (title, content) VALUES (?, ?)", [title, content]);
   ctx.response.body = { message: "Blog post created" };
 });
@@ -141,7 +148,7 @@ router.get("/api/blog/:id", async (ctx) => {
 // Update blog post (protected)
 router.put("/api/blog/:id", requireAuth, async (ctx) => {
   const id = ctx.params.id;
-  const { title, content } = await ctx.request.body({ type: "json" }).value;
+  const { title, content } = await ctx.request.body().value;
   db.query("UPDATE blog SET title = ?, content = ? WHERE id = ?", [
     title,
     content,
@@ -160,9 +167,7 @@ router.delete("/api/blog/:id", requireAuth, (ctx) => {
 // --- PORTFOLIO CRUD ---
 // Create portfolio item (protected)
 router.post("/api/portfolio", requireAuth, async (ctx) => {
-  const { title, description, link, image } = await ctx.request.body({
-    type: "json",
-  }).value;
+  const { title, description, link, image } = await ctx.request.body().value;
   db.query(
     "INSERT INTO portfolio (title, description, link, image) VALUES (?, ?, ?, ?)",
     [title, description, link, image]
@@ -208,9 +213,7 @@ router.get("/api/portfolio/:id", async (ctx) => {
 // Update portfolio item (protected)
 router.put("/api/portfolio/:id", requireAuth, async (ctx) => {
   const id = ctx.params.id;
-  const { title, description, link, image } = await ctx.request.body({
-    type: "json",
-  }).value;
+  const { title, description, link, image } = await ctx.request.body().value;
   db.query(
     "UPDATE portfolio SET title = ?, description = ?, link = ?, image = ? WHERE id = ?",
     [title, description, link, image, id]

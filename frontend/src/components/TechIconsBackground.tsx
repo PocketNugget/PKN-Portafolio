@@ -147,7 +147,7 @@ const TechIconsBackground: React.FC = () => {
         left: 0,
         width: "100vw",
         height: "100vh",
-        zIndex: 1,
+        zIndex: -1,
         pointerEvents: "none",
       }}
     >
@@ -165,8 +165,8 @@ const TechIconsBackground: React.FC = () => {
                 left: "50%",
                 width: ICON_SIZE,
                 height: ICON_SIZE,
-                opacity: 0.13,
-                filter: "blur(1.5px)",
+                opacity: 0.03,
+                filter: "blur(2px)",
                 transition: "opacity 0.3s",
                 pointerEvents: "none",
               }}

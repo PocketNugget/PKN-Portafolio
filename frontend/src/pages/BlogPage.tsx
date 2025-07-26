@@ -1,92 +1,264 @@
 import React, { useEffect, useState } from "react";
-import { fetchBlogPosts } from "../api";
-import { BlogPost } from "@shared/types";
 import { motion } from "framer-motion";
-import { FaBookOpen, FaSearch } from "react-icons/fa";
+import {
+  FaBookOpen,
+  FaSearch,
+  FaCalendar,
+  FaUser,
+  FaTags,
+  FaArrowRight,
+  FaEye,
+} from "react-icons/fa";
+import { fetchBlogPosts } from "../api";
+// Local interface for development - will use shared types in production
+interface BlogPost {
+  id: number;
+  title: string;
+  content: string;
+  html?: string;
+  created_at: string;
+}
 
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchBlogPosts().then(setPosts);
+    fetchBlogPosts()
+      .then(setPosts)
+      .finally(() => setLoading(false));
   }, []);
 
-  const filtered = posts.filter(
-    (p) =>
-      p.title.toLowerCase().includes(search.toLowerCase()) ||
-      p.content.toLowerCase().includes(search.toLowerCase())
-  );
+  // Extract categories from posts
+  const categories = ["all"];
+  posts.forEach((post) => {
+    if (post.content.toLowerCase().includes("cybersecurity"))
+      categories.push("cybersecurity");
+    if (
+      post.content.toLowerCase().includes("ai") ||
+      post.content.toLowerCase().includes("machine learning")
+    )
+      categories.push("ai-ml");
+    if (post.content.toLowerCase().includes("ctf")) categories.push("ctf");
+    if (post.content.toLowerCase().includes("development"))
+      categories.push("development");
+  });
+  const uniqueCategories = Array.from(new Set(categories));
+
+  const filtered = posts.filter((post) => {
+    const matchesSearch =
+      post.title.toLowerCase().includes(search.toLowerCase()) ||
+      post.content.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "all" ||
+      (selectedCategory === "cybersecurity" &&
+        post.content.toLowerCase().includes("cybersecurity")) ||
+      (selectedCategory === "ai-ml" &&
+        (post.content.toLowerCase().includes("ai") ||
+          post.content.toLowerCase().includes("machine learning"))) ||
+      (selectedCategory === "ctf" &&
+        post.content.toLowerCase().includes("ctf")) ||
+      (selectedCategory === "development" &&
+        post.content.toLowerCase().includes("development"));
+    return matchesSearch && matchesCategory;
+  });
+
+  const featuredPost = filtered[0];
+  const regularPosts = filtered.slice(1);
+
+  if (loading) {
+    return (
+      <div className="blog-page">
+        <div className="loading-spinner">
+          <div className="spinner"></div>
+          <p>Loading blog posts...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="blog-page">
-      <h1>Blog</h1>
+      {/* Hero Section */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        className="blog-hero"
+        initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        style={{
-          marginBottom: 24,
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-        }}
+        transition={{ duration: 0.7 }}
       >
-        <FaSearch style={{ color: "#00fff7", fontSize: 20 }} />
-        <input
-          type="text"
-          placeholder="Search blog posts..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            background: "#181c24",
-            color: "#39ff14",
-            border: "1.5px solid #00fff7",
-            borderRadius: 6,
-            padding: "0.5em 1em",
-            fontSize: 16,
-            width: 280,
-            outline: "none",
-          }}
-          aria-label="Search blog posts"
-        />
+        <h1>Cybersecurity & AI Blog</h1>
+        <p>Insights, tutorials, and research from the field</p>
       </motion.div>
-      <section>
-        {filtered.length === 0 && (
-          <div style={{ color: "#ff3860", marginTop: 24 }}>No posts found.</div>
-        )}
-        {filtered.map((post, i) => (
-          <motion.div
-            key={post.id}
-            className="blog-post"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08, duration: 0.6, type: "spring" }}
-            whileHover={{
-              scale: 1.025,
-              boxShadow: "0 0 32px #39ff14, 0 0 16px #00fff7",
-            }}
-            style={{ position: "relative" }}
-          >
-            <FaBookOpen
-              size={32}
-              style={{
-                position: "absolute",
-                top: 18,
-                right: 24,
-                color: "#00fff7",
-                filter: "drop-shadow(0 0 8px #00fff7)",
-                zIndex: 2,
-              }}
-            />
-            <h2>{post.title}</h2>
-            <div dangerouslySetInnerHTML={{ __html: post.html || "" }} />
-            <div className="date">
-              {new Date(post.created_at).toLocaleString()}
+
+      {/* Search and Filters */}
+      <motion.div
+        className="blog-controls"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.7 }}
+      >
+        <div className="search-container">
+          <FaSearch className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search articles..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="search-input"
+          />
+        </div>
+
+        <div className="category-filters">
+          {uniqueCategories.map((category) => (
+            <button
+              key={category}
+              className={`category-btn ${
+                selectedCategory === category ? "active" : ""
+              }`}
+              onClick={() => setSelectedCategory(category)}
+            >
+              {category === "all"
+                ? "All Posts"
+                : category === "cybersecurity"
+                ? "Cybersecurity"
+                : category === "ai-ml"
+                ? "AI & ML"
+                : category === "ctf"
+                ? "CTF"
+                : category === "development"
+                ? "Development"
+                : category}
+            </button>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Featured Post */}
+      {featuredPost && (
+        <motion.div
+          className="featured-post"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.7 }}
+        >
+          <div className="featured-badge">Featured</div>
+          <div className="featured-content">
+            <h2>{featuredPost.title}</h2>
+            <div className="post-meta">
+              <span>
+                <FaCalendar />{" "}
+                {new Date(featuredPost.created_at).toLocaleDateString()}
+              </span>
+              <span>
+                <FaUser /> PocketNugget
+              </span>
+              <span>
+                <FaEye /> Featured Article
+              </span>
             </div>
-          </motion.div>
-        ))}
-      </section>
+            <div className="post-excerpt">
+              {featuredPost.content.length > 300
+                ? `${featuredPost.content.substring(0, 300)}...`
+                : featuredPost.content}
+            </div>
+            <button className="read-more-btn">
+              Read Full Article <FaArrowRight />
+            </button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Regular Posts Grid */}
+      <motion.div
+        className="posts-grid"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4, duration: 0.7 }}
+      >
+        <h3>Latest Articles</h3>
+
+        {filtered.length === 0 ? (
+          <div className="no-posts">
+            <FaBookOpen size={48} />
+            <h4>No posts found</h4>
+            <p>Try adjusting your search or category filters</p>
+          </div>
+        ) : (
+          <div className="posts-container">
+            {regularPosts.map((post, i) => (
+              <motion.article
+                key={post.id}
+                className="post-card"
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * i, duration: 0.6 }}
+                whileHover={{
+                  scale: 1.02,
+                  boxShadow: "0 8px 32px rgba(0, 255, 247, 0.2)",
+                }}
+              >
+                <div className="post-header">
+                  <h4>{post.title}</h4>
+                  <div className="post-meta">
+                    <span>
+                      <FaCalendar />{" "}
+                      {new Date(post.created_at).toLocaleDateString()}
+                    </span>
+                    <span>
+                      <FaUser /> PocketNugget
+                    </span>
+                  </div>
+                </div>
+
+                <div className="post-excerpt">
+                  {post.content.length > 150
+                    ? `${post.content.substring(0, 150)}...`
+                    : post.content}
+                </div>
+
+                <div className="post-tags">
+                  {post.content.toLowerCase().includes("cybersecurity") && (
+                    <span className="tag cybersecurity">Cybersecurity</span>
+                  )}
+                  {post.content.toLowerCase().includes("ai") && (
+                    <span className="tag ai">AI</span>
+                  )}
+                  {post.content.toLowerCase().includes("ctf") && (
+                    <span className="tag ctf">CTF</span>
+                  )}
+                  {post.content.toLowerCase().includes("development") && (
+                    <span className="tag development">Development</span>
+                  )}
+                </div>
+
+                <button className="read-more-btn small">
+                  Read More <FaArrowRight />
+                </button>
+              </motion.article>
+            ))}
+          </div>
+        )}
+      </motion.div>
+
+      {/* Newsletter Signup */}
+      <motion.div
+        className="newsletter-signup"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 0.7 }}
+      >
+        <h3>Stay Updated</h3>
+        <p>
+          Get the latest cybersecurity insights and AI research delivered to
+          your inbox
+        </p>
+        <div className="newsletter-form">
+          <input type="email" placeholder="Enter your email" />
+          <button>Subscribe</button>
+        </div>
+      </motion.div>
     </div>
   );
 }
