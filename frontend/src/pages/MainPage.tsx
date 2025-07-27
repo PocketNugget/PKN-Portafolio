@@ -140,6 +140,7 @@ export default function MainPage() {
         "iOS",
         "Hackathon",
       ],
+      githubUrl: "https://github.com/goben-diego/wayzt-app",
       date: "February - March 2024",
       achievement: "1st Place Hackathon Winner",
       category: "development",
@@ -180,6 +181,47 @@ export default function MainPage() {
     },
     {
       id: 6,
+      title: "Personal Portfolio Website - PKN-Portafolio",
+      description:
+        "Full-stack portfolio website built with React frontend and Deno backend, featuring blog management, admin dashboard, and responsive design. Hosted on Raspberry Pi 5 homelab server with Docker containerization.",
+      technologies: [
+        "React",
+        "TypeScript",
+        "Deno",
+        "SQLite",
+        "Docker",
+        "Raspberry Pi",
+        "CSS3",
+        "JWT Auth",
+      ],
+      githubUrl: "https://github.com/goben-diego/PKN-Portafolio",
+      demoUrl: "https://pocketnugget.com",
+      date: "January 2025 - Present",
+      achievement: "Self-Hosted Portfolio",
+      category: "development",
+    },
+    {
+      id: 7,
+      title: "Where2Skate - Android Skatepark Discovery App",
+      description:
+        "Community-driven Android application for discovering, sharing, and rating skateparks and street spots. Built with Kotlin and Jetpack Compose, featuring Firebase authentication, Google Maps integration, and real-time database with Cloud Firestore.",
+      technologies: [
+        "Kotlin",
+        "Jetpack Compose",
+        "Firebase",
+        "Google Maps",
+        "Cloud Firestore",
+        "Android",
+      ],
+      githubUrl: "https://github.com/goben-diego/where2skate",
+      demoUrl:
+        "https://play.google.com/store/apps/details?id=com.example.where2skate",
+      date: "December 2024 - Present",
+      achievement: "Community-Driven App",
+      category: "development",
+    },
+    {
+      id: 8,
       title: "Hackztecs Cybersecurity Organization Leadership",
       description:
         "Leading and mentoring competitive cybersecurity teams through 8+ national and international Capture the Flag events. Organized workshops and training sessions on security topics.",

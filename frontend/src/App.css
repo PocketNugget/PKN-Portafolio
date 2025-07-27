@@ -1316,6 +1316,11 @@ body {
   text-decoration: none;
   font-weight: 500;
   transition: var(--transition);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
 }
 
 .project-link:hover {
