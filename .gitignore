@@ -110,7 +110,9 @@ dist
 
 # Gatsby files
 .cache/
-public
+
+# React public directory (allow favicon and static assets)
+# frontend/public/
 
 # Storybook build outputs
 .out
