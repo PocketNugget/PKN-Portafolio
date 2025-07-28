@@ -784,11 +784,6 @@ export default function MainPage() {
             </div>
           </div>
         </div>
-
-        <div className="scroll-indicator">
-          <div className="scroll-arrow"></div>
-          <span className="scroll-text">Scroll to explore</span>
-        </div>
       </section>
 
       {/* About Section */}
