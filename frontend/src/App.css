@@ -238,13 +238,7 @@ body {
   animation-delay: 4s;
 }
 
-.shape-4 {
-  width: 100px;
-  height: 100px;
-  top: 10%;
-  right: 30%;
-  animation-delay: 1s;
-}
+/* Removed shape-4 to prevent conflicts with buttons */
 
 @keyframes float {
   0%,
