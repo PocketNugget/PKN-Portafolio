@@ -3,17 +3,17 @@
   "name": "PocketNugget | Cybersecurity & AI Researcher Portfolio",
   "icons": [
     {
-      "src": "favicon.png",
+      "src": "favicon.png?v=2",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/png"
     },
     {
-      "src": "Nugg.png",
+      "src": "favicon.png?v=2",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "Nugg.png",
+      "src": "favicon.png?v=2",
       "type": "image/png",
       "sizes": "512x512"
     }
