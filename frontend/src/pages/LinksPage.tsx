@@ -58,17 +58,38 @@ const links = [
 export default function LinksPage() {
   return (
     <div className="links-page-modern">
-      <motion.h1
+      {/* Matrix Background Animation */}
+      <div className="matrix-background">
+        <div className="matrix-rain"></div>
+      </div>
+
+      {/* Header with Nugg Icon */}
+      <motion.div
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="links-header"
+        className="links-header-container"
       >
-        <span role="img" aria-label="links">
-          🔗
-        </span>{" "}
-        My Links
-      </motion.h1>
+        <div className="nugg-header">
+          <img
+            src="/Nugg.png"
+            alt="PocketNugget"
+            className="nugg-header-icon"
+          />
+          <h2 className="nugg-header-text">Goben | PocketNugget</h2>
+        </div>
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="links-header"
+        >
+          <span role="img" aria-label="links">
+            🔗
+          </span>{" "}
+          My Links
+        </motion.h1>
+      </motion.div>
       <motion.section
         className="links-grid"
         initial="hidden"

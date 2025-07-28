@@ -2054,6 +2054,106 @@ body {
     text-align: center;
   }
 
+  /* Enhanced mobile hero optimizations */
+  .hero-section {
+    padding: 1rem;
+    min-height: 100vh;
+  }
+
+  .hero-content {
+    gap: 1.5rem;
+    padding: 0;
+  }
+
+  .hero-typing {
+    font-size: 1rem;
+    min-height: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-description {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-stats .stat-number {
+    font-size: 1rem;
+  }
+
+  .hero-stats .stat-label {
+    font-size: 0.7rem;
+  }
+
+  .hero-stats .stat-item {
+    padding: 0.5rem;
+  }
+
+  .hero-actions {
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-socials {
+    justify-content: center;
+  }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 320px) {
+  .hero-section {
+    padding: 0.5rem;
+  }
+
+  .hero-title {
+    font-size: 1.4rem;
+    line-height: 1.1;
+  }
+
+  .hero-name {
+    font-size: 1.2rem;
+  }
+
+  .hero-role {
+    font-size: 0.9rem;
+  }
+
+  .hero-typing {
+    font-size: 0.9rem;
+    min-height: 1.2rem;
+  }
+
+  .hero-description {
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .hero-stats {
+    gap: 0.5rem;
+  }
+
+  .hero-stats .stat-item {
+    padding: 0.4rem;
+  }
+
+  .hero-stats .stat-number {
+    font-size: 0.9rem;
+  }
+
+  .hero-stats .stat-label {
+    font-size: 0.65rem;
+  }
+
+  .btn {
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .social-link {
+    width: 40px;
+    height: 40px;
+    font-size: 0.9rem;
+  }
+
   /* Grid improvements */
   .projects-grid {
     grid-template-columns: 1fr;
@@ -3732,19 +3832,85 @@ body {
     font-size: 2rem;
   }
 
+  .login-form {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+
+  .login-form input {
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
+
+  .login-form button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  /* Dashboard Mobile Optimizations */
+  .dashboard-page {
+    padding: 1rem;
+  }
+
   .dashboard-header {
     flex-direction: column;
     gap: 1rem;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
+    padding: 1rem;
   }
 
-  .dashboard-actions {
-    width: 100%;
-    justify-content: space-between;
+  .header-left {
+    align-items: center;
+  }
+
+  .header-right {
+    justify-content: center;
+  }
+
+  .stats-cards {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .dashboard-tabs {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .tab-btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
   }
 
   .dashboard-content {
     grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+
+  .content-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .content-card {
+    padding: 1rem;
+  }
+
+  .card-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .action-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
   }
 
   .admin-form {
@@ -3753,6 +3919,344 @@ body {
 
   .admin-form .form-actions {
     flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-overlay {
+    padding: 1rem;
+  }
+
+  .form-container {
+    width: 95%;
+    max-width: none;
+    margin: 1rem;
+  }
+
+  /* Analytics Mobile */
+  .analytics-summary {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .visit-info {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  /* Blog Page Mobile */
+  .blog-page {
+    padding: 1rem;
+  }
+
+  .blog-hero h1 {
+    font-size: 1.8rem;
+  }
+
+  .blog-hero p {
+    font-size: 1rem;
+  }
+
+  .blog-controls {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .search-container {
+    width: 100%;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.75rem;
+  }
+
+  .category-filters {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .category-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .featured-content h2 {
+    font-size: 1.4rem;
+  }
+
+  .posts-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .post-card {
+    padding: 1rem;
+  }
+
+  .post-header h4 {
+    font-size: 1.1rem;
+  }
+
+  /* Blog Post Page Mobile */
+  .blog-post-page {
+    padding: 1rem;
+  }
+
+  .blog-post-title {
+    font-size: 1.6rem;
+  }
+
+  .blog-post-header,
+  .blog-post-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .footer-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .footer-actions .btn-secondary,
+  .footer-actions .btn-primary {
+    width: 100%;
+    padding: 0.75rem;
+  }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+  /* Login Page */
+  .login-page {
+    padding: 0.5rem;
+  }
+
+  .login-page h1 {
+    font-size: 1.6rem;
+  }
+
+  .login-form {
+    padding: 1rem;
+    margin: 0.5rem;
+  }
+
+  .login-form input {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
+
+  .login-form button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+
+  /* Dashboard */
+  .dashboard-page {
+    padding: 0.5rem;
+  }
+
+  .dashboard-header {
+    padding: 0.5rem;
+  }
+
+  .user-info h1 {
+    font-size: 1.4rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+
+  .tab-btn {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .content-card {
+    padding: 0.8rem;
+  }
+
+  .card-header h3 {
+    font-size: 1rem;
+  }
+
+  .action-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+  }
+
+  /* Blog Page */
+  .blog-page {
+    padding: 0.5rem;
+  }
+
+  .blog-hero h1 {
+    font-size: 1.5rem;
+  }
+
+  .blog-hero p {
+    font-size: 0.9rem;
+  }
+
+  .search-input {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
+
+  .category-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+  }
+
+  .featured-content h2 {
+    font-size: 1.2rem;
+  }
+
+  .post-card {
+    padding: 0.8rem;
+  }
+
+  .post-header h4 {
+    font-size: 1rem;
+  }
+
+  /* Blog Post Page */
+  .blog-post-page {
+    padding: 0.5rem;
+  }
+
+  .blog-post-title {
+    font-size: 1.4rem;
+  }
+
+  .back-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .footer-actions .btn-secondary,
+  .footer-actions .btn-primary {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
+
+  /* Links Page */
+  .links-page-modern {
+    padding: 4rem 0.5rem 1rem;
+  }
+
+  .nugg-header-icon {
+    width: 45px;
+    height: 45px;
+    padding: 5px;
+  }
+
+  .nugg-header-text {
+    font-size: 0.9rem;
+  }
+
+  .links-header {
+    font-size: 1.3rem;
+  }
+
+  .link-card {
+    padding: 0.8rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .link-icon {
+    font-size: 1.3rem;
+  }
+
+  .link-label {
+    font-size: 1rem;
+  }
+
+  /* Touch-friendly improvements for all pages */
+  .btn,
+  .tab-btn,
+  .action-btn,
+  .category-btn,
+  .link-card,
+  .post-card {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Better form handling on mobile */
+  .form-input,
+  .form-textarea,
+  .search-input {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  /* Improved spacing for mobile */
+  .content-grid,
+  .posts-container,
+  .links-grid {
+    gap: 0.8rem;
+  }
+
+  /* Better modal handling */
+  .form-overlay {
+    padding: 0.5rem;
+  }
+
+  .form-container {
+    width: 98%;
+    margin: 0.5rem;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* Blog Admin Form Mobile */
+  .blog-admin-form {
+    padding: 0.8rem;
+  }
+
+  .form-section {
+    margin-bottom: 1rem;
+  }
+
+  .form-section label {
+    font-size: 0.9rem;
+  }
+
+  .preview-toggle {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .markdown-preview {
+    padding: 0.8rem;
+  }
+
+  .preview-content {
+    font-size: 0.9rem;
+  }
+
+  .preview-content h1,
+  .preview-content h2,
+  .preview-content h3 {
+    font-size: 1.1rem;
+  }
+
+  /* Better mobile navigation */
+  .nav-menu {
+    padding: 1rem;
+  }
+
+  .nav-link {
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+  }
+
+  /* Mobile scroll improvements */
+  .dashboard-content,
+  .blog-page,
+  .blog-post-page {
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -4184,6 +4688,115 @@ body {
   flex-direction: column;
   align-items: center;
   padding: 6rem 1rem 2rem 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Matrix Background Animation */
+.matrix-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.matrix-rain {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 255, 0, 0.1) 50%,
+    transparent 100%
+  );
+  animation: matrixRain 20s linear infinite;
+}
+
+.matrix-rain::before {
+  content: "01";
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 200%;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0%,
+    transparent 2%,
+    rgba(0, 255, 0, 0.1) 2.5%,
+    rgba(0, 255, 0, 0.1) 3%,
+    transparent 3.5%,
+    transparent 100%
+  );
+  animation: matrixScroll 15s linear infinite;
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  color: rgba(0, 255, 0, 0.3);
+  line-height: 1.2;
+  white-space: pre-wrap;
+}
+
+@keyframes matrixRain {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes matrixScroll {
+  0% {
+    transform: translateY(-50%);
+  }
+  100% {
+    transform: translateY(50%);
+  }
+}
+
+/* Links Header Container */
+.links-header-container {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.nugg-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.nugg-header-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-bottom: 0.5rem;
+  border: 2px solid var(--accent-blue);
+  background: rgba(0, 212, 255, 0.1);
+  padding: 8px;
+  transition: var(--transition);
+}
+
+.nugg-header-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+.nugg-header-text {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--accent-blue);
+  margin: 0;
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
 }
 
 .links-header {
@@ -4203,6 +4816,8 @@ body {
   gap: 2rem;
   width: 100%;
   max-width: 800px;
+  position: relative;
+  z-index: 10;
 }
 
 .link-card {
@@ -4256,6 +4871,21 @@ body {
   }
   .link-icon {
     font-size: 1.5rem;
+  }
+
+  /* Mobile styles for new header elements */
+  .nugg-header-icon {
+    width: 50px;
+    height: 50px;
+    padding: 6px;
+  }
+
+  .nugg-header-text {
+    font-size: 1rem;
+  }
+
+  .links-header-container {
+    margin-bottom: 2rem;
   }
 }
 
