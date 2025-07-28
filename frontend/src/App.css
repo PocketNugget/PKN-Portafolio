@@ -462,6 +462,11 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 650px;
+  margin: 0 auto;
 }
 
 .hero-avatar {
@@ -511,8 +516,8 @@ body {
 }
 
 .avatar-core {
-  width: 400px;
-  height: 400px;
+  width: 600px;
+  height: 600px;
   background: transparent;
   display: flex;
   align-items: center;
@@ -1940,14 +1945,21 @@ body {
   }
 
   .hero-avatar {
-    width: 140px;
-    height: 140px;
+    width: 100%;
+    max-width: 200px;
+    height: auto;
     margin: 0 auto;
   }
 
   .avatar-core {
-    width: 140px;
-    height: 140px;
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+  }
+
+  .nugg-avatar-img {
+    max-width: 200px;
+    filter: drop-shadow(0 6px 24px rgba(0, 212, 255, 0.12));
   }
 
   .hero-visual {
@@ -2005,13 +2017,20 @@ body {
 
   /* Avatar sizing */
   .hero-avatar {
-    width: 120px;
-    height: 120px;
+    width: 100%;
+    max-width: 160px;
+    height: auto;
   }
 
   .avatar-core {
-    width: 120px;
-    height: 120px;
+    width: 100%;
+    max-width: 160px;
+    height: auto;
+  }
+
+  .nugg-avatar-img {
+    max-width: 160px;
+    filter: drop-shadow(0 4px 16px rgba(0, 212, 255, 0.1));
   }
 
   .hero-content {
@@ -2207,13 +2226,20 @@ body {
   }
 
   .hero-avatar {
-    width: 100px;
-    height: 100px;
+    width: 100%;
+    max-width: 120px;
+    height: auto;
   }
 
   .avatar-core {
-    width: 100px;
-    height: 100px;
+    width: 100%;
+    max-width: 120px;
+    height: auto;
+  }
+
+  .nugg-avatar-img {
+    max-width: 120px;
+    filter: drop-shadow(0 3px 12px rgba(0, 212, 255, 0.08));
   }
 
   .hero-content {
@@ -5040,11 +5066,19 @@ body {
 }
 
 .nugg-avatar-img {
-  width: 400px;
-  height: 400px;
+  width: 100%;
+  max-width: 600px;
+  height: auto;
   object-fit: contain;
   background: transparent;
   display: block;
   margin: 0 auto;
   border-radius: 0;
+  filter: drop-shadow(0 8px 32px rgba(0, 212, 255, 0.15));
+  transition: all 0.3s ease;
+}
+
+.nugg-avatar-img:hover {
+  filter: drop-shadow(0 12px 40px rgba(0, 212, 255, 0.25));
+  transform: translateY(-2px);
 }
