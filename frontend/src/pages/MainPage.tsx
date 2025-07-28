@@ -88,7 +88,7 @@ export default function MainPage() {
 
   // Typing animation texts
   const typingTexts = [
-    "Cybersecurity Specialist",
+    "Cybersecurity Enthusiast",
     "AI Researcher",
     "SOC Analyst",
     "CTF Team Leader",
