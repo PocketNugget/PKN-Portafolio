@@ -1969,12 +1969,16 @@ body {
 
 @media (max-width: 480px) {
   /* Touch-friendly improvements */
-  .btn, .nav-link, .social-link, .project-link {
+  .btn,
+  .nav-link,
+  .social-link,
+  .project-link {
     min-height: 44px;
     min-width: 44px;
   }
 
-  .filter-btn, .category-btn {
+  .filter-btn,
+  .category-btn {
     min-height: 40px;
     padding: 0.6rem 1rem;
   }
@@ -2092,7 +2096,8 @@ body {
   }
 
   /* Form improvements */
-  .form-input, .form-textarea {
+  .form-input,
+  .form-textarea {
     font-size: 16px; /* Prevents zoom on iOS */
   }
 
@@ -2685,8 +2690,6 @@ body {
     gap: 1.5rem;
   }
 
-
-
   .category-filters {
     flex-wrap: wrap;
     gap: 0.5rem;
@@ -2707,20 +2710,19 @@ body {
   }
 }
 
-  .post-meta {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
+.post-meta {
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
-  .newsletter-form {
-    flex-direction: column;
-  }
+.newsletter-form {
+  flex-direction: column;
+}
 
-  .category-filters {
-    justify-content: flex-start;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-  }
+.category-filters {
+  justify-content: flex-start;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
 }
 
 /* Login Page Styles */
