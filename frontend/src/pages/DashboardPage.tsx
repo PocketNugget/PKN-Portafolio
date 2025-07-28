@@ -59,12 +59,12 @@ export default function DashboardPage() {
       try {
         const [statsRes, postsRes, portfolioRes, analyticsRes] =
           await Promise.all([
-            fetch("http://localhost:8000/api/dashboard", {
+            fetch("/api/dashboard", {
               headers: { Authorization: `Bearer ${token}` },
             }),
             fetchBlogPosts(),
             fetchPortfolio(),
-            fetch("http://localhost:8000/api/analytics", {
+            fetch("/api/analytics", {
               headers: { Authorization: `Bearer ${token}` },
             }),
           ]);
