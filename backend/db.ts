@@ -51,9 +51,19 @@ db.execute(`
   CREATE TABLE IF NOT EXISTS user (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL
+    password_hash TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
+
+// Add created_at column to existing user table if it doesn't exist
+try {
+  db.execute(
+    "ALTER TABLE user ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP;"
+  );
+} catch (error) {
+  // Column already exists, ignore error
+}
 
 db.execute(`
   CREATE TABLE IF NOT EXISTS visits (

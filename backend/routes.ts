@@ -98,7 +98,152 @@ router.get("/api/analytics", requireAuth, (ctx) => {
       "SELECT ip, user_agent, timestamp FROM visits ORDER BY timestamp DESC LIMIT 10"
     ),
   ].map(([ip, user_agent, timestamp]) => ({ ip, user_agent, timestamp }));
+
   ctx.response.body = { total, last10 };
+});
+
+// User Management Endpoints
+// Get all users (admin only)
+router.get("/api/users", requireAuth, (ctx) => {
+  try {
+    let users;
+    try {
+      users = [
+        ...db.query(
+          "SELECT id, username, created_at FROM user ORDER BY id DESC"
+        ),
+      ].map(([id, username, created_at]) => ({
+        id,
+        username,
+        created_at,
+      }));
+    } catch (error) {
+      // Fallback to basic query if created_at column doesn't exist
+      users = [
+        ...db.query("SELECT id, username FROM user ORDER BY id DESC"),
+      ].map(([id, username]) => ({
+        id,
+        username,
+        created_at: null,
+      }));
+    }
+    ctx.response.body = { users };
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Failed to fetch users" };
+  }
+});
+
+// Create new user (admin only)
+router.post("/api/users", requireAuth, async (ctx) => {
+  try {
+    const body = await ctx.request.body({ type: "json" }).value;
+    const { username, password } = body;
+
+    if (!username || !password) {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "Username and password are required" };
+      return;
+    }
+
+    // Check if user already exists
+    const existingUser = [
+      ...db.query("SELECT id FROM user WHERE username = ?", [username]),
+    ][0];
+
+    if (existingUser) {
+      ctx.response.status = 409;
+      ctx.response.body = { error: "Username already exists" };
+      return;
+    }
+
+    // Hash password and create user
+    const { hashPassword } = await import("./controllers.ts");
+    const hashedPassword = await hashPassword(password);
+
+    db.query("INSERT INTO user (username, password_hash) VALUES (?, ?)", [
+      username,
+      hashedPassword,
+    ]);
+
+    ctx.response.status = 201;
+    ctx.response.body = { message: "User created successfully", username };
+  } catch (error) {
+    console.error("Error creating user:", error);
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Failed to create user" };
+  }
+});
+
+// Update user password (admin only)
+router.put("/api/users/:id", requireAuth, async (ctx) => {
+  try {
+    const userId = parseInt(ctx.params.id);
+    const body = await ctx.request.body({ type: "json" }).value;
+    const { password } = body;
+
+    if (!password) {
+      ctx.response.status = 400;
+      ctx.response.body = { error: "Password is required" };
+      return;
+    }
+
+    // Check if user exists
+    const user = [...db.query("SELECT id FROM user WHERE id = ?", [userId])][0];
+
+    if (!user) {
+      ctx.response.status = 404;
+      ctx.response.body = { error: "User not found" };
+      return;
+    }
+
+    // Hash new password and update
+    const { hashPassword } = await import("./controllers.ts");
+    const hashedPassword = await hashPassword(password);
+
+    db.query("UPDATE user SET password_hash = ? WHERE id = ?", [
+      hashedPassword,
+      userId,
+    ]);
+
+    ctx.response.body = { message: "User password updated successfully" };
+  } catch (error) {
+    console.error("Error updating user:", error);
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Failed to update user" };
+  }
+});
+
+// Delete user (admin only)
+router.delete("/api/users/:id", requireAuth, (ctx) => {
+  try {
+    const userId = parseInt(ctx.params.id);
+
+    // Prevent deleting the admin user (assuming admin has ID 1)
+    if (userId === 1) {
+      ctx.response.status = 403;
+      ctx.response.body = { error: "Cannot delete admin user" };
+      return;
+    }
+
+    // Check if user exists
+    const user = [...db.query("SELECT id FROM user WHERE id = ?", [userId])][0];
+
+    if (!user) {
+      ctx.response.status = 404;
+      ctx.response.body = { error: "User not found" };
+      return;
+    }
+
+    db.query("DELETE FROM user WHERE id = ?", [userId]);
+
+    ctx.response.body = { message: "User deleted successfully" };
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Failed to delete user" };
+  }
 });
 
 // --- BLOG CRUD ---

@@ -117,3 +117,71 @@ export async function login(username: string, password: string) {
   }
   return data;
 }
+
+// User Management
+export async function getUsers(token: string) {
+  const res = await fetch(`${API_BASE}/users`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) {
+    throw new Error("Failed to fetch users");
+  }
+  const data = await res.json();
+  return data.users;
+}
+
+export async function createUser(
+  username: string,
+  password: string,
+  token: string
+) {
+  const res = await fetch(`${API_BASE}/users`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ username, password }),
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || "Failed to create user");
+  }
+  return res.json();
+}
+
+export async function updateUserPassword(
+  userId: number,
+  password: string,
+  token: string
+) {
+  const res = await fetch(`${API_BASE}/users/${userId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ password }),
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || "Failed to update user");
+  }
+  return res.json();
+}
+
+export async function deleteUser(userId: number, token: string) {
+  const res = await fetch(`${API_BASE}/users/${userId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || "Failed to delete user");
+  }
+  return res.json();
+}
