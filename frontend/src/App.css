@@ -1871,7 +1871,7 @@ body {
   }
 
   .hero-section {
-    padding-top: 5rem; /* Account for fixed navbar on mobile */
+    padding-top: 6rem; /* Increased padding for mobile navbar */
   }
 
   .nav-menu {
@@ -1981,14 +1981,14 @@ body {
   }
 
   .hero-avatar {
-    width: 250px;
-    height: 250px;
+    width: 180px;
+    height: 180px;
     margin: 0 auto;
   }
 
   .avatar-core {
-    width: 250px;
-    height: 250px;
+    width: 180px;
+    height: 180px;
   }
 
   .hero-visual {
@@ -2048,13 +2048,13 @@ body {
 
   /* Avatar sizing */
   .hero-avatar {
-    width: 200px;
-    height: 200px;
+    width: 150px;
+    height: 150px;
   }
 
   .avatar-core {
-    width: 200px;
-    height: 200px;
+    width: 150px;
+    height: 150px;
   }
 
   .hero-content {
@@ -2250,13 +2250,13 @@ body {
   }
 
   .hero-avatar {
-    width: 180px;
-    height: 180px;
+    width: 120px;
+    height: 120px;
   }
 
   .avatar-core {
-    width: 180px;
-    height: 180px;
+    width: 120px;
+    height: 120px;
   }
 
   .hero-content {
