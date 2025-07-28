@@ -465,7 +465,7 @@ body {
   position: relative;
   overflow: hidden;
   width: 100%;
-  max-width: 650px;
+  max-width: 850px;
   margin: 0 auto;
 }
 
@@ -516,8 +516,8 @@ body {
 }
 
 .avatar-core {
-  width: 600px;
-  height: 600px;
+  width: 800px;
+  height: 800px;
   background: transparent;
   display: flex;
   align-items: center;
@@ -5067,7 +5067,7 @@ body {
 
 .nugg-avatar-img {
   width: 100%;
-  max-width: 600px;
+  max-width: 800px;
   height: auto;
   object-fit: contain;
   background: transparent;
