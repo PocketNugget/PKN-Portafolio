@@ -679,10 +679,10 @@ export default function MainPage() {
             </div>
 
             <p className="hero-description">
-              Junior SOC Analyst at TBSEK with expertise in penetration testing,
-              machine learning, and secure software development. Published AI
-              researcher and Top 3.5% CTF competitor passionate about building
-              intelligent systems that protect against evolving cyber threats.
+              Junior SOC Analyst with expertise in penetration testing, machine
+              learning, and secure software development. Published AI researcher
+              and Top 3.5% CTF competitor passionate about building intelligent
+              systems that protect against evolving cyber threats.
             </p>
 
             <div className="hero-stats">
