@@ -18,6 +18,13 @@ package-lock.json
 *.db
 *.sqlite
 *.sqlite3
+
+# Security and sensitive files
+backend/USER_MANAGEMENT.md
+backend/add_user.ts
+.env
+.env.local
+.env.production
 backend/data.db
 backend/*.db
 

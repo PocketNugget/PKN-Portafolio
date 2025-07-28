@@ -59,7 +59,17 @@ git clone <repository-url>
 cd PKN-Portafolio
 ```
 
-### 2. Start with Docker (Recommended)
+### 2. Set up environment variables
+
+```bash
+# Copy the environment template
+cp env.example .env
+
+# Edit .env with your secure values
+# IMPORTANT: Change the default admin password immediately!
+```
+
+### 3. Start with Docker (Recommended)
 
 ```bash
 cd docker
@@ -94,14 +104,9 @@ npm start
 ### Admin Login
 
 - Go to: `http://localhost:3000/admin/login`
-- Default admin user is created automatically on first run:
-  - **Username:** `admin`
-  - **Password:** `admin123`
-- To change the password, run:
-  ```bash
-  cd backend
-  deno run --allow-read --allow-write --allow-env --unstable-fs set_admin_password.ts admin <newpassword>
-  ```
+- Default admin user is created automatically on first run
+- **⚠️ IMPORTANT**: Change the default admin password immediately after first login
+- To manage users, see `backend/USER_MANAGEMENT_TEMPLATE.md`
 
 ### Creating Blog Posts
 
@@ -141,7 +146,15 @@ npm start
 - **CORS protection** on API endpoints
 - **Input validation** on all forms
 - **SQL injection protection** via parameterized queries
+- **Environment variables** for sensitive configuration
 - **.gitignore** is set up to protect secrets, database files, and build artifacts
+
+### 🔒 Critical Security Steps
+
+1. **Change Default Passwords**: Immediately change the default admin password after setup
+2. **Environment Variables**: Use `.env` file for sensitive configuration (see `env.example`)
+3. **User Management**: Copy `backend/USER_MANAGEMENT_TEMPLATE.md` to `backend/USER_MANAGEMENT.md` for local use
+4. **Production Deployment**: Use HTTPS, proper firewall rules, and regular security audits
 
 ---
 

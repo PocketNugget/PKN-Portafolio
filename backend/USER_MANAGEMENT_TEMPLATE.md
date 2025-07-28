@@ -1,10 +1,14 @@
-# User Management System
+# User Management System - Template
 
-This document explains how to manage users for your website administration.
+This is a template for user management documentation. Copy this file to `USER_MANAGEMENT.md` and fill in your specific details.
 
 ## 🔐 Security First
 
-⚠️ **IMPORTANT**: This documentation contains sensitive information. Do NOT commit this file to a public repository.
+⚠️ **IMPORTANT**:
+
+- Copy this template to `USER_MANAGEMENT.md` for your local use
+- Do NOT commit the actual `USER_MANAGEMENT.md` file to version control
+- Keep your admin credentials secure and private
 
 ## 📋 How to Add Users
 
@@ -19,10 +23,6 @@ docker-compose exec backend deno run --allow-read --allow-write --unstable-fs ad
 
 # Delete a user
 docker-compose exec backend deno run --allow-read --allow-write --unstable-fs add_user.ts delete <username>
-
-# Examples:
-docker-compose exec backend deno run --allow-read --allow-write --unstable-fs add_user.ts add manager <secure-password>
-docker-compose exec backend deno run --allow-read --allow-write --unstable-fs add_user.ts delete manager
 ```
 
 ### Method 2: Using the API Directly
@@ -42,26 +42,14 @@ curl -X POST http://localhost:8000/api/users \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{"username":"newuser","password":"<secure-password>"}'
-
-# Update user password
-curl -X PUT http://localhost:8000/api/users/<user-id> \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{"password":"<new-secure-password>"}'
-
-# Delete a user
-curl -X DELETE http://localhost:8000/api/users/<user-id> \
-  -H "Authorization: Bearer $TOKEN"
 ```
 
 ## 🔒 Security Best Practices
 
 1. **Change Default Passwords**: Immediately change any default passwords after setup
 2. **Strong Passwords**: Use strong, unique passwords for each user (12+ characters, mix of letters, numbers, symbols)
-3. **Admin Protection**: The primary admin user cannot be deleted for security reasons
-4. **Token Security**: JWT tokens are used for authentication. Keep them secure and don't share them
-5. **Environment Variables**: Use environment variables for sensitive configuration
-6. **Regular Updates**: Regularly update user passwords and review access
+3. **Environment Variables**: Use environment variables for sensitive configuration
+4. **Regular Updates**: Regularly update user passwords and review access
 
 ## 🚀 Login to Dashboard
 
@@ -75,26 +63,6 @@ curl -X DELETE http://localhost:8000/api/users/<user-id> \
 - `POST /api/users` - Create new user (requires admin token)
 - `PUT /api/users/:id` - Update user password (requires admin token)
 - `DELETE /api/users/:id` - Delete user (requires admin token)
-
-## 🛠️ Troubleshooting
-
-### If the script doesn't work:
-
-1. Make sure the backend container is running: `docker-compose ps`
-2. Check backend logs: `docker-compose logs backend`
-3. Try the API method instead
-
-### If you can't login:
-
-1. Verify the user exists: `docker-compose exec backend deno run --allow-read --allow-write --unstable-fs add_user.ts list`
-2. Check if the password is correct
-3. Try creating a new user with a simple password for testing
-
-### Database issues:
-
-1. The database is stored in `/data/data.db` inside the backend container
-2. If you need to reset, you can delete the database file and restart the container
-3. The admin user will be automatically recreated on startup
 
 ## ⚠️ Security Warnings
 

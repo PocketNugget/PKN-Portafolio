@@ -24,12 +24,17 @@ try {
     ...db.query("SELECT id FROM user WHERE username = ?", ["admin"]),
   ][0];
   if (!adminUser) {
-    const hash = await hashPassword("admin123");
+    const defaultPassword =
+      Deno.env.get("DEFAULT_ADMIN_PASSWORD") || "admin123";
+    const hash = await hashPassword(defaultPassword);
     db.query("INSERT INTO user (username, password_hash) VALUES (?, ?)", [
       "admin",
       hash,
     ]);
-    console.log("Admin user created with password: admin123");
+    console.log("Admin user created with default password");
+    console.log(
+      "⚠️  IMPORTANT: Change the default admin password immediately!"
+    );
   } else {
     console.log("Admin user already exists");
   }
