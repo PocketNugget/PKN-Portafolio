@@ -244,60 +244,42 @@ export default function MainPage() {
   const skills: Skill[] = [
     // Cybersecurity
     {
-      name: "Penetration Testing",
-      proficiency: 90,
-      category: "cybersecurity",
-      icon: "fas fa-shield-alt",
-    },
-    {
-      name: "SIEM Tools",
+      name: "Kali Linux",
       proficiency: 85,
       category: "cybersecurity",
-      icon: "fas fa-eye",
+      icon: "fab fa-linux",
     },
     {
-      name: "Incident Response",
-      proficiency: 80,
-      category: "cybersecurity",
-      icon: "fas fa-exclamation-triangle",
-    },
-    {
-      name: "Cryptography",
+      name: "Metasploit",
       proficiency: 85,
       category: "cybersecurity",
-      icon: "fas fa-lock",
+      icon: "fas fa-tools",
     },
     {
-      name: "Web Exploitation",
-      proficiency: 80,
+      name: "Burp Suite",
+      proficiency: 85,
       category: "cybersecurity",
       icon: "fas fa-bug",
     },
     {
-      name: "Digital Forensics",
-      proficiency: 75,
+      name: "Ghidra",
+      proficiency: 80,
       category: "cybersecurity",
       icon: "fas fa-search",
+    },
+    {
+      name: "Darktrace Platform",
+      proficiency: 60,
+      category: "cybersecurity",
+      icon: "fas fa-shield-alt",
     },
 
     // Development
     {
       name: "Python",
-      proficiency: 95,
+      proficiency: 90,
       category: "development",
       icon: "fab fa-python",
-    },
-    {
-      name: "JavaScript",
-      proficiency: 85,
-      category: "development",
-      icon: "fab fa-js",
-    },
-    {
-      name: "Java",
-      proficiency: 80,
-      category: "development",
-      icon: "fab fa-java",
     },
     {
       name: "C",
@@ -306,19 +288,49 @@ export default function MainPage() {
       icon: "fas fa-file-code",
     },
     {
-      name: "Swift",
-      proficiency: 75,
+      name: "Java",
+      proficiency: 85,
       category: "development",
-      icon: "fab fa-swift",
+      icon: "fab fa-java",
     },
     {
       name: "Bash",
-      proficiency: 80,
+      proficiency: 85,
       category: "development",
       icon: "fas fa-terminal",
     },
+    {
+      name: "JavaScript",
+      proficiency: 85,
+      category: "development",
+      icon: "fab fa-js",
+    },
+    {
+      name: "LaTeX",
+      proficiency: 85,
+      category: "development",
+      icon: "fas fa-file-alt",
+    },
+    {
+      name: "PHP",
+      proficiency: 60,
+      category: "development",
+      icon: "fab fa-php",
+    },
+    {
+      name: "PostgreSQL",
+      proficiency: 60,
+      category: "development",
+      icon: "fas fa-database",
+    },
+    {
+      name: "SQLite",
+      proficiency: 60,
+      category: "development",
+      icon: "fas fa-database",
+    },
 
-    // AI/ML
+    // AI & Machine Learning
     {
       name: "Machine Learning",
       proficiency: 85,
@@ -350,7 +362,7 @@ export default function MainPage() {
       icon: "fas fa-magic",
     },
 
-    // Tools
+    // Tools & Platforms
     {
       name: "Docker",
       proficiency: 90,
@@ -358,22 +370,10 @@ export default function MainPage() {
       icon: "fab fa-docker",
     },
     {
-      name: "Kali Linux",
-      proficiency: 85,
+      name: "Visual Studio Code",
+      proficiency: 90,
       category: "tools",
-      icon: "fab fa-linux",
-    },
-    {
-      name: "Metasploit",
-      proficiency: 80,
-      category: "tools",
-      icon: "fas fa-tools",
-    },
-    {
-      name: "Burp Suite",
-      proficiency: 80,
-      category: "tools",
-      icon: "fas fa-bug",
+      icon: "fas fa-code",
     },
     {
       name: "Ubuntu",
@@ -382,10 +382,10 @@ export default function MainPage() {
       icon: "fab fa-ubuntu",
     },
     {
-      name: "VS Code",
-      proficiency: 90,
+      name: "Fedora",
+      proficiency: 85,
       category: "tools",
-      icon: "fas fa-code",
+      icon: "fab fa-fedora",
     },
   ];
 
@@ -697,7 +697,7 @@ export default function MainPage() {
               </div>
               <div className="stat-item">
                 <div className="stat-number">1st</div>
-                <div className="stat-label">Hackathon</div>
+                <div className="stat-label">Swift Hackathon</div>
               </div>
               <div className="stat-item">
                 <div className="stat-number">Springer</div>
@@ -946,38 +946,16 @@ export default function MainPage() {
                             <h4 className="skill-name">{skill.name}</h4>
                             <div className="skill-level">
                               <div className="level-indicator">
-                                {skill.proficiency >= 90 && (
-                                  <span className="level expert">Expert</span>
-                                )}
-                                {skill.proficiency >= 80 &&
-                                  skill.proficiency < 90 && (
-                                    <span className="level advanced">
-                                      Advanced
-                                    </span>
-                                  )}
-                                {skill.proficiency >= 70 &&
-                                  skill.proficiency < 80 && (
-                                    <span className="level intermediate">
-                                      Intermediate
-                                    </span>
-                                  )}
-                                {skill.proficiency < 70 && (
-                                  <span className="level beginner">
-                                    Beginner
+                                {skill.proficiency >= 80 && (
+                                  <span className="level proficient">
+                                    Proficient
                                   </span>
                                 )}
-                              </div>
-                              <div className="skill-stars">
-                                {[...Array(5)].map((_, index) => (
-                                  <i
-                                    key={index}
-                                    className={`fas fa-star ${
-                                      index < Math.floor(skill.proficiency / 20)
-                                        ? "filled"
-                                        : "empty"
-                                    }`}
-                                  ></i>
-                                ))}
+                                {skill.proficiency < 80 && (
+                                  <span className="level familiar">
+                                    Familiar
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </div>

@@ -99,12 +99,6 @@ export default function NavBar() {
               >
                 Blog
               </button>
-              <button
-                className="nav-link"
-                onClick={() => scrollToSection("contact")}
-              >
-                Contact
-              </button>
             </>
           ) : (
             <>
