@@ -861,8 +861,7 @@ export default function MainPage() {
 
               <div className="about-quote">
                 <blockquote>
-                  "In cybersecurity, the best defense is not just a good
-                  offense, but an intelligent one."
+                  "Gaining and sharing knowledge is the best way to grow."
                 </blockquote>
                 <cite>- PocketNugget</cite>
               </div>
