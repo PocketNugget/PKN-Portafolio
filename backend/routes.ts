@@ -247,4 +247,64 @@ router.delete("/api/portfolio/:id", requireAuth, (ctx) => {
   ctx.response.body = { message: "Portfolio item deleted" };
 });
 
+// --- BACKUP ENDPOINTS ---
+// Create backup (protected)
+router.post("/api/backup", requireAuth, async (ctx) => {
+  try {
+    const { exec } = await import("https://deno.land/x/exec/mod.ts");
+    const result = await exec("cd /app && ./backup.sh backup");
+
+    if (result.status.success) {
+      ctx.response.body = {
+        message: "Backup created successfully",
+        output: result.output,
+      };
+    } else {
+      ctx.response.status = 500;
+      ctx.response.body = {
+        error: "Backup failed",
+        output: result.output,
+      };
+    }
+  } catch (error) {
+    console.error("Backup error:", error);
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Backup failed" };
+  }
+});
+
+// List backups (protected)
+router.get("/api/backup", requireAuth, async (ctx) => {
+  try {
+    const { exec } = await import("https://deno.land/x/exec/mod.ts");
+    const result = await exec("cd /app && ./backup.sh list");
+
+    ctx.response.body = {
+      message: "Backup list retrieved",
+      output: result.output,
+    };
+  } catch (error) {
+    console.error("Backup list error:", error);
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Failed to list backups" };
+  }
+});
+
+// Get backup statistics (protected)
+router.get("/api/backup/stats", requireAuth, async (ctx) => {
+  try {
+    const { exec } = await import("https://deno.land/x/exec/mod.ts");
+    const result = await exec("cd /app && ./backup.sh stats");
+
+    ctx.response.body = {
+      message: "Backup statistics retrieved",
+      output: result.output,
+    };
+  } catch (error) {
+    console.error("Backup stats error:", error);
+    ctx.response.status = 500;
+    ctx.response.body = { error: "Failed to get backup statistics" };
+  }
+});
+
 export default router;

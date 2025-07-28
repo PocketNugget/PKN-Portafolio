@@ -62,9 +62,6 @@ export default function NavBar() {
       <div className="nav-container">
         <div className="nav-brand">
           <Link to="/" className="brand-link">
-            <span className="brand-icon">
-              <i className="fas fa-shield-alt"></i>
-            </span>
             <span className="brand-text">PocketNugget</span>
           </Link>
         </div>

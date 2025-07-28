@@ -9,7 +9,9 @@ import {
   FaEye,
   FaCalendar,
   FaUser,
+  FaYoutube,
 } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 import "../App.css";
 import TechIconsBackground from "../components/TechIconsBackground";
 import { fetchBlogPosts } from "../api";
@@ -80,6 +82,7 @@ export default function MainPage() {
   const [typedText, setTypedText] = useState("");
   const [currentTypingIndex, setCurrentTypingIndex] = useState(0);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const navigate = useNavigate();
   const sectionRefs = useRef<{ [key: string]: HTMLElement | null }>({});
 
@@ -604,6 +607,11 @@ export default function MainPage() {
     }
   };
 
+  const filteredProjects =
+    selectedCategory === "all"
+      ? projects
+      : projects.filter((project) => project.category === selectedCategory);
+
   // Fetch blog posts
   useEffect(() => {
     fetchBlogPosts().then(setBlogPosts).catch(console.error);
@@ -660,11 +668,6 @@ export default function MainPage() {
 
         <div className="hero-content">
           <div className="hero-text">
-            <div className="hero-badge">
-              <i className="fas fa-shield-alt"></i>
-              <span>Cybersecurity Professional</span>
-            </div>
-
             <h1 className="hero-title">
               <span className="hero-name">Goben Diego</span>
               <span className="hero-title-separator">|</span>
@@ -710,24 +713,53 @@ export default function MainPage() {
                 <i className="fas fa-code"></i>
                 View Projects
               </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => scrollToSection("contact")}
-              >
-                <i className="fas fa-envelope"></i>
-                Get In Touch
-              </button>
             </div>
 
             <div className="hero-socials">
               <a
-                href="https://github.com/goben-diego"
+                href="https://github.com/PocketNugget"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="social-link"
                 title="GitHub"
               >
-                <i className="fab fa-github"></i>
+                <FaGithub />
+              </a>
+              <a
+                href="https://www.linkedin.com/in/goben-diego/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-link"
+                title="LinkedIn"
+              >
+                <FaLinkedin />
+              </a>
+              <a
+                href="https://twitter.com/cyberpkn"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-link"
+                title="X (Twitter)"
+              >
+                <FaXTwitter />
+              </a>
+              <a
+                href="https://www.instagram.com/pocket_nugget/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-link"
+                title="Instagram"
+              >
+                <FaInstagram />
+              </a>
+              <a
+                href="https://www.youtube.com/@Nuggz_TV"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-link"
+                title="YouTube"
+              >
+                <FaYoutube />
               </a>
               <a
                 href="mailto:goben.ca.pkn@hotmail.com"
@@ -735,18 +767,6 @@ export default function MainPage() {
                 title="Email"
               >
                 <i className="fas fa-envelope"></i>
-              </a>
-              <a href="tel:+522227155667" className="social-link" title="Phone">
-                <i className="fas fa-phone"></i>
-              </a>
-              <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="social-link"
-                title="LinkedIn"
-              >
-                <i className="fab fa-linkedin"></i>
               </a>
             </div>
           </div>
@@ -1053,25 +1073,50 @@ export default function MainPage() {
           </h2>
 
           <div className="projects-filter">
-            <button className="filter-btn active" data-filter="all">
+            <button
+              className={`filter-btn ${
+                selectedCategory === "all" ? "active" : ""
+              }`}
+              onClick={() => setSelectedCategory("all")}
+            >
               All
             </button>
-            <button className="filter-btn" data-filter="cybersecurity">
+            <button
+              className={`filter-btn ${
+                selectedCategory === "cybersecurity" ? "active" : ""
+              }`}
+              onClick={() => setSelectedCategory("cybersecurity")}
+            >
               Cybersecurity
             </button>
-            <button className="filter-btn" data-filter="ai-research">
+            <button
+              className={`filter-btn ${
+                selectedCategory === "ai-research" ? "active" : ""
+              }`}
+              onClick={() => setSelectedCategory("ai-research")}
+            >
               AI Research
             </button>
-            <button className="filter-btn" data-filter="development">
+            <button
+              className={`filter-btn ${
+                selectedCategory === "development" ? "active" : ""
+              }`}
+              onClick={() => setSelectedCategory("development")}
+            >
               Development
             </button>
-            <button className="filter-btn" data-filter="leadership">
+            <button
+              className={`filter-btn ${
+                selectedCategory === "leadership" ? "active" : ""
+              }`}
+              onClick={() => setSelectedCategory("leadership")}
+            >
               Leadership
             </button>
           </div>
 
           <div className="projects-grid">
-            {projects.map((project) => (
+            {filteredProjects.map((project) => (
               <div
                 key={project.id}
                 className={`project-card ${project.category}`}

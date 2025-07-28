@@ -2,11 +2,12 @@ import React from "react";
 import { motion } from "framer-motion";
 import {
   FaEnvelope,
-  FaPhone,
   FaGithub,
   FaInstagram,
   FaLinkedin,
+  FaYoutube,
 } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 import "../App.css";
 
 const links = [
@@ -18,20 +19,6 @@ const links = [
     bg: "#1a1a2e",
   },
   {
-    icon: <FaPhone />,
-    label: "Phone",
-    href: "tel:+522227155667",
-    color: "#39ff14",
-    bg: "#16213e",
-  },
-  {
-    icon: <FaGithub />,
-    label: "GitHub: goben-diego",
-    href: "https://github.com/goben-diego",
-    color: "#fff",
-    bg: "#23272f",
-  },
-  {
     icon: <FaGithub />,
     label: "GitHub: PocketNugget",
     href: "https://github.com/PocketNugget",
@@ -39,18 +26,32 @@ const links = [
     bg: "#23272f",
   },
   {
+    icon: <FaLinkedin />,
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/in/goben-diego/",
+    color: "#00aaff",
+    bg: "#1b262c",
+  },
+  {
+    icon: <FaXTwitter />,
+    label: "X (Twitter)",
+    href: "https://twitter.com/cyberpkn",
+    color: "#fff",
+    bg: "#000000",
+  },
+  {
     icon: <FaInstagram />,
     label: "Instagram",
-    href: "https://www.instagram.com/",
+    href: "https://www.instagram.com/pocket_nugget/",
     color: "#ff39a6",
     bg: "#2d132c",
   },
   {
-    icon: <FaLinkedin />,
-    label: "LinkedIn",
-    href: "https://www.linkedin.com/",
-    color: "#00aaff",
-    bg: "#1b262c",
+    icon: <FaYoutube />,
+    label: "YouTube",
+    href: "https://www.youtube.com/@Nuggz_TV",
+    color: "#ff0000",
+    bg: "#1a1a1a",
   },
 ];
 
