@@ -31,9 +31,8 @@
 
 ---
 
-## Screenshots
+## Screenshots (pending, still editing 🤓)
 
-_(Add your screenshots here!)_
 
 1. **Main Page:** Blog, portfolio, and animated hero section
 2. **Blog Post:** Full Markdown rendering, tags, and sharing
