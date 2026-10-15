@@ -83,7 +83,8 @@ function put(name, value) {
   });
   if (result.status !== 0) {
     rmSync(dir, { recursive: true, force: true });
-    process.stderr.write(`secret put ${name} failed\n`);
+    const detail = `${result.stderr || ""}`.replaceAll(value, "[redacted]").trim().split("\n").slice(0, 6).join(" | ");
+    process.stderr.write(`secret put ${name} failed\n${detail}\n`);
     process.exit(result.status ?? 1);
   }
 }
