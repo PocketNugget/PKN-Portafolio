@@ -1,5 +1,6 @@
 import { FACTS } from "./facts";
 import { t } from "../i18n";
+import { phoneLayout } from "./phone";
 
 export interface Clippy {
   show(): void;
@@ -36,6 +37,7 @@ export function mountClippy(desktop: HTMLElement): Clippy {
   let index = 0;
   let lastRaw = "";
   let talkTimer = 0;
+  let dragged = false;
   let drag: { x: number; y: number; left: number; top: number } | null = null;
 
   function moveTo(left: number, top: number): void {
@@ -45,13 +47,21 @@ export function mountClippy(desktop: HTMLElement): Clippy {
     root.style.top = `${top}px`;
   }
 
+  function bottomReserve(): number {
+    if (!phoneLayout()) return 8;
+    const social = desktop.querySelector("#social");
+    const sticky = desktop.querySelector("#sticky");
+    const socialH = social instanceof HTMLElement ? social.offsetHeight : 0;
+    const stickyH = sticky instanceof HTMLElement && !sticky.hidden ? sticky.offsetHeight : 0;
+    return socialH + stickyH + 8;
+  }
+
   function placeDefault(): void {
-    const narrow = window.innerWidth < 700;
-    const height = root.offsetHeight || 240;
-    const width = root.offsetWidth || 200;
+    const narrow = phoneLayout();
+    const height = root.offsetHeight || (narrow ? 160 : 240);
+    const width = root.offsetWidth || (narrow ? 168 : 200);
     const areaH = Math.max(desktop.clientHeight, window.innerHeight - 40);
-    const reserve = narrow ? 72 : 8;
-    const top = Math.max(8, areaH - height - reserve);
+    const top = Math.max(8, areaH - height - bottomReserve());
     const left = narrow ? Math.max(8, desktop.clientWidth - width - 8) : 12;
     moveTo(left, top);
   }
@@ -76,6 +86,10 @@ export function mountClippy(desktop: HTMLElement): Clippy {
     talk(FACTS[index] ?? "");
   });
   pic.addEventListener("click", () => {
+    if (dragged) {
+      dragged = false;
+      return;
+    }
     if (balloon.hidden) talk(FACTS[index] ?? "");
     else next.click();
   });
@@ -91,6 +105,7 @@ export function mountClippy(desktop: HTMLElement): Clippy {
     const dx = event.clientX - drag.x;
     const dy = event.clientY - drag.y;
     if (dx * dx + dy * dy < 9) return;
+    dragged = true;
     root.style.left = `${Math.max(0, drag.left + dx)}px`;
     root.style.top = `${Math.max(0, drag.top + dy)}px`;
   });
@@ -115,21 +130,22 @@ export function mountClippy(desktop: HTMLElement): Clippy {
     const left = Number.parseFloat(root.style.left) || 0;
     const top = Number.parseFloat(root.style.top) || 0;
     if (!hits(left, top)) return;
+    const narrow = phoneLayout();
+    const reserve = narrow ? bottomReserve() : 8;
     const spots = [
-      { left: 12, top: Math.max(8, desktop.clientHeight - height - 8) },
+      { left: 12, top: Math.max(8, desktop.clientHeight - height - reserve) },
       { left: Math.max(8, desktop.clientWidth - width - 8), top: 12 },
       { left: 12, top: 12 },
-      { left: Math.max(8, desktop.clientWidth - width - 8), top: Math.max(8, desktop.clientHeight - height - 72) },
+      { left: Math.max(8, desktop.clientWidth - width - 8), top: Math.max(8, desktop.clientHeight - height - (narrow ? reserve : 72)) },
     ];
     for (const spot of spots) {
       if (hits(spot.left, spot.top)) continue;
       moveTo(spot.left, spot.top);
       return;
     }
-    const narrow = window.innerWidth < 700;
     const areaH = Math.max(desktop.clientHeight, window.innerHeight - 40);
     const parkLeft = narrow ? Math.max(8, desktop.clientWidth - width - 8) : 12;
-    moveTo(parkLeft, Math.max(8, areaH - height - 8));
+    moveTo(parkLeft, Math.max(8, areaH - height - reserve));
   }
 
   placeDefault();
@@ -137,10 +153,12 @@ export function mountClippy(desktop: HTMLElement): Clippy {
     placeDefault();
     nudge();
   });
-  window.addEventListener("resize", () => {
+  const refit = () => {
     placeDefault();
     nudge();
-  });
+  };
+  window.addEventListener("resize", refit);
+  window.visualViewport?.addEventListener("resize", refit);
   if (!root.hidden) talk(FACTS[0] ?? "");
 
   return {

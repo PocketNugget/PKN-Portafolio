@@ -5,14 +5,34 @@ body,
   margin: 0;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   overflow: hidden;
   background: #000080;
   color: #222;
+  overscroll-behavior: none;
+}
+
+:root {
+  --bar: 30px;
+}
+
+#app {
+  position: fixed;
+  left: 0;
+  width: 100%;
+  top: var(--app-top, 0px);
+  height: var(--app-h, 100svh);
+  overflow: hidden;
+  touch-action: manipulation;
 }
 
 #boot {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 80;
   display: flex;
@@ -30,9 +50,9 @@ body {
 }
 
 #desktop {
-  position: fixed;
+  position: absolute;
   z-index: 1;
-  inset: 0 0 30px 0;
+  inset: 0 0 var(--bar) 0;
   overflow: hidden;
   background: #000080;
 }
@@ -363,12 +383,12 @@ button.desk-icon:focus .label {
 .rz-se { bottom: 0; right: 0; cursor: nwse-resize; }
 
 #taskbar {
-  position: fixed;
+  position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 40;
-  height: 30px;
+  height: var(--bar);
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -435,9 +455,10 @@ button.task-btn.down {
 
 #start-menu {
   display: none;
-  position: fixed;
+  position: absolute;
   left: 2px;
-  bottom: 32px;
+  bottom: calc(var(--bar) + 2px);
+  max-width: calc(100% - 4px);
   z-index: 60;
   background: silver;
   box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
@@ -464,7 +485,7 @@ button.task-btn.down {
 
 .menu-list {
   min-width: 190px;
-  max-height: calc(100vh - 48px);
+  max-height: calc(var(--app-h, 100svh) - var(--bar) - 16px);
   overflow: auto;
   padding: 2px;
 }
@@ -685,6 +706,12 @@ button.thumb span {
   white-space: nowrap;
 }
 
+img.shot {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
 img.shot.portrait {
   width: min(180px, 100%);
   max-height: 220px;
@@ -736,7 +763,11 @@ img.shot.portrait {
   vertical-align: middle;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 700px), (pointer: coarse) and (max-height: 500px) {
+  :root {
+    --bar: calc(44px + env(safe-area-inset-bottom));
+  }
+
   #desktop {
     display: flex;
     flex-direction: column;
@@ -745,31 +776,52 @@ img.shot.portrait {
   #icons {
     position: relative;
     inset: auto;
-    flex: 1;
+    flex: 1 1 auto;
+    min-height: 0;
     display: flex;
     flex-wrap: wrap;
     align-content: flex-start;
+    gap: 4px 0;
+    padding: 8px 0 112px;
     overflow: auto;
+  }
+
+  #social,
+  #sticky {
+    flex-shrink: 0;
   }
 
   #social {
     position: static;
     order: 2;
     z-index: 1;
-    justify-content: center;
+    justify-content: space-evenly;
     flex-wrap: wrap;
-    padding: 4px 4px 6px;
+    gap: 0;
+    padding: 2px 0 4px;
     background: #000080;
   }
 
-  #windows {
-    position: fixed;
-    inset: 0 0 30px 0;
+  a.social-link {
+    width: 20%;
+    min-height: 44px;
+    font-size: 10px;
   }
 
   button.desk-icon {
     position: static;
-    width: 72px;
+    width: 25%;
+    max-width: none;
+    min-height: 72px;
+    box-sizing: border-box;
+  }
+
+  .desk-icon .label {
+    max-width: 100%;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .desk-win,
@@ -784,8 +836,109 @@ img.shot.portrait {
     display: none;
   }
 
+  button.start-btn,
+  button.task-btn,
+  button#lang {
+    min-height: 32px;
+  }
+
   button.task-btn {
-    max-width: 108px;
+    max-width: 96px;
+  }
+
+  #taskbar {
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: calc(4px + env(safe-area-inset-left));
+    padding-right: calc(4px + env(safe-area-inset-right));
+  }
+
+  #start-menu {
+    left: 0;
+    right: 0;
+    max-width: none;
+  }
+
+  .menu-list {
+    min-width: 0;
+  }
+
+  button.menu-item {
+    min-height: 40px;
+    height: auto;
+    white-space: normal;
+  }
+
+  #sticky {
+    position: static;
+    order: 3;
+    top: auto;
+    right: auto;
+    z-index: auto;
+    width: auto;
+    margin: 0;
+  }
+
+  #sticky button,
+  #clippy .balloon-x {
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  #clippy {
+    width: 168px;
+  }
+
+  #clippy .buddy-pic {
+    width: 84px;
+  }
+
+  #clippy .balloon {
+    max-height: 34svh;
+    overflow: auto;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  #windows:has(.desk-win:not(.is-min)) ~ #clippy {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .window-body table.help,
+  .window-body table.help tbody,
+  .window-body table.help tr,
+  .window-body table.help th,
+  .window-body table.help td {
+    display: block;
+    white-space: normal;
+  }
+
+  .viewer .field-row,
+  .player-controls {
+    flex-wrap: wrap;
+  }
+
+  .viewer .field-row button,
+  .player-controls button,
+  .pad button {
+    flex: 1 1 30%;
+    min-width: 0;
+    min-height: 40px;
+  }
+
+  .viewer img.shot {
+    max-height: min(68svh, 520px);
+  }
+}
+
+@media (max-width: 360px) {
+  .start-label {
+    display: none;
+  }
+
+  #clock {
+    min-width: 0;
+    padding: 2px 4px;
   }
 }
 
@@ -896,7 +1049,7 @@ button#lang,
 }
 
 #saver {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 70;
   background: #7eb6e6 url("/wallpapers/sky.jpg") center / cover no-repeat;
@@ -914,7 +1067,7 @@ button#lang,
 }
 
 #desk-menu {
-  position: fixed;
+  position: absolute;
   z-index: 65;
   min-width: 148px;
   padding: 2px;
@@ -924,6 +1077,10 @@ button#lang,
 }
 
 #desk-menu[hidden] {
+  display: none;
+}
+
+.title-bar-controls button[hidden] {
   display: none;
 }
 
@@ -975,20 +1132,97 @@ button#lang,
 
   body,
   #app {
+    position: static;
     height: auto;
     overflow: visible;
     background: #fff;
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 700px), (pointer: coarse) {
+  .desk-win .window-body {
+    font-size: 15px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .window-body h1,
+  .window-body h2,
+  .window-body h3,
+  .window-body h4 {
+    font-size: 16px;
+  }
+
+  .desk-win .title-bar {
+    min-height: 34px;
+    padding-left: calc(3px + env(safe-area-inset-left));
+    padding-right: calc(2px + env(safe-area-inset-right));
+  }
+
+  .desk-win .title-bar-controls button {
+    min-width: 42px;
+    min-height: 30px;
+    background-position: center;
+  }
+
+  .window-body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  .window-body select,
+  .window-body textarea,
+  .term-line input {
+    font-size: 16px;
+    height: auto;
+    min-height: 36px;
+  }
+
+  .window-body .field-row {
+    flex-wrap: wrap;
+  }
+
+  form.login button,
+  form.editor button,
+  #desk-menu button {
+    min-height: 40px;
+  }
+
+  form.login svg {
+    display: block;
+    width: min(180px, 100%);
+    height: auto;
+  }
+
+  .term-line {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 700px), (pointer: coarse) and (max-height: 500px) {
   #sticky {
     position: static;
     order: 3;
     top: auto;
     right: auto;
-    z-index: auto;
+    z-index: 1;
     width: auto;
-    margin: 6px 8px 8px;
+    margin: 0;
+  }
+
+  #clippy {
+    width: 150px;
+  }
+
+  #clippy .buddy-pic {
+    width: 92px;
+  }
+
+  #start-menu {
+    left: 2px;
+    right: auto;
+    width: auto;
+    max-width: calc(100% - 8px);
+  }
+
+  #start-menu .menu-list {
+    min-width: 196px;
+    max-width: 240px;
   }
 }

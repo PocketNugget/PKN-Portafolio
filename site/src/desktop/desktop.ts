@@ -13,6 +13,7 @@ import { mountHack } from "./hack";
 import type { DeskApp } from "./host";
 import { ICONS } from "./icons";
 import { AWARDS, PICTURES } from "./media";
+import { phoneLayout } from "./phone";
 import { mountPlayer } from "./player";
 import { Terminal } from "./term";
 
@@ -152,7 +153,16 @@ function control(label: string): HTMLButtonElement {
   return button;
 }
 
+function fitViewport(): void {
+  const view = window.visualViewport;
+  const height = Math.round(view?.height ?? window.innerHeight);
+  const top = Math.round(view?.offsetTop ?? 0);
+  document.documentElement.style.setProperty("--app-h", `${height}px`);
+  document.documentElement.style.setProperty("--app-top", `${top}px`);
+}
+
 export function bootDesktop(): void {
+  fitViewport();
   setLang(sessionGet("pkn-lang") ?? "en");
   document.documentElement.lang = getLang();
   const app = document.querySelector("#app");
@@ -262,7 +272,7 @@ export function bootDesktop(): void {
   }
 
   function layoutIcons(): void {
-    const narrow = window.innerWidth < 700;
+    const narrow = phoneLayout();
     for (const button of icons.querySelectorAll<HTMLButtonElement>(".desk-icon")) {
       const spot = spots[button.dataset.app ?? ""];
       if (!spot || narrow) {
@@ -306,7 +316,7 @@ export function bootDesktop(): void {
   }
 
   function place(win: Win): void {
-    const narrow = window.innerWidth < 700;
+    const narrow = phoneLayout();
     if (win.max || narrow) {
       win.el.classList.add("max");
       win.el.style.left = "0";
@@ -456,7 +466,7 @@ export function bootDesktop(): void {
       if (event.button !== 0) return;
       if (event.target instanceof Element && event.target.closest("button")) return;
       focusWindow(win);
-      if (win.max || window.innerWidth < 700) return;
+      if (win.max || phoneLayout()) return;
       const startX = event.clientX;
       const startY = event.clientY;
       const origX = win.x;
@@ -483,7 +493,7 @@ export function bootDesktop(): void {
 
   function bindResize(win: Win, handle: HTMLElement): void {
     handle.addEventListener("pointerdown", (event) => {
-      if (event.button !== 0 || win.max || window.innerWidth < 700) return;
+      if (event.button !== 0 || win.max || phoneLayout()) return;
       event.stopPropagation();
       focusWindow(win);
       const edge = handle.dataset.edge ?? "";
@@ -522,7 +532,7 @@ export function bootDesktop(): void {
   }
 
   function build(path: string): Win {
-    const narrow = window.innerWidth < 700;
+    const narrow = phoneLayout();
     const areaW = desktop.clientWidth || window.innerWidth;
     const areaH = desktop.clientHeight || window.innerHeight - 30;
     const cascade = windows.length;
@@ -563,6 +573,7 @@ export function bootDesktop(): void {
     controls.className = "title-bar-controls";
     const minBtn = control("Minimize");
     const maxBtn = control(narrow ? "Restore" : "Maximize");
+    if (narrow) maxBtn.hidden = true;
     const closeBtn = control("Close");
     controls.append(minBtn, maxBtn, closeBtn);
     title.append(text, controls);
@@ -667,7 +678,7 @@ export function bootDesktop(): void {
       if (label) label.textContent = t(item.label);
       button.addEventListener("pointerdown", (event) => {
         if (event.button !== 0) return;
-        if (!matchMedia("(pointer: fine)").matches || window.innerWidth < 700) return;
+        if (!matchMedia("(pointer: fine)").matches || phoneLayout()) return;
         const origin = spots[item.id] ?? { x: 8, y: 8 };
         const startX = event.clientX;
         const startY = event.clientY;
@@ -697,10 +708,10 @@ export function bootDesktop(): void {
         }
         selected = item.id;
         paintSelection();
-        if (matchMedia("(pointer: coarse)").matches || window.innerWidth < 700) openHref(item.path);
+        if (matchMedia("(pointer: coarse)").matches || phoneLayout()) openHref(item.path);
       });
       button.addEventListener("dblclick", () => {
-        if (matchMedia("(pointer: fine)").matches && window.innerWidth >= 700) openHref(item.path);
+        if (matchMedia("(pointer: fine)").matches && !phoneLayout()) openHref(item.path);
       });
       icons.append(button);
     }
@@ -912,8 +923,9 @@ export function bootDesktop(): void {
     if (target !== desktop && target !== wallpaper && target !== icons) return;
     event.preventDefault();
     deskMenu.hidden = false;
-    deskMenu.style.left = `${Math.min(event.clientX, window.innerWidth - 180)}px`;
-    deskMenu.style.top = `${Math.min(event.clientY, window.innerHeight - 120)}px`;
+    const host = app.getBoundingClientRect();
+    deskMenu.style.left = `${Math.min(Math.max(0, event.clientX - host.left), Math.max(0, host.width - 180))}px`;
+    deskMenu.style.top = `${Math.min(Math.max(0, event.clientY - host.top), Math.max(0, host.height - 120))}px`;
   });
 
   start.addEventListener("click", (event) => {
@@ -979,13 +991,19 @@ export function bootDesktop(): void {
     if (path === "/") return;
     openHref(`${location.pathname}${location.search}`, false);
   });
-  window.addEventListener("resize", () => {
+  const onViewport = () => {
+    fitViewport();
     layoutIcons();
     for (const win of windows) {
+      const maxBtn = win.el.querySelectorAll(".title-bar-controls button")[1];
+      if (maxBtn instanceof HTMLButtonElement) maxBtn.hidden = phoneLayout();
       if (!win.max) clamp(win);
       place(win);
     }
-  });
+  };
+  window.addEventListener("resize", onViewport);
+  window.visualViewport?.addEventListener("resize", onViewport);
+  window.visualViewport?.addEventListener("scroll", onViewport);
 
   if (sessionGet("pkn-boot") === "1") {
     boot.hidden = true;
