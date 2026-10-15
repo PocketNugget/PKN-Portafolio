@@ -1,0 +1,720 @@
+import { notes, openTable, projects } from "../catalog";
+import { hydrate } from "../client";
+import { normalizePath } from "../paths";
+import { documentBody } from "../render";
+import { parseCommand } from "../shell";
+import { ICONS } from "./icons";
+import { Terminal } from "./term";
+
+interface App {
+  id: string;
+  label: string;
+  path: string;
+  icon: string;
+  desk: boolean;
+}
+
+interface Spot {
+  x: number;
+  y: number;
+}
+
+interface Win {
+  id: number;
+  path: string;
+  title: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  rx: number;
+  ry: number;
+  rw: number;
+  rh: number;
+  z: number;
+  min: boolean;
+  max: boolean;
+  el: HTMLDivElement;
+  term: Terminal | null;
+}
+
+const APPS: App[] = [
+  { id: "about", label: "About Me", path: "/", icon: "about", desk: true },
+  { id: "jobs", label: "Jobs", path: "/jobs", icon: "jobs", desk: true },
+  { id: "projects", label: "Projects", path: "/work", icon: "projects", desk: true },
+  { id: "skills", label: "Skills", path: "/skills", icon: "skills", desk: true },
+  { id: "radio", label: "Radio", path: "/radio", icon: "radio", desk: true },
+  { id: "notes", label: "Notes", path: "/notes", icon: "notes", desk: true },
+  { id: "certs", label: "Certs", path: "/certs", icon: "certs", desk: true },
+  { id: "blog", label: "Blog", path: "/blog", icon: "blog", desk: true },
+  { id: "links", label: "My Links", path: "/links", icon: "links", desk: true },
+  { id: "contact", label: "Contact", path: "/contact", icon: "contact", desk: true },
+  { id: "terminal", label: "Terminal", path: "/terminal", icon: "terminal", desk: true },
+  { id: "help", label: "Help", path: "/help", icon: "help", desk: false },
+  { id: "display", label: "Display", path: "/display", icon: "display", desk: false },
+  { id: "colophon", label: "Colophon", path: "/colophon", icon: "colophon", desk: false },
+  { id: "login", label: "Login", path: "/admin/login", icon: "login", desk: false },
+];
+
+const MENU_GROUPS = [
+  ["about", "jobs", "projects", "skills"],
+  ["radio", "notes", "certs", "blog", "links", "contact"],
+  ["terminal", "help", "display", "colophon", "login"],
+];
+
+const WALLPAPERS = [
+  { id: "teal", label: "Teal" },
+  { id: "clouds", label: "Clouds" },
+  { id: "navy", label: "Navy" },
+];
+
+const opens = openTable();
+
+function sessionGet(key: string): string | null {
+  try {
+    return sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function sessionSet(key: string, value: string): void {
+  try {
+    sessionStorage.setItem(key, value);
+  } catch {
+    /* storage can be blocked; the desktop still runs */
+  }
+}
+
+function titleFor(path: string): string {
+  const app = APPS.find((item) => item.path === path);
+  if (app) return app.label === "Display" ? "Display Properties" : app.label;
+  if (path.startsWith("/work/")) {
+    const slug = path.slice("/work/".length);
+    return projects.find((item) => item.slug === slug)?.title ?? "Project";
+  }
+  if (path.startsWith("/notes/")) {
+    const slug = path.slice("/notes/".length);
+    return notes.find((item) => item.slug === slug)?.title ?? "Note";
+  }
+  if (path.startsWith("/blog/")) return "Blog";
+  if (path === "/admin") return "Editor";
+  return "Window";
+}
+
+function control(label: string): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.setAttribute("aria-label", label);
+  return button;
+}
+
+export function bootDesktop(): void {
+  const app = document.querySelector("#app");
+  if (!(app instanceof HTMLElement)) return;
+
+  const boot = document.createElement("div");
+  boot.id = "boot";
+  boot.innerHTML = `<div class="window boot-window">
+      <div class="title-bar"><div class="title-bar-text">Starting PocketNugget</div></div>
+      <div class="window-body">
+        <p>Loading the desktop.</p>
+        <div class="progress-indicator" role="progressbar" aria-label="Boot"><span class="progress-indicator-bar" id="boot-bar"></span></div>
+        <p class="meta">Click to skip.</p>
+      </div>
+    </div>`;
+
+  const desktop = document.createElement("div");
+  desktop.id = "desktop";
+  const icons = document.createElement("div");
+  icons.id = "icons";
+  const windowsLayer = document.createElement("div");
+  windowsLayer.id = "windows";
+  desktop.append(icons, windowsLayer);
+
+  const taskbar = document.createElement("div");
+  taskbar.id = "taskbar";
+  const start = document.createElement("button");
+  start.type = "button";
+  start.className = "start-btn";
+  start.innerHTML = `<span class="k-mark">K</span><span>Start</span>`;
+  const tasks = document.createElement("div");
+  tasks.id = "tasks";
+  const clock = document.createElement("div");
+  clock.id = "clock";
+  taskbar.append(start, tasks, clock);
+
+  const menu = document.createElement("div");
+  menu.id = "start-menu";
+  const brand = document.createElement("div");
+  brand.className = "menu-brand";
+  brand.textContent = "Goben";
+  const menuList = document.createElement("div");
+  menuList.className = "menu-list";
+  menu.append(brand, menuList);
+
+  app.replaceChildren(boot, desktop, taskbar, menu);
+
+  const windows: Win[] = [];
+  let seq = 0;
+  let zTop = 2;
+  let activeId = 0;
+  let selected = "";
+  let bootTimer = 0;
+  const spots = loadSpots(APPS.filter((item) => item.desk).map((item) => item.id));
+
+  function wallpaperId(): string {
+    const saved = sessionGet("pkn-wallpaper");
+    return WALLPAPERS.some((item) => item.id === saved) ? saved ?? "teal" : "teal";
+  }
+
+  function applyWallpaper(id: string): void {
+    const safe = WALLPAPERS.some((item) => item.id === id) ? id : "teal";
+    desktop.classList.remove("wp-teal", "wp-clouds", "wp-navy");
+    desktop.classList.add(`wp-${safe}`);
+    sessionSet("pkn-wallpaper", safe);
+    for (const input of desktop.querySelectorAll<HTMLInputElement>("input[name=wallpaper]")) {
+      input.checked = input.value === safe;
+    }
+  }
+
+  function mountDisplay(host: HTMLElement): void {
+    const current = wallpaperId();
+    const rows = WALLPAPERS.map((item) => {
+      const checked = item.id === current ? " checked" : "";
+      return `<div class="field-row"><input type="radio" name="wallpaper" id="wp-${item.id}" value="${item.id}"${checked}><label for="wp-${item.id}">${item.label}</label></div>`;
+    }).join("");
+    host.innerHTML = `<fieldset><legend>Wallpaper</legend>${rows}</fieldset>
+      <p class="meta">Files live in public/wallpapers. Add a class in styles.css and a radio here. This tab remembers the choice. It is not a cookie.</p>`;
+    host.addEventListener("change", (event) => {
+      const target = event.target;
+      if (target instanceof HTMLInputElement && target.name === "wallpaper") applyWallpaper(target.value);
+    });
+  }
+
+  function paintClock(): void {
+    const now = new Date();
+    const hour = now.getHours();
+    const minute = String(now.getMinutes()).padStart(2, "0");
+    const suffix = hour >= 12 ? "PM" : "AM";
+    const shown = hour % 12 || 12;
+    clock.textContent = `${shown}:${minute} ${suffix}`;
+    clock.title = now.toDateString();
+  }
+
+  function layoutIcons(): void {
+    const narrow = window.innerWidth < 700;
+    for (const button of icons.querySelectorAll<HTMLButtonElement>(".desk-icon")) {
+      const spot = spots[button.dataset.app ?? ""];
+      if (!spot || narrow) {
+        button.style.left = "";
+        button.style.top = "";
+        continue;
+      }
+      button.style.left = `${spot.x}px`;
+      button.style.top = `${spot.y}px`;
+    }
+  }
+
+  function paintSelection(): void {
+    for (const button of icons.querySelectorAll<HTMLButtonElement>(".desk-icon")) {
+      button.classList.toggle("selected", button.dataset.app === selected);
+    }
+  }
+
+  function renderTasks(): void {
+    tasks.replaceChildren();
+    for (const win of windows) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "task-btn";
+      if (win.id === activeId && !win.min) button.classList.add("down");
+      button.textContent = win.title;
+      button.setAttribute("aria-pressed", String(win.id === activeId && !win.min));
+      button.addEventListener("click", () => {
+        if (win.id === activeId && !win.min) minimize(win);
+        else {
+          win.min = false;
+          win.el.classList.remove("is-min");
+          win.term?.resume();
+          focusWindow(win);
+          place(win);
+        }
+      });
+      tasks.append(button);
+    }
+  }
+
+  function place(win: Win): void {
+    const narrow = window.innerWidth < 700;
+    if (win.max || narrow) {
+      win.el.classList.add("max");
+      win.el.style.left = "0";
+      win.el.style.top = "0";
+      win.el.style.width = "100%";
+      win.el.style.height = "100%";
+      return;
+    }
+    win.el.classList.remove("max");
+    win.el.style.left = `${win.x}px`;
+    win.el.style.top = `${win.y}px`;
+    win.el.style.width = `${win.w}px`;
+    win.el.style.height = `${win.h}px`;
+  }
+
+  function clamp(win: Win): void {
+    const areaW = Math.max(1, desktop.clientWidth);
+    const areaH = Math.max(1, desktop.clientHeight);
+    win.w = Math.max(Math.min(240, areaW), Math.min(win.w, areaW));
+    win.h = Math.max(Math.min(160, areaH), Math.min(win.h, areaH));
+    win.x = Math.min(Math.max(0, win.x), Math.max(0, areaW - 48));
+    win.y = Math.min(Math.max(0, win.y), Math.max(0, areaH - 28));
+  }
+
+  function focusWindow(win: Win): void {
+    zTop += 1;
+    win.z = zTop;
+    win.el.style.zIndex = String(zTop);
+    activeId = win.id;
+    for (const item of windows) {
+      item.el.querySelector(".title-bar")?.classList.toggle("inactive", item.id !== win.id);
+    }
+    renderTasks();
+  }
+
+  function fill(win: Win): void {
+    const body = win.el.querySelector(".window-body");
+    if (!(body instanceof HTMLElement)) return;
+    win.term?.destroy();
+    win.term = null;
+    body.innerHTML = documentBody(win.path);
+    if (body.querySelector("#dynamic")) hydrate(win.path, body);
+    const display = body.querySelector(".display-mount");
+    if (display instanceof HTMLElement) mountDisplay(display);
+    const termHost = body.querySelector(".term-mount");
+    if (termHost instanceof HTMLElement) {
+      win.term = new Terminal(termHost, {
+        openPath: (href) => openHref(href),
+        close: () => closeWindow(win.id),
+      });
+      if (matchMedia("(pointer: fine)").matches) win.term.focusInput();
+    }
+  }
+
+  function minimize(win: Win): void {
+    win.min = true;
+    win.el.classList.add("is-min");
+    win.term?.pause();
+    const next = [...windows].reverse().find((item) => item.id !== win.id && !item.min);
+    if (next) focusWindow(next);
+    else {
+      activeId = 0;
+      for (const item of windows) item.el.querySelector(".title-bar")?.classList.add("inactive");
+      renderTasks();
+    }
+  }
+
+  function toggleMax(win: Win): void {
+    const button = win.el.querySelector(".title-bar-controls button:nth-child(2)");
+    if (win.max) {
+      win.max = false;
+      win.x = win.rx;
+      win.y = win.ry;
+      win.w = win.rw;
+      win.h = win.rh;
+      if (button) button.setAttribute("aria-label", "Maximize");
+    } else {
+      win.rx = win.x;
+      win.ry = win.y;
+      win.rw = win.w;
+      win.rh = win.h;
+      win.max = true;
+      if (button) button.setAttribute("aria-label", "Restore");
+    }
+    place(win);
+  }
+
+  function closeWindow(id: number): void {
+    const index = windows.findIndex((win) => win.id === id);
+    if (index < 0) return;
+    const win = windows[index];
+    if (!win) return;
+    win.term?.destroy();
+    win.el.remove();
+    windows.splice(index, 1);
+    const next = [...windows].reverse().find((item) => !item.min);
+    if (next) {
+      focusWindow(next);
+      history.replaceState({}, "", next.path);
+    } else {
+      activeId = 0;
+      renderTasks();
+      history.replaceState({}, "", "/");
+    }
+  }
+
+  function bindDrag(win: Win, title: HTMLElement): void {
+    title.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0) return;
+      if (event.target instanceof Element && event.target.closest("button")) return;
+      focusWindow(win);
+      if (win.max || window.innerWidth < 700) return;
+      const startX = event.clientX;
+      const startY = event.clientY;
+      const origX = win.x;
+      const origY = win.y;
+      title.setPointerCapture(event.pointerId);
+      const move = (ev: PointerEvent) => {
+        win.x = origX + ev.clientX - startX;
+        win.y = origY + ev.clientY - startY;
+        clamp(win);
+        place(win);
+      };
+      const up = () => {
+        title.removeEventListener("pointermove", move);
+        title.removeEventListener("pointerup", up);
+      };
+      title.addEventListener("pointermove", move);
+      title.addEventListener("pointerup", up);
+    });
+    title.addEventListener("dblclick", (event) => {
+      if (event.target instanceof Element && event.target.closest("button")) return;
+      toggleMax(win);
+    });
+  }
+
+  function bindResize(win: Win, handle: HTMLElement): void {
+    handle.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 || win.max || window.innerWidth < 700) return;
+      event.stopPropagation();
+      focusWindow(win);
+      const edge = handle.dataset.edge ?? "";
+      const startX = event.clientX;
+      const startY = event.clientY;
+      const orig = { x: win.x, y: win.y, w: win.w, h: win.h };
+      handle.setPointerCapture(event.pointerId);
+      const move = (ev: PointerEvent) => {
+        const dx = ev.clientX - startX;
+        const dy = ev.clientY - startY;
+        let { x, y, w, h } = orig;
+        if (edge.includes("e")) w = orig.w + dx;
+        if (edge.includes("s")) h = orig.h + dy;
+        if (edge.includes("w")) {
+          w = orig.w - dx;
+          x = orig.x + dx;
+        }
+        if (edge.includes("n")) {
+          h = orig.h - dy;
+          y = orig.y + dy;
+        }
+        win.x = x;
+        win.y = y;
+        win.w = w;
+        win.h = h;
+        clamp(win);
+        place(win);
+      };
+      const up = () => {
+        handle.removeEventListener("pointermove", move);
+        handle.removeEventListener("pointerup", up);
+      };
+      handle.addEventListener("pointermove", move);
+      handle.addEventListener("pointerup", up);
+    });
+  }
+
+  function build(path: string): Win {
+    const narrow = window.innerWidth < 700;
+    const areaW = desktop.clientWidth || window.innerWidth;
+    const areaH = desktop.clientHeight || window.innerHeight - 30;
+    const cascade = windows.length;
+    const win: Win = {
+      id: ++seq,
+      path,
+      title: titleFor(path),
+      x: narrow ? 0 : 24 + (cascade % 8) * 22,
+      y: narrow ? 0 : 12 + (cascade % 8) * 20,
+      w: narrow ? areaW : Math.min(560, Math.max(280, areaW - 36)),
+      h: narrow ? areaH : Math.min(420, Math.max(200, areaH - 36)),
+      rx: 0,
+      ry: 0,
+      rw: 0,
+      rh: 0,
+      z: 0,
+      min: false,
+      max: narrow,
+      el: document.createElement("div"),
+      term: null,
+    };
+    win.rx = win.x;
+    win.ry = win.y;
+    win.rw = win.w;
+    win.rh = win.h;
+    win.el.className = "window desk-win";
+    if (narrow) win.el.classList.add("max");
+    const title = document.createElement("div");
+    title.className = "title-bar";
+    const text = document.createElement("div");
+    text.className = "title-bar-text";
+    text.textContent = win.title;
+    const controls = document.createElement("div");
+    controls.className = "title-bar-controls";
+    const minBtn = control("Minimize");
+    const maxBtn = control(narrow ? "Restore" : "Maximize");
+    const closeBtn = control("Close");
+    controls.append(minBtn, maxBtn, closeBtn);
+    title.append(text, controls);
+    const body = document.createElement("div");
+    body.className = "window-body";
+    win.el.append(title, body);
+    for (const edge of ["n", "s", "e", "w", "nw", "ne", "sw", "se"]) {
+      const handle = document.createElement("div");
+      handle.className = `rz rz-${edge}`;
+      handle.dataset.edge = edge;
+      bindResize(win, handle);
+      win.el.append(handle);
+    }
+    minBtn.addEventListener("click", () => minimize(win));
+    maxBtn.addEventListener("click", () => toggleMax(win));
+    closeBtn.addEventListener("click", () => closeWindow(win.id));
+    bindDrag(win, title);
+    win.el.addEventListener("pointerdown", () => {
+      if (activeId !== win.id) focusWindow(win);
+      if (win.term?.inGame()) win.term.focusBoard();
+    });
+    place(win);
+    return win;
+  }
+
+  function openWindow(path: string): void {
+    const existing = windows.find((win) => win.path === path);
+    if (existing) {
+      if (path === "/admin" || path === "/blog") fill(existing);
+      if (existing.min) {
+        existing.min = false;
+        existing.el.classList.remove("is-min");
+        existing.term?.resume();
+      }
+      focusWindow(existing);
+      place(existing);
+      return;
+    }
+    const win = build(path);
+    windows.push(win);
+    windowsLayer.append(win.el);
+    fill(win);
+    focusWindow(win);
+  }
+
+  function openHref(href: string, push = true): void {
+    menu.classList.remove("open");
+    const url = new URL(href, location.origin);
+    const path = normalizePath(url.pathname);
+    const full = `${url.pathname}${url.search}`;
+    if (push && `${location.pathname}${location.search}` !== full) history.pushState({}, "", full);
+    openWindow(path);
+  }
+
+  function loadDesktop(): void {
+    for (const item of APPS) {
+      if (!item.desk) continue;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "desk-icon";
+      button.dataset.app = item.id;
+      button.innerHTML = `${ICONS[item.icon] ?? ""}\n<span class="label"></span>`;
+      const label = button.querySelector(".label");
+      if (label) label.textContent = item.label;
+      button.addEventListener("pointerdown", (event) => {
+        if (event.button !== 0) return;
+        if (!matchMedia("(pointer: fine)").matches || window.innerWidth < 700) return;
+        const origin = spots[item.id] ?? { x: 8, y: 8 };
+        const startX = event.clientX;
+        const startY = event.clientY;
+        let dragging = false;
+        const move = (ev: PointerEvent) => {
+          const dx = ev.clientX - startX;
+          const dy = ev.clientY - startY;
+          if (!dragging && dx * dx + dy * dy < 16) return;
+          dragging = true;
+          spots[item.id] = { x: origin.x + dx, y: origin.y + dy };
+          layoutIcons();
+        };
+        const up = () => {
+          button.removeEventListener("pointermove", move);
+          button.removeEventListener("pointerup", up);
+          if (!dragging) return;
+          button.dataset.dragged = "1";
+          sessionSet("pkn-icons", JSON.stringify(spots));
+        };
+        button.addEventListener("pointermove", move);
+        button.addEventListener("pointerup", up);
+      });
+      button.addEventListener("click", () => {
+        if (button.dataset.dragged === "1") {
+          button.dataset.dragged = "";
+          return;
+        }
+        selected = item.id;
+        paintSelection();
+        if (matchMedia("(pointer: coarse)").matches || window.innerWidth < 700) openHref(item.path);
+      });
+      button.addEventListener("dblclick", () => {
+        if (matchMedia("(pointer: fine)").matches && window.innerWidth >= 700) openHref(item.path);
+      });
+      icons.append(button);
+    }
+    layoutIcons();
+  }
+
+  function loadMenu(): void {
+    MENU_GROUPS.forEach((group, index) => {
+      if (index > 0) {
+        const rule = document.createElement("div");
+        rule.className = "menu-gap";
+        menuList.append(rule);
+      }
+      for (const id of group) {
+        const item = APPS.find((appItem) => appItem.id === id);
+        if (!item) continue;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "menu-item";
+        button.innerHTML = `${ICONS[item.icon] ?? ""}<span></span>`;
+        const span = button.querySelector("span");
+        if (span) span.textContent = item.label;
+        button.addEventListener("click", () => openHref(item.path));
+        menuList.append(button);
+      }
+    });
+  }
+
+  function finishBoot(): void {
+    if (boot.hidden) return;
+    window.clearInterval(bootTimer);
+    boot.hidden = true;
+    sessionSet("pkn-boot", "1");
+    const path = normalizePath(location.pathname);
+    if (path !== "/") openHref(`${location.pathname}${location.search}`, false);
+  }
+
+  applyWallpaper(wallpaperId());
+  loadDesktop();
+  loadMenu();
+  paintClock();
+  window.setInterval(paintClock, 10000);
+
+  start.addEventListener("click", (event) => {
+    event.stopPropagation();
+    menu.classList.toggle("open");
+  });
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Node)) return;
+    if (menu.contains(target) || start.contains(target)) return;
+    menu.classList.remove("open");
+  });
+  desktop.addEventListener("pointerdown", (event) => {
+    if (event.target !== desktop && event.target !== icons) return;
+    selected = "";
+    paintSelection();
+  });
+  document.addEventListener("click", (event) => {
+    if (event.defaultPrevented || event.button !== 0) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (!(event.target instanceof Element)) return;
+    const anchor = event.target.closest("a");
+    if (!anchor) return;
+    const href = anchor.getAttribute("href") ?? "";
+    if (!href.startsWith("/") || href.startsWith("//")) return;
+    const internal =
+      !href.includes(".") ||
+      href.startsWith("/work/") ||
+      href.startsWith("/notes/") ||
+      href.startsWith("/blog/");
+    if (!internal) return;
+    event.preventDefault();
+    const cmd = anchor.dataset.cmd;
+    if (cmd) {
+      const step = parseCommand(cmd, opens);
+      if (step.type === "nav") openHref(step.path);
+      if (step.type === "external") location.assign(step.href);
+      return;
+    }
+    openHref(href);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && menu.classList.contains("open")) {
+      menu.classList.remove("open");
+      event.preventDefault();
+      return;
+    }
+    const win = windows.find((item) => item.id === activeId);
+    if (win?.term?.inGame()) {
+      if (event.target instanceof HTMLElement && event.target.closest("textarea")) return;
+      if (win.term.onKey(event.key, event.repeat)) event.preventDefault();
+      return;
+    }
+    const target = event.target;
+    if (target instanceof HTMLElement && (target.closest("input, textarea") || target.isContentEditable)) return;
+    if (event.key === "Enter" && selected) {
+      const item = APPS.find((appItem) => appItem.id === selected);
+      if (item) openHref(item.path);
+    }
+  });
+  window.addEventListener("popstate", () => {
+    const path = normalizePath(location.pathname);
+    if (path === "/") return;
+    openHref(`${location.pathname}${location.search}`, false);
+  });
+  window.addEventListener("resize", () => {
+    layoutIcons();
+    for (const win of windows) {
+      if (!win.max) clamp(win);
+      place(win);
+    }
+  });
+
+  if (sessionGet("pkn-boot") === "1") {
+    boot.hidden = true;
+    const path = normalizePath(location.pathname);
+    if (path !== "/") openHref(`${location.pathname}${location.search}`, false);
+  } else {
+    const bar = boot.querySelector("#boot-bar");
+    const steps = [8, 19, 33, 52, 71, 86, 100];
+    let step = 0;
+    if (bar instanceof HTMLElement) bar.style.width = `${steps[0]}%`;
+    boot.addEventListener("pointerdown", () => finishBoot(), { once: true });
+    bootTimer = window.setInterval(() => {
+      step += 1;
+      const width = steps[step] ?? 100;
+      if (bar instanceof HTMLElement) bar.style.width = `${width}%`;
+      if (step >= steps.length - 1) finishBoot();
+    }, 180);
+  }
+}
+
+function loadSpots(ids: string[]): Record<string, Spot> {
+  const height = Math.max(200, window.innerHeight - 40);
+  const rows = Math.max(1, Math.floor(height / 88));
+  const spots: Record<string, Spot> = {};
+  ids.forEach((id, index) => {
+    const col = Math.floor(index / rows);
+    const row = index % rows;
+    spots[id] = { x: 8 + col * 86, y: 8 + row * 88 };
+  });
+  const raw = sessionGet("pkn-icons");
+  if (!raw) return spots;
+  try {
+    const parsed = JSON.parse(raw) as Record<string, Spot>;
+    for (const id of ids) {
+      const spot = parsed[id];
+      if (!spot || typeof spot.x !== "number" || typeof spot.y !== "number") continue;
+      if (spot.x < -40 || spot.y < -40 || spot.x > window.innerWidth || spot.y > window.innerHeight) continue;
+      spots[id] = { x: spot.x, y: spot.y };
+    }
+  } catch {
+    /* ignore a bad saved layout */
+  }
+  return spots;
+}

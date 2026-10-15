@@ -3,18 +3,18 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "node scripts/copy-98.mjs",
     "dev": "vite",
-    "prebuild": "node scripts/write-build-info.mjs",
+    "prebuild": "node scripts/write-build-info.mjs && node scripts/copy-98.mjs",
     "build": "vite build",
     "preview": "npm run build && wrangler dev",
-    "pretest": "node scripts/write-build-info.mjs",
+    "pretest": "node scripts/write-build-info.mjs && node scripts/copy-98.mjs",
     "test": "vitest run",
     "pretypecheck": "node scripts/write-build-info.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@fontsource/ibm-plex-mono": "^5.3.0",
-    "@fontsource/ibm-plex-sans": "^5.3.0",
+    "98.css": "0.1.21",
     "typescript": "^7.0.2",
     "vite": "^8.3.4",
     "vitest": "^4.1.11",

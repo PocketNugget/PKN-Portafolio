@@ -21,7 +21,7 @@ for folder in (pathlib.Path("src"), pathlib.Path("content"), pathlib.Path("dist"
             continue
         if path.name.endswith(".test.ts"):
             continue
-        if "node_modules" in path.parts:
+        if "node_modules" in path.parts or "vendor" in path.parts:
             continue
         files.append(path)
 

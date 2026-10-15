@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import models from "../content/notes/model-files.md?raw";
 import { jobs, projects, validateCatalog } from "./catalog";
 import { assertSafeHtml, renderNote, renderedNotes } from "./notes";
-import { sitemapXml } from "./paths";
+import { isDocumentPath, sitemapXml } from "./paths";
 import { render } from "./render";
 
 describe("catalog", () => {
@@ -81,6 +81,10 @@ describe("pages", () => {
     expect(hackztecs).toContain("February 2024 to present");
     expect(hackztecs).toContain("CREATE-V");
     expect(hackztecs).toContain("May 2025");
+    const skills = render("/skills");
+    expect(skills).toContain("Splunk");
+    expect(skills).toContain("read the diff");
+    expect(skills.toLowerCase()).not.toContain("cylance");
   });
 
   it("lists every document path in the sitemap", () => {
@@ -90,7 +94,13 @@ describe("pages", () => {
     expect(xml).toContain("https://pocketnugget.xyz/blog");
     expect(xml).toContain("https://pocketnugget.xyz/links");
     expect(xml).not.toContain("/admin");
+    expect(xml).not.toContain("/terminal");
+    expect(xml).not.toContain("/skills");
+    expect(xml).not.toContain("/display");
     expect(xml).not.toContain("—");
+    expect(isDocumentPath("/terminal")).toBe(true);
+    expect(isDocumentPath("/skills")).toBe(true);
+    expect(isDocumentPath("/display")).toBe(true);
   });
 });
 

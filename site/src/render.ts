@@ -131,10 +131,11 @@ function home(): string {
     .slice(0, 3)
     .map((project) => projectBlock(project, false))
     .join("");
-  return `${bio.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
-    ${echo("jobs")}
+  return `<p><img src="/nugg.png" width="32" height="32" alt="PocketNugget" /></p>
+    ${bio.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
+    <h2>Jobs</h2>
     ${lead}
-    ${echo("projects | head -n 3")}
+    <h2>Projects</h2>
     ${head}
     <p>The rest is <a href="/work" data-cmd="projects">projects</a>. The radios are <a href="/radio" data-cmd="radio">radio</a>.</p>`;
 }
@@ -232,12 +233,59 @@ function colophonPage(): string {
   return `<p>This site is a Vite build served by a Cloudflare Worker. The Worker adds the headers, <a href="/.well-known/security.txt">security.txt</a>, and <a href="/build.json">build.json</a>. Most pages are files. There is no contact form.</p>
     <p>The blog is the exception. Posts and session hashes live in D1. The password hash is a Worker secret. Sessions are HttpOnly cookies. Visitor addresses are not stored.</p>
     <p>The homelab is where Docker and Cloudflare Tunnels live, on a Raspberry Pi and on the STEM Mac Mini while that apprenticeship ran. I did not put Kubernetes in front of these pages. Naming a cluster here would not make the site safer. Terraform for the DNS zone can come later, against the real zone, not as a diagram.</p>
-    <p>Scripts, styles, and fonts are same-origin. IBM Plex is in the bundle, not loaded from a third party. The only cookie is the editor session, and only after login. <code>scripts/check.sh</code> typechecks, runs the tests, and greps the build for the defaults I do not want shipped.</p>
+    <p>Scripts and styles are same-origin. The window font is Pixelated MS Sans Serif by lou on Fontstruct, shipped under CC BY-SA 3.0 with 98.css. It is not loaded from a third party. The only cookie is the editor session, and only after login. <code>scripts/check.sh</code> typechecks, runs the tests, and greps the build for the defaults I do not want shipped.</p>
     <p>A coding agent drafted parts of this, and then the check script and I read it. That is the same habit as the rest of the work: the tool can type, the diff still has to be mine.</p>`;
+}
+
+function skillsPage(): string {
+  const seen = new Set<string>();
+  const tools: string[] = [];
+  for (const job of jobs) {
+    for (const tool of job.tools) {
+      if (seen.has(tool)) continue;
+      seen.add(tool);
+      tools.push(tool);
+    }
+  }
+  return `<p>Tools from the jobs, in the order those jobs are listed.</p>
+    <p>${tools.map(escapeHtml).join(", ")}</p>
+    <h2>Languages</h2>
+    <p>Spanish, native. English, C1+. French, A2. German, A1.</p>
+    <h2>Agents</h2>
+    <p>A coding agent can draft a change. I still read the diff before it ships. The pipelines I will talk about are the report scripts, the radio tools, and the prototypes already under projects.</p>`;
 }
 
 function notFound(): string {
   return `<p class="err">no such path. try \`help\`.</p>`;
+}
+
+export function documentBody(pathname: string): string {
+  const path = normalizePath(pathname);
+  if (path === "/") return home();
+  if (path === "/help") return helpPage();
+  if (path === "/jobs") return jobs.map((job) => jobBlock(job, true)).join("");
+  if (path === "/work") return workPage();
+  if (path.startsWith("/work/")) {
+    const project = projects.find((item) => item.slug === path.slice("/work/".length));
+    return project ? projectBlock(project, true) : notFound();
+  }
+  if (path === "/blog" || path.startsWith("/blog/")) return dynamicPage("Loading posts.");
+  if (path === "/links") return linksPage();
+  if (path === "/admin/login") return dynamicPage("Loading login.");
+  if (path === "/admin") return dynamicPage("Loading editor.");
+  if (path === "/notes") return notesPage();
+  if (path.startsWith("/notes/")) {
+    const meta = noteBySlug(path.slice("/notes/".length));
+    return meta ? `<article class="note">${renderNote(noteSource(meta))}</article>` : notFound();
+  }
+  if (path === "/radio") return radioPage();
+  if (path === "/certs") return certsPage();
+  if (path === "/contact") return contactPage();
+  if (path === "/colophon") return colophonPage();
+  if (path === "/skills") return skillsPage();
+  if (path === "/display") return `<div class="display-mount"></div>`;
+  if (path === "/terminal") return `<div class="term-mount"></div>`;
+  return notFound();
 }
 
 export function commandFor(pathname: string): string {
@@ -256,35 +304,14 @@ export function commandFor(pathname: string): string {
   if (path === "/contact") return "contact";
   if (path === "/colophon") return "colophon";
   if (path === "/help") return "help";
+  if (path === "/skills") return "skills";
+  if (path === "/display") return "display";
+  if (path === "/terminal") return "snake";
   return "help";
 }
 
 export function render(pathname: string, notice = "", tone: "err" | "hint" = "err"): string {
   const path = normalizePath(pathname);
-  const error = notice;
   const errorClass = tone === "hint" ? "hint" : "err";
-  let body = "";
-  if (path === "/") body = home();
-  else if (path === "/help") body = helpPage();
-  else if (path === "/jobs") body = jobs.map((job) => jobBlock(job, true)).join("");
-  else if (path === "/work") body = workPage();
-  else if (path.startsWith("/work/")) {
-    const project = projects.find((item) => item.slug === path.slice("/work/".length));
-    body = project ? projectBlock(project, true) : notFound();
-  } else if (path === "/blog" || path.startsWith("/blog/")) body = dynamicPage("Loading posts.");
-  else if (path === "/links") body = linksPage();
-  else if (path === "/admin/login") body = dynamicPage("Loading login.");
-  else if (path === "/admin") body = dynamicPage("Loading editor.");
-  else if (path === "/notes") body = notesPage();
-  else if (path.startsWith("/notes/")) {
-    const meta = noteBySlug(path.slice("/notes/".length));
-    body = meta
-      ? `<article class="note">${renderNote(noteSource(meta))}</article>`
-      : notFound();
-  } else if (path === "/radio") body = radioPage();
-  else if (path === "/certs") body = certsPage();
-  else if (path === "/contact") body = contactPage();
-  else if (path === "/colophon") body = colophonPage();
-  else body = notFound();
-  return frame(path, commandFor(path), body, error, errorClass);
+  return frame(path, commandFor(path), documentBody(path), notice, errorClass);
 }

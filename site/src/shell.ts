@@ -6,6 +6,7 @@ export interface HelpLine {
 export const HELP: HelpLine[] = [
   { cmd: "help", blurb: "this list" },
   { cmd: "whoami", blurb: "name, school, where I am looking" },
+  { cmd: "about", blurb: "the same page as whoami" },
   { cmd: "jobs", blurb: "TBSeK, Apple, STEM, T-Systems" },
   { cmd: "projects", blurb: "the work I will actually talk about" },
   { cmd: "open <name>", blurb: "a project, a note, or github, linkedin, email, x" },
@@ -17,7 +18,12 @@ export const HELP: HelpLine[] = [
   { cmd: "contact", blurb: "email, GitHub, LinkedIn, X" },
   { cmd: "colophon", blurb: "why this is a Worker, and what it stores" },
   { cmd: "login", blurb: "the editor session" },
-  { cmd: "clear", blurb: "back to the top of home" },
+  { cmd: "skills", blurb: "tools from the jobs, and languages" },
+  { cmd: "display", blurb: "wallpaper" },
+  { cmd: "snake", blurb: "ascii snake. arrows, esc to leave" },
+  { cmd: "tetris", blurb: "ascii tetris. arrows, space drops, esc to leave" },
+  { cmd: "clear", blurb: "clear the terminal" },
+  { cmd: "exit", blurb: "leave a game, or close the terminal" },
 ];
 
 export const COMMANDS = HELP.map((line) => line.cmd.split(" ")[0]);
@@ -31,7 +37,10 @@ export type Step =
 const ROUTES: Record<string, string> = {
   help: "/help",
   whoami: "/",
+  about: "/",
   clear: "/",
+  skills: "/skills",
+  display: "/display",
   jobs: "/jobs",
   projects: "/work",
   blog: "/blog",

@@ -271,8 +271,8 @@ async function renderAdmin(root: HTMLElement): Promise<void> {
   root.append(form, el("h2", "posts"), list, logout);
 }
 
-export function hydrate(pathname: string): void {
-  const root = document.querySelector("#dynamic");
+export function hydrate(pathname: string, scope: ParentNode = document): void {
+  const root = scope.querySelector("#dynamic");
   if (!(root instanceof HTMLElement)) return;
   const path = normalizePath(pathname);
   if (path === "/blog") void renderBlogList(root);

@@ -2,7 +2,7 @@
 
 Portfolio for Goben Diego Constantino Aguirre (PocketNugget). English, static, and meant to run on Cloudflare Workers.
 
-The pages are a shell. `whoami`, `jobs`, `projects`, `radio`, `writeups`, `certs`, `contact` are real commands, not a prompt drawn on top of a landing page. Content lives in `site/src/catalog.ts` and `site/content/notes/`.
+The page is a Windows 98 style desktop. Icons and the Start menu open the same pages. The Terminal window still runs the real commands, plus ASCII Snake and Tetris. Content lives in `site/src/catalog.ts` and `site/content/notes/`.
 
 ## Run
 
@@ -23,6 +23,16 @@ npm run preview
 That builds the client and starts `wrangler dev`. Refresh a project URL. It should still be that project.
 
 `scripts/check.sh` from the repo root typechecks, runs the tests, builds, and greps the output for the defaults this site does not ship.
+
+## Desktop
+
+`npm run dev` copies 98.css and its pixel font into `site/public/vendor/` before Vite starts. Those files are committed too, with the CC BY-SA note for the font (Pixelated MS Sans Serif by lou, via Fontstruct).
+
+Double-click a desktop icon, or use Start. Windows drag from the title bar, resize from the edges, and minimize, maximize, and close. Open windows sit on the taskbar. On a phone, a tap opens an icon and the window fills the screen.
+
+Wallpaper files are `site/public/wallpapers/`. Display Properties (Start, then Display) switches among them for the current tab. Icon positions after a drag are remembered the same way. Neither is a cookie.
+
+To change a page, edit `site/src/catalog.ts`. The desktop apps are the list at the top of `site/src/desktop/desktop.ts`. Snake and Tetris live in `site/src/desktop/games.ts` and run inside the Terminal window (`snake`, `tetris`, arrows, space, esc).
 
 ## Deploy
 
@@ -73,7 +83,7 @@ The session is an HttpOnly, SameSite=Strict cookie. The database stores a hash o
 
 ## What the Worker stores
 
-Blog posts, session hashes, and login-failure times, in D1. No contact form, no third-party script, no analytics table. Fonts are IBM Plex, bundled. `security.txt` points at `goben.ca.pkn@hotmail.com`.
+Blog posts, session hashes, and login-failure times, in D1. No contact form, no third-party script, no analytics table. The window font ships with 98.css in `site/public/vendor/`. `security.txt` points at `goben.ca.pkn@hotmail.com`.
 
 ## Legacy
 

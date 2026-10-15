@@ -24,6 +24,7 @@ export function normalizePath(pathname: string): string {
 export function isDocumentPath(pathname: string): boolean {
   const path = normalizePath(pathname);
   if (PAGES.has(path) || path === "/admin" || path === "/admin/login") return true;
+  if (path === "/terminal" || path === "/skills" || path === "/display") return true;
   if (/^\/blog\/[a-z0-9-]+$/.test(path)) return true;
   const work = /^\/work\/([a-z0-9-]+)$/.exec(path);
   if (work && projects.some((project) => project.slug === work[1])) return true;
