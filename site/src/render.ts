@@ -28,7 +28,7 @@ const NAV = [
 ] as const;
 
 function echo(command: string): string {
-  return `<p class="echo"><b>goben@pkn</b>:~$ ${escapeHtml(command)}</p>`;
+  return `<p class="echo"><span class="user">goben</span>@<span class="host">pkn</span><span class="cwd">:~$</span> ${escapeHtml(command)}</p>`;
 }
 
 function tools(list: string[]): string {
@@ -87,10 +87,19 @@ function nav(path: string): string {
 
 function frame(path: string, command: string, body: string, error: string, errorClass: string): string {
   const err = error ? `<p class="${errorClass}" role="status">${escapeHtml(error)}</p>` : "";
+  const shown = escapeHtml(command);
   return `<div class="frame">
+    <header class="bar">
+      <span class="bar-mark">pkn</span>
+      <span class="bar-host"><span class="user">goben</span>@pocketnugget</span>
+      <span class="bar-pane">0:${shown}*</span>
+    </header>
     <aside class="rail">
-      <img src="/nugg.png" width="36" height="36" alt="PocketNugget mark" />
-      <p><span class="host">goben</span>@pkn<span class="dim">:~</span></p>
+      <img src="/nugg.png" width="40" height="40" alt="PocketNugget mark" />
+      <div>
+        <p class="who"><span class="user">goben</span><span class="dim">@pkn</span></p>
+        <p class="where">~/pocketnugget</p>
+      </div>
     </aside>
     <div class="stage">
       ${nav(path)}
@@ -101,8 +110,15 @@ function frame(path: string, command: string, body: string, error: string, error
     </div>
   </div>
   <form class="shell" id="shell" autocomplete="off">
-    <label for="cmd">goben@pkn:~$</label>
-    <input id="cmd" name="cmd" spellcheck="false" autocapitalize="off" enterkeyhint="go" aria-label="Command" />
+    <div class="status" aria-hidden="true">
+      <span>pkn</span>
+      <span>0:${shown}*</span>
+      <span class="status-host">pocketnugget.xyz</span>
+    </div>
+    <div class="promptline">
+      <label for="cmd"><span class="user">goben</span>@<span class="host">pkn</span>:~$</label>
+      <input id="cmd" name="cmd" spellcheck="false" autocapitalize="off" enterkeyhint="go" aria-label="Command" />
+    </div>
   </form>`;
 }
 
