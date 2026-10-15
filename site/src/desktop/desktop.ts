@@ -1,4 +1,4 @@
-import { jobs, linkPage, notes, openTable, profiles, projects } from "../catalog";
+import { linkPage, notes, openTable, profiles, projects } from "../catalog";
 import { hydrate, setNavigator } from "../client";
 import { getLang, setLang, t, type Lang } from "../i18n";
 import { normalizePath } from "../paths";
@@ -116,19 +116,24 @@ const WALLPAPERS = [
 ];
 
 const SIZES: Record<string, [number, number]> = {
-  "/player": [640, 380],
+  "/player": [618, 286],
   "/pictures": [640, 480],
   "/awards": [640, 480],
   "/convert": [480, 480],
-  "/sweep": [380, 460],
-  "/dice": [280, 260],
-  "/flip": [260, 240],
-  "/math": [280, 380],
-  "/wheel": [400, 560],
-  "/snake": [560, 440],
-  "/tetris": [560, 440],
+  "/sweep": [360, 470],
+  "/dice": [230, 250],
+  "/flip": [220, 260],
+  "/math": [260, 340],
+  "/wheel": [340, 470],
+  "/snake": [520, 380],
+  "/tetris": [420, 520],
   "/legal": [560, 520],
-  "/": [560, 620],
+  "/": [720, 700],
+  "/jobs": [640, 560],
+  "/work": [680, 560],
+  "/skills": [560, 480],
+  "/certs": [560, 460],
+  "/contact": [440, 340],
   "/facts": [500, 440],
   "/hack": [480, 360],
   "/run": [320, 160],
@@ -396,6 +401,13 @@ export function bootDesktop(): void {
         win.el.style.bottom = "0";
         win.el.style.height = "auto";
         win.el.style.maxHeight = "54%";
+        return;
+      }
+      if (narrow && win.path === "/player") {
+        const width = Math.max(1, desktop.clientWidth);
+        const deckH = Math.ceil(((width - 18) * 250) / 600);
+        win.el.style.top = "0";
+        win.el.style.height = `${Math.min(desktop.clientHeight, deckH + 56)}px`;
         return;
       }
       win.el.style.top = "0";
@@ -914,32 +926,11 @@ export function bootDesktop(): void {
     }
     renderTasks();
     clippy?.labels();
-    role.textContent = t(jobs[0]?.role ?? "");
-    placeLine.textContent = t(jobs[0]?.place ?? "");
-    noteClose.setAttribute("aria-label", t("Close"));
     paintPrint();
   }
 
   const printPack = document.createElement("div");
   printPack.id = "print-pack";
-  const sticky = document.createElement("aside");
-  sticky.id = "sticky";
-  sticky.hidden = sessionGet("pkn-note") === "0";
-  const noteClose = document.createElement("button");
-  noteClose.type = "button";
-  noteClose.textContent = "x";
-  noteClose.setAttribute("aria-label", t("Close"));
-  noteClose.addEventListener("click", () => {
-    sticky.hidden = true;
-    sessionSet("pkn-note", "0");
-  });
-  const role = document.createElement("p");
-  role.textContent = t(jobs[0]?.role ?? "");
-  const placeLine = document.createElement("p");
-  placeLine.textContent = t(jobs[0]?.place ?? "");
-  const mail = document.createElement("p");
-  mail.textContent = profiles.email.label;
-  sticky.append(noteClose, role, placeLine, mail);
   const saver = document.createElement("div");
   saver.id = "saver";
   saver.hidden = true;
@@ -1022,7 +1013,6 @@ export function bootDesktop(): void {
     });
     deskMenu.append(button);
   }
-  desktop.append(sticky);
   app.append(printPack, saver, deskMenu);
 
   applyWallpaper(wallpaperId());

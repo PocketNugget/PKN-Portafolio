@@ -8,12 +8,14 @@ import {
   parseCommand,
   pushHist,
 } from "../shell";
+import { t } from "../i18n";
 import {
   createSnake,
   createTetris,
   snakeAim,
   snakeRender,
   stepSnake,
+  tetrisActive,
   tetrisDown,
   tetrisHard,
   tetrisLeft,
@@ -47,6 +49,9 @@ export class Terminal {
   private readonly pre: HTMLElement;
   private readonly input: HTMLInputElement;
   private readonly root: HTMLElement;
+  private readonly stage: HTMLElement;
+  private readonly board: HTMLElement;
+  private readonly status: HTMLElement;
   private lines: string[] = [
     "PocketNugget terminal",
     "help lists commands. snake and tetris run in this window.",
@@ -70,6 +75,10 @@ export class Terminal {
   ) {
     host.classList.add("term-mount");
     host.innerHTML = `<pre class="dos" tabindex="0"></pre>
+      <div class="play-stage" hidden>
+        <div class="play-board"></div>
+        <p class="play-status"></p>
+      </div>
       <form class="term-line" autocomplete="off">
         <label for="term-cmd">goben@pkn:~$</label>
         <input id="term-cmd" name="cmd" spellcheck="false" autocapitalize="off" enterkeyhint="go" aria-label="Command" />
@@ -85,12 +94,25 @@ export class Terminal {
     const pre = host.querySelector("pre");
     const input = host.querySelector("input");
     const form = host.querySelector("form");
-    if (!(pre instanceof HTMLElement) || !(input instanceof HTMLInputElement) || !(form instanceof HTMLFormElement)) {
+    const stage = host.querySelector(".play-stage");
+    const board = host.querySelector(".play-board");
+    const status = host.querySelector(".play-status");
+    if (
+      !(pre instanceof HTMLElement) ||
+      !(input instanceof HTMLInputElement) ||
+      !(form instanceof HTMLFormElement) ||
+      !(stage instanceof HTMLElement) ||
+      !(board instanceof HTMLElement) ||
+      !(status instanceof HTMLElement)
+    ) {
       throw new Error("terminal markup missing");
     }
     this.pre = pre;
     this.input = input;
     this.root = host;
+    this.stage = stage;
+    this.board = board;
+    this.status = status;
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       const value = input.value;
@@ -302,15 +324,71 @@ export class Terminal {
   }
 
   private paint(): void {
+    const playing = this.mode !== "shell";
+    this.stage.hidden = !playing;
+    this.pre.setAttribute("aria-hidden", playing ? "true" : "false");
     if (this.mode === "snake" && this.snake) {
       const extra = this.paused ? "\npaused" : "";
       this.pre.textContent = snakeRender(this.snake) + extra;
+      this.drawSnake(this.snake);
     } else if (this.mode === "tetris" && this.tetris) {
       const extra = this.paused ? "\npaused" : "";
       this.pre.textContent = tetrisRender(this.tetris) + extra;
+      this.drawTetris(this.tetris);
     } else {
       this.pre.textContent = this.lines.join("\n");
     }
     this.pre.scrollTop = this.pre.scrollHeight;
+  }
+
+  private cells(count: number): HTMLElement[] {
+    while (this.board.childElementCount < count) {
+      const cell = document.createElement("span");
+      cell.className = "play-cell";
+      this.board.append(cell);
+    }
+    while (this.board.childElementCount > count) this.board.lastElementChild?.remove();
+    return [...this.board.children].filter((node): node is HTMLElement => node instanceof HTMLElement);
+  }
+
+  private drawSnake(state: SnakeState): void {
+    this.board.className = "play-board snake";
+    this.board.style.aspectRatio = `${state.width} / ${state.height}`;
+    const head = state.body[0];
+    const rest = new Set(state.body.slice(1).map((point) => `${point.x},${point.y}`));
+    const tiles = this.cells(state.width * state.height);
+    for (let index = 0; index < tiles.length; index += 1) {
+      const x = index % state.width;
+      const y = Math.floor(index / state.width);
+      const tile = tiles[index];
+      if (!tile) continue;
+      if (head && head.x === x && head.y === y) tile.className = "play-cell head";
+      else if (rest.has(`${x},${y}`)) tile.className = "play-cell on";
+      else if (state.food.x === x && state.food.y === y) tile.className = "play-cell food";
+      else tile.className = "play-cell";
+    }
+    const hint = state.dead ? t("game over. esc leaves") : t("arrows move. esc leaves");
+    const hold = this.paused ? `  ${t("paused")}` : "";
+    this.status.textContent = `${t("Score")} ${state.score}  ${hint}${hold}`;
+  }
+
+  private drawTetris(state: TetrisState): void {
+    this.board.className = "play-board tetris";
+    this.board.style.aspectRatio = `${state.width} / ${state.height}`;
+    const active = new Set(tetrisActive(state).map((cell) => `${cell.x},${cell.y}`));
+    const tiles = this.cells(state.width * state.height);
+    for (let index = 0; index < tiles.length; index += 1) {
+      const x = index % state.width;
+      const y = Math.floor(index / state.width);
+      const tile = tiles[index];
+      if (!tile) continue;
+      const falling = active.has(`${x},${y}`);
+      if (falling) tile.className = `play-cell k${state.kind}`;
+      else if (state.grid[index]) tile.className = "play-cell locked";
+      else tile.className = "play-cell";
+    }
+    const hint = state.over ? t("game over. esc leaves") : t("arrows, space drops, esc leaves");
+    const hold = this.paused ? `  ${t("paused")}` : "";
+    this.status.textContent = `${t("Score")} ${state.score}  ${t("Lines")} ${state.lines}  ${hint}${hold}`;
   }
 }

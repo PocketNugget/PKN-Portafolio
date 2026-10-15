@@ -132,7 +132,9 @@ export function mountSweep(host: HTMLElement): DeskApp {
   const bar = document.createElement("div");
   bar.className = "sweep-bar";
   const mines = document.createElement("span");
+  mines.className = "sweep-readout";
   const clock = document.createElement("span");
+  clock.className = "sweep-readout";
   const flag = document.createElement("button");
   flag.type = "button";
   flag.textContent = t("Flag");
@@ -160,8 +162,11 @@ export function mountSweep(host: HTMLElement): DeskApp {
     }, 1000);
   };
   const paint = () => {
-    mines.textContent = `${t("Mines")} ${sweepFlagsLeft(state)}`;
-    clock.textContent = `${seconds}s`;
+    const left = sweepFlagsLeft(state);
+    mines.textContent = String(left).padStart(3, "0");
+    mines.setAttribute("aria-label", `${t("Mines")} ${left}`);
+    clock.textContent = String(seconds).padStart(3, "0");
+    clock.setAttribute("aria-label", `${seconds}s`);
     flag.setAttribute("aria-pressed", String(flagMode));
     status.textContent = state.won ? t("Clear.") : state.alive ? t("Open a cell. Flag marks a guess.") : t("A mine. New starts again.");
     grid.replaceChildren();

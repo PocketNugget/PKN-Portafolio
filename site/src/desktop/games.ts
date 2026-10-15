@@ -446,6 +446,14 @@ export function tetrisHard(state: TetrisState): TetrisState {
   return lock(next);
 }
 
+export function tetrisActive(state: TetrisState): Point[] {
+  if (state.over) return [];
+  return (ROT[state.kind][state.rot] ?? []).map((cell) => ({
+    x: cell.x + state.x,
+    y: cell.y + state.y,
+  }));
+}
+
 export function tetrisRender(state: TetrisState): string {
   const active = new Set<string>();
   if (!state.over) {

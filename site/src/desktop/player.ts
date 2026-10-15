@@ -9,6 +9,8 @@ export function mountPlayer(host: HTMLElement): DeskApp {
   host.replaceChildren();
   const frame = document.createElement("div");
   frame.className = "deck-frame";
+  const box = document.createElement("div");
+  box.className = "deck-fit";
   const iframe = document.createElement("iframe");
   iframe.className = "deck-iframe";
   iframe.src = PLAYER_PAGE;
@@ -18,18 +20,17 @@ export function mountPlayer(host: HTMLElement): DeskApp {
   iframe.height = String(DECK_H);
   iframe.referrerPolicy = "strict-origin-when-cross-origin";
   iframe.setAttribute("allow", "autoplay; encrypted-media; picture-in-picture");
-  frame.append(iframe);
-  const credit = document.createElement("p");
-  credit.className = "meta";
-  credit.textContent =
-    "Webdeck Player by Chris, MIT. Opening video: modest by default : Permaculture, by MTHRBORD. Playback stays in YouTube's player. This site does not host the file.";
-  host.append(frame, credit);
+  box.append(iframe);
+  frame.append(box);
+  host.append(frame);
 
   const fit = () => {
     const width = Math.max(1, frame.clientWidth);
-    const scale = Math.min(1, width / DECK_W);
+    const height = Math.max(1, frame.clientHeight);
+    const scale = Math.min(width / DECK_W, height / DECK_H);
+    box.style.width = `${Math.floor(DECK_W * scale)}px`;
+    box.style.height = `${Math.floor(DECK_H * scale)}px`;
     iframe.style.transform = `scale(${scale})`;
-    frame.style.height = `${Math.ceil(DECK_H * scale)}px`;
   };
   const observer = new ResizeObserver(fit);
   observer.observe(frame);

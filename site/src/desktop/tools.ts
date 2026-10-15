@@ -81,11 +81,19 @@ export function wheelIndex(count: number, roll: () => number = Math.random): num
 }
 
 const WHEEL_COLORS = ["#000080", "#008080", "#800000", "#808080", "#004000", "#000000"];
+const PIP: Record<number, number[]> = {
+  1: [4],
+  2: [0, 8],
+  3: [0, 4, 8],
+  4: [0, 2, 6, 8],
+  5: [0, 2, 4, 6, 8],
+  6: [0, 2, 3, 5, 6, 8],
+};
 
 export function mountDice(host: HTMLElement): DeskApp {
   host.replaceChildren();
   const root = document.createElement("div");
-  root.className = "tool-app";
+  root.className = "tool-app tool-dice";
   const pick = document.createElement("label");
   pick.className = "field-row";
   pick.textContent = t("Sides");
@@ -99,14 +107,31 @@ export function mountDice(host: HTMLElement): DeskApp {
     select.append(option);
   }
   pick.append(select);
-  const face = document.createElement("p");
-  face.className = "tool-face";
-  face.textContent = "6";
+  const face = document.createElement("div");
+  face.className = "die";
+  face.setAttribute("aria-live", "polite");
   const roll = document.createElement("button");
   roll.type = "button";
   roll.textContent = t("Roll");
   root.append(pick, face, roll);
   host.append(root);
+  const show = (value: number, sides: number) => {
+    face.replaceChildren();
+    face.setAttribute("aria-label", String(value));
+    const pips = sides === 6 && value >= 1 && value <= 6;
+    face.classList.toggle("pips", pips);
+    if (!pips) {
+      face.textContent = String(value);
+      return;
+    }
+    const on = PIP[value] ?? [];
+    for (let i = 0; i < 9; i += 1) {
+      const pip = document.createElement("span");
+      if (on.includes(i)) pip.className = "pip";
+      face.append(pip);
+    }
+  };
+  show(6, 6);
   let timer = 0;
   roll.addEventListener("click", () => {
     window.clearInterval(timer);
@@ -114,11 +139,12 @@ export function mountDice(host: HTMLElement): DeskApp {
     let ticks = 0;
     timer = window.setInterval(() => {
       ticks += 1;
-      face.textContent = String(rollDie(sides));
+      const value = rollDie(sides);
+      show(value, sides);
       if (ticks < 8) return;
       window.clearInterval(timer);
       timer = 0;
-      face.textContent = String(rollDie(sides));
+      show(rollDie(sides), sides);
     }, 60);
   });
   return {
@@ -133,9 +159,9 @@ export function mountDice(host: HTMLElement): DeskApp {
 export function mountFlip(host: HTMLElement): DeskApp {
   host.replaceChildren();
   const root = document.createElement("div");
-  root.className = "tool-app";
-  const face = document.createElement("p");
-  face.className = "tool-face";
+  root.className = "tool-app tool-flip";
+  const face = document.createElement("div");
+  face.className = "coin";
   face.textContent = t("heads");
   const button = document.createElement("button");
   button.type = "button";
@@ -164,7 +190,7 @@ export function mountMath(host: HTMLElement): DeskApp {
   host.replaceChildren();
   let state = mathStart();
   const root = document.createElement("div");
-  root.className = "tool-app";
+  root.className = "tool-app tool-math";
   const display = document.createElement("output");
   display.className = "math-display";
   display.textContent = state.display;
@@ -188,7 +214,7 @@ export function mountMath(host: HTMLElement): DeskApp {
 export function mountWheel(host: HTMLElement): DeskApp {
   host.replaceChildren();
   const root = document.createElement("div");
-  root.className = "tool-app";
+  root.className = "tool-app tool-wheel";
   const box = document.createElement("textarea");
   box.rows = 5;
   box.spellcheck = false;

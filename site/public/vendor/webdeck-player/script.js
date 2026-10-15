@@ -57,7 +57,7 @@ var myThemes = {
  * [4. CURRENT THEME]
  * Set the theme of your player writing its name below.
  */
-var currentTheme = "DEFAULT";
+var currentTheme = "SILVER";
 
 
 // ===== END OF CONFIGURATION =====

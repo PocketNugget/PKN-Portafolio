@@ -154,14 +154,14 @@ function home(): string {
     ["/pictures", "pictures", "My Pictures"],
     ["/radio", "radio", "Radio"],
   ] as const;
-  const row = (items: readonly (readonly [string, string, string])[]) =>
-    `<nav class="about-path">${items.map(([href, cmd, label]) => pathLink(href, cmd, label)).join("")}</nav>`;
+  const row = (items: readonly (readonly [string, string, string])[], extra = "") =>
+    `<nav class="about-path${extra ? ` ${extra}` : ""}">${items.map(([href, cmd, label]) => pathLink(href, cmd, label)).join("")}</nav>`;
   return `<p><img class="shot portrait" src="/media/me.png" alt="Goben Diego Constantino Aguirre" /></p>
     <h2>${tx("Profile")}</h2>
     ${bio.map((paragraph) => `<p>${tx(paragraph)}</p>`).join("")}
     <h2>${tx("Read next")}</h2>
     <p>${tx("Open these in order. Jobs first, then the work, then the tools. Courses and Contact close it.")}</p>
-    ${row(next)}
+    ${row(next, "about-main")}
     <h2>${tx("Also")}</h2>
     ${row(more)}`;
 }
