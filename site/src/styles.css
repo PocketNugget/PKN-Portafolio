@@ -34,22 +34,29 @@ body {
   z-index: 1;
   inset: 0 0 30px 0;
   overflow: hidden;
-  background: #008080;
-}
-
-#desktop.wp-teal {
-  background: #008080 url("/wallpapers/teal.svg") center / cover no-repeat;
-}
-
-#desktop.wp-clouds {
-  background: #3a7cb8 url("/wallpapers/clouds.svg") center / cover no-repeat;
-}
-
-#desktop.wp-navy {
   background: #000080;
 }
 
-#desktop.wp-sky {
+#wallpaper {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: #7eb6e6 url("/wallpapers/sky.jpg") center / cover no-repeat;
+}
+
+#desktop.wp-teal #wallpaper {
+  background: #008080 url("/wallpapers/teal.svg") center / cover no-repeat;
+}
+
+#desktop.wp-clouds #wallpaper {
+  background: #3a7cb8 url("/wallpapers/clouds.svg") center / cover no-repeat;
+}
+
+#desktop.wp-navy #wallpaper {
+  background: #000080;
+}
+
+#desktop.wp-sky #wallpaper {
   background: #7eb6e6 url("/wallpapers/sky.jpg") center / cover no-repeat;
 }
 
@@ -678,6 +685,12 @@ button.thumb span {
   white-space: nowrap;
 }
 
+img.shot.portrait {
+  width: min(180px, 100%);
+  max-height: 220px;
+  object-fit: cover;
+}
+
 .viewer img.shot {
   display: block;
   max-width: 100%;
@@ -742,10 +755,16 @@ button.thumb span {
   #social {
     position: static;
     order: 2;
+    z-index: 1;
     justify-content: center;
     flex-wrap: wrap;
     padding: 4px 4px 6px;
     background: #000080;
+  }
+
+  #windows {
+    position: fixed;
+    inset: 0 0 30px 0;
   }
 
   button.desk-icon {
@@ -767,5 +786,209 @@ button.thumb span {
 
   button.task-btn {
     max-width: 108px;
+  }
+}
+
+#lang {
+  min-width: 36px;
+  padding: 0 6px;
+}
+
+form.login button,
+form.editor button,
+button#lang,
+#desk-menu button,
+#sticky button,
+#clippy button {
+  color: #222;
+  text-shadow: none;
+}
+
+#clippy {
+  position: absolute;
+  z-index: 5;
+  width: 220px;
+  pointer-events: none;
+}
+
+#clippy[hidden] {
+  display: none;
+}
+
+#clippy.enter {
+  animation: nugget-in 400ms steps(4);
+}
+
+#clippy .balloon,
+#clippy .buddy-pic,
+#clippy button {
+  pointer-events: auto;
+}
+
+#clippy .buddy-pic {
+  width: 140px;
+  margin: 0;
+  animation: nugget-idle 2.8s ease-in-out infinite;
+}
+
+#clippy .buddy-pic.talk {
+  animation: nugget-talk 160ms steps(2) infinite;
+}
+
+#clippy .balloon {
+  position: relative;
+  margin: 0 0 8px;
+  padding: 6px 8px;
+  background: #fff;
+  color: #000;
+  border: 1px solid #000;
+}
+
+#clippy .balloon[hidden] {
+  display: none;
+}
+
+#clippy .balloon p {
+  margin: 0 0 6px;
+}
+
+#clippy .balloon::after {
+  content: "";
+  position: absolute;
+  left: 28px;
+  bottom: -8px;
+  border-width: 8px 8px 0;
+  border-style: solid;
+  border-color: #000 transparent transparent;
+}
+
+#clippy .balloon-x {
+  float: right;
+  min-width: 0;
+  padding: 0 4px;
+}
+
+#sticky {
+  position: absolute;
+  z-index: 4;
+  top: 12px;
+  right: 12px;
+  width: 160px;
+  padding: 6px 8px 8px;
+  background: #fff8a0;
+  color: #222;
+  border: 1px solid #000;
+  font-size: 12px;
+}
+
+#sticky[hidden] {
+  display: none;
+}
+
+#sticky p {
+  margin: 0 0 4px;
+}
+
+#sticky button {
+  float: right;
+  min-width: 0;
+  padding: 0 4px;
+}
+
+#saver {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: #7eb6e6 url("/wallpapers/sky.jpg") center / cover no-repeat;
+}
+
+#saver[hidden] {
+  display: none;
+}
+
+#saver img {
+  position: absolute;
+  width: 120px;
+  height: auto;
+  animation: saver-bounce 4.5s linear infinite alternate;
+}
+
+#desk-menu {
+  position: fixed;
+  z-index: 65;
+  min-width: 148px;
+  padding: 2px;
+  background: silver;
+  border: 2px solid;
+  border-color: #fff #000 #000 #fff;
+}
+
+#desk-menu[hidden] {
+  display: none;
+}
+
+#desk-menu button {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+}
+
+#print-pack {
+  display: none;
+}
+
+@keyframes nugget-in {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@keyframes nugget-idle {
+  50% { transform: translateY(3px); }
+}
+
+@keyframes nugget-talk {
+  50% { transform: translateY(2px); }
+}
+
+@keyframes saver-bounce {
+  from { left: 0; top: 0; }
+  to { left: calc(100% - 120px); top: calc(100% - 160px); }
+}
+
+@media print {
+  #boot,
+  #desktop,
+  #taskbar,
+  #start-menu,
+  #clippy,
+  #saver,
+  #desk-menu {
+    display: none !important;
+  }
+
+  #print-pack {
+    display: block;
+    color: #000;
+    background: #fff;
+  }
+
+  body,
+  #app {
+    height: auto;
+    overflow: visible;
+    background: #fff;
+  }
+}
+
+@media (max-width: 700px) {
+  #sticky {
+    position: static;
+    order: 3;
+    top: auto;
+    right: auto;
+    z-index: auto;
+    width: auto;
+    margin: 6px 8px 8px;
   }
 }

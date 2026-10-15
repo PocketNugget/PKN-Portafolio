@@ -17,13 +17,11 @@ describe("catalog", () => {
     projects[0].date = saved;
   });
 
-  it("keeps the LinkedIn dates and leaves Apple undated", () => {
+  it("keeps the LinkedIn dates and does not list an Apple job", () => {
     expect(jobs.find((job) => job.id === "tbsek")?.date).toBe("July 2026 to present");
     expect(jobs.find((job) => job.id === "tbsek-jr")?.date).toBe("April 2025 to July 2026");
     expect(jobs.find((job) => job.id === "stem")?.date).toBe("February 2024 to June 2026");
-    const apple = jobs.find((job) => job.id === "apple");
-    expect(apple?.body.join(" ")).toContain("Cultural Vistas");
-    expect(apple?.date).not.toMatch(/\d{4}/);
+    expect(jobs.some((job) => job.id === "apple" || job.org === "Apple")).toBe(false);
   });
 });
 
@@ -54,7 +52,8 @@ describe("pages", () => {
     expect(html).toContain("9.0/10");
     expect(html).toContain("April 2025");
     expect(html).toContain("July 2026 to present");
-    expect(html).toContain("Cultural Vistas");
+    expect(html).not.toContain("Cultural Vistas");
+    expect(html).not.toContain("J-1");
     expect(html).toContain("52 of 1,014");
     expect(html).toContain("34,125");
     expect(html).not.toContain("40%");
@@ -101,7 +100,7 @@ describe("pages", () => {
     expect(isDocumentPath("/terminal")).toBe(true);
     expect(isDocumentPath("/skills")).toBe(true);
     expect(isDocumentPath("/display")).toBe(true);
-    for (const path of ["/player", "/pictures", "/awards", "/convert", "/facts", "/hack", "/buddy"]) {
+    for (const path of ["/player", "/pictures", "/awards", "/convert", "/facts", "/hack", "/buddy", "/run", "/find"]) {
       expect(isDocumentPath(path)).toBe(true);
       expect(xml).not.toContain(`https://pocketnugget.xyz${path}</loc>`);
     }

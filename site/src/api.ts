@@ -1,5 +1,6 @@
 import { randomToken, safeEqual, sha256Hex, verifyPassword } from "./password";
 import type { Store } from "./store";
+import { openSecret, otpauthUri, totpMatches } from "./totp";
 
 const COOKIE = "pkn_session";
 const WINDOW_MS = 15 * 60 * 1000;
@@ -10,6 +11,7 @@ const MAX_BODY = 100_000;
 export interface AuthConfig {
   user: string;
   hash: string;
+  totpKey?: string;
 }
 
 function text(status: number, body: string, extra?: Headers): Response {
@@ -106,32 +108,90 @@ async function requireUser(request: Request, store: Store, auth: AuthConfig, now
   return null;
 }
 
-async function login(request: Request, store: Store, auth: AuthConfig, now: number): Promise<Response> {
-  if (!originOk(request)) return text(403, "bad origin\n");
-  const body = await readJson(request);
-  if (body instanceof Response) return body;
-  if (!configured(auth)) return text(503, "login is not configured\n");
-  await store.clearAttempts(now - 24 * 60 * 60 * 1000);
-  if ((await store.countAttempts(now - WINDOW_MS)) >= LOCK_AFTER) return text(429, "too many attempts\n");
-  const record = body as { username?: unknown; password?: unknown };
-  const username = typeof record.username === "string" ? record.username : "";
-  const password = typeof record.password === "string" ? record.password : "";
-  if (username.length > 64 || password.length < 1 || password.length > 200) {
-    await store.addAttempt(now);
-    return text(401, "no\n");
-  }
-  const userOk = safeEqual(username, auth.user);
-  const passOk = await verifyPassword(password, auth.hash);
-  if (!userOk || !passOk) {
-    await store.addAttempt(now);
-    return text(401, "no\n");
-  }
+function hashOk(value: string): boolean {
+  return /^sha256\$[0-9a-f]{64}$/.test(value);
+}
+
+async function activeHash(store: Store, auth: AuthConfig): Promise<string> {
+  const row = await store.getAuth();
+  if (row && hashOk(row.passwordHash)) return row.passwordHash;
+  return auth.hash;
+}
+
+async function issueSession(request: Request, store: Store, now: number): Promise<Response> {
   await store.clearAttempts(now + 1);
   const token = randomToken();
   await store.putSession(await sha256Hex(token), now + SESSION_MS);
   const headers = new Headers();
   headers.set("set-cookie", sessionCookie(token, request, SESSION_MS / 1000));
   return text(204, "", headers);
+}
+
+async function login(request: Request, store: Store, auth: AuthConfig, now: number): Promise<Response> {
+  if (!originOk(request)) return text(403, "bad origin\n");
+  const body = await readJson(request);
+  if (body instanceof Response) return body;
+  const hash = await activeHash(store, auth);
+  if (!configured({ user: auth.user, hash })) return text(503, "login is not configured\n");
+  await store.clearAttempts(now - 24 * 60 * 60 * 1000);
+  if ((await store.countAttempts(now - WINDOW_MS)) >= LOCK_AFTER) return text(429, "too many attempts\n");
+  const record = body as { username?: unknown; password?: unknown; code?: unknown };
+  const username = typeof record.username === "string" ? record.username : "";
+  const password = typeof record.password === "string" ? record.password : "";
+  const code = typeof record.code === "string" ? record.code.trim() : "";
+  if (username.length > 64 || password.length < 1 || password.length > 200 || code.length > 64) {
+    await store.addAttempt(now);
+    return text(401, "no\n");
+  }
+  const userOk = safeEqual(username, auth.user);
+  const passOk = await verifyPassword(password, hash);
+  if (!userOk || !passOk) {
+    await store.addAttempt(now);
+    return text(401, "no\n");
+  }
+  const row = await store.getAuth();
+  if (!auth.totpKey || !row?.totpCipher) return text(503, "login is not configured\n");
+  let secret: Uint8Array;
+  try {
+    secret = await openSecret(auth.totpKey, row.totpCipher);
+  } catch {
+    return text(503, "login is not configured\n");
+  }
+  if (!code) {
+    if (row.totpReady) return json(200, { step: "code" });
+    return json(200, { step: "enroll", otpauth: otpauthUri(secret) });
+  }
+  const normalized = code.replace(/\s+/g, "").toUpperCase();
+  const recovered = await store.consumeRecovery(await sha256Hex(normalized));
+  const codeOk = recovered || (await totpMatches(secret, code, Math.floor(now / 1000)));
+  if (!codeOk) {
+    await store.addAttempt(now);
+    return text(401, "no\n");
+  }
+  if (!row.totpReady) await store.markTotpReady();
+  return issueSession(request, store, now);
+}
+
+async function changePassword(request: Request, store: Store, auth: AuthConfig, now: number): Promise<Response> {
+  const denied = await requireUser(request, store, auth, now);
+  if (denied) return denied;
+  const body = await readJson(request);
+  if (body instanceof Response) return body;
+  if ((await store.countAttempts(now - WINDOW_MS)) >= LOCK_AFTER) return text(429, "too many attempts\n");
+  const record = body as { current?: unknown; password?: unknown };
+  const current = typeof record.current === "string" ? record.current : "";
+  const next = typeof record.password === "string" ? record.password : "";
+  if (current.length < 1 || current.length > 200 || next.length < 16 || next.length > 200) {
+    return text(400, "password too short\n");
+  }
+  const hash = await activeHash(store, auth);
+  if (!(await verifyPassword(current, hash))) {
+    await store.addAttempt(now);
+    return text(401, "no\n");
+  }
+  const ok = await store.setPasswordHash(`sha256$${await sha256Hex(next)}`);
+  if (!ok) return text(503, "login is not configured\n");
+  return text(204, "");
 }
 
 async function logout(request: Request, store: Store): Promise<Response> {
@@ -199,6 +259,7 @@ export async function handleApi(
   const path = url.pathname;
 
   if (path === "/api/auth" && method === "POST") return login(request, store, auth, now);
+  if (path === "/api/password" && method === "POST") return changePassword(request, store, auth, now);
   if (path === "/api/logout" && method === "POST") return logout(request, store);
   if (path === "/api/session" && method === "GET") {
     if (!(await sessionUser(request, store, auth, now))) return text(401, "no\n");

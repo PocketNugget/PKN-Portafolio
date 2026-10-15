@@ -11,10 +11,11 @@ export interface Env {
   DB?: D1Like;
   ADMIN_USER?: string;
   ADMIN_PASSWORD_HASH?: string;
+  ADMIN_TOTP_KEY?: string;
 }
 
 function authOf(env: Env): AuthConfig {
-  return { user: env.ADMIN_USER ?? "", hash: env.ADMIN_PASSWORD_HASH ?? "" };
+  return { user: env.ADMIN_USER ?? "", hash: env.ADMIN_PASSWORD_HASH ?? "", totpKey: env.ADMIN_TOTP_KEY ?? "" };
 }
 
 export async function handle(

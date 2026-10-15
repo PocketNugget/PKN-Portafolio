@@ -6,11 +6,13 @@ import {
   linkPage,
   notes,
   profiles,
+  projectKind,
   projects,
   radio,
   type Job,
   type Project,
 } from "./catalog";
+import { t } from "./i18n";
 import { noteBySlug, noteSource, renderNote, escapeHtml } from "./notes";
 import { HELP } from "./shell";
 import { normalizePath } from "./paths";
@@ -46,13 +48,23 @@ function links(list: { label: string; href: string }[]): string {
     .join(" ")}</p>`;
 }
 
+function tx(value: string): string {
+  return escapeHtml(t(value));
+}
+
+function shot(src: string | undefined): string {
+  if (!src) return "";
+  return `<img class="shot" src="${escapeHtml(src)}" alt="" />`;
+}
+
 function jobBlock(job: Job, full: boolean): string {
   const body = full
-    ? job.body.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")
-    : `<p>${escapeHtml(job.summary)}</p>`;
+    ? `<p>${tx(job.summary)}</p>${job.body.map((paragraph) => `<p>${tx(paragraph)}</p>`).join("")}`
+    : `<p>${tx(job.summary)}</p>`;
   return `<article class="block">
-    <h2>${escapeHtml(job.role)}</h2>
+    <h2>${tx(job.role)}</h2>
     <p class="meta">${escapeHtml(job.org)} · ${escapeHtml(job.place)} · ${escapeHtml(job.date)}</p>
+    ${shot(job.image)}
     ${body}
     ${full ? tools(job.tools) : ""}
   </article>`;
@@ -63,13 +75,15 @@ function projectBlock(project: Project, full: boolean): string {
     ? escapeHtml(project.title)
     : `<a href="/work/${project.slug}">${escapeHtml(project.title)}</a>`;
   const body = full
-    ? project.body.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")
-    : `<p>${escapeHtml(project.summary)}</p>`;
+    ? `<p>${tx(project.summary)}</p>${project.body.map((paragraph) => `<p>${tx(paragraph)}</p>`).join("")}`
+    : `<p>${tx(project.summary)}</p>`;
   const people = full && project.people ? `<p class="meta">${escapeHtml(project.people)}</p>` : "";
-  return `<article class="block" id="${project.slug}">
+  const kind = projectKind[project.slug] ?? "apps";
+  return `<article class="block" id="${project.slug}" data-kind="${kind}">
     <p class="path">~/work/${escapeHtml(project.slug)}</p>
     <h2>${title}</h2>
     <p class="meta">${escapeHtml(project.date)}</p>
+    ${shot(project.image)}
     ${body}
     ${people}
     ${tools(project.tools)}
@@ -131,12 +145,12 @@ function home(): string {
     .slice(0, 3)
     .map((project) => projectBlock(project, false))
     .join("");
-  return `<p><img src="/nugg.png" width="32" height="32" alt="PocketNugget" /></p>
-    <h2>Profile</h2>
-    ${bio.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
-    <h2>Jobs</h2>
+  return `<p><img class="shot portrait" src="/media/me.png" alt="Goben Diego Constantino Aguirre" /></p>
+    <h2>${tx("Profile")}</h2>
+    ${bio.map((paragraph) => `<p>${tx(paragraph)}</p>`).join("")}
+    <h2>${tx("Jobs")}</h2>
     ${lead}
-    <h2>Selected work</h2>
+    <h2>${tx("Selected work")}</h2>
     ${head}
     <p>The rest is <a href="/work" data-cmd="projects">projects</a>. The radios are <a href="/radio" data-cmd="radio">radio</a>.</p>
     <p>Certificate scans are in <a href="/awards">Certificates</a>. Photos are in <a href="/pictures">My Pictures</a>.</p>`;
@@ -153,7 +167,10 @@ function helpPage(): string {
 function workPage(): string {
   const list = projects.map((project) => projectBlock(project, false)).join("");
   const old = earlier
-    .map((item) => `<li><span class="meta">${escapeHtml(item.date)}</span> ${escapeHtml(item.text)}</li>`)
+    .map(
+      (item) =>
+        `<li><span class="meta">${escapeHtml(item.date)}</span> ${tx(item.text)}${item.image ? shot(item.image) : ""}</li>`,
+    )
     .join("");
   const dump = archive
     .map(
@@ -161,10 +178,19 @@ function workPage(): string {
         `<li><a rel="noreferrer" href="${escapeHtml(item.href)}">${escapeHtml(item.name)}</a></li>`,
     )
     .join("");
-  return `<h2>Work</h2>
-    <p>Projects I will talk about in an interview. Older one-liners sit under Earlier.</p>
+  return `<h2>${tx("Work")}</h2>
+    <p>${tx("Projects I will talk about in an interview. Older one-liners sit under Earlier.")}</p>
+    <label class="field-row">${tx("Show")}
+      <select id="work-filter" aria-label="Filter projects">
+        <option value="all">${tx("All")}</option>
+        <option value="detection">${tx("Detection")}</option>
+        <option value="research">${tx("Research")}</option>
+        <option value="hackathon">${tx("Hackathon")}</option>
+        <option value="apps">${tx("Apps")}</option>
+      </select>
+    </label>
     ${list}
-    <h2>Earlier</h2>
+    <h2>${tx("Earlier")}</h2>
     <ul class="ls">${old}</ul>
     <h2>ls ~/archive</h2>
     <ul class="ls">${dump}</ul>`;
@@ -195,8 +221,8 @@ function certsPage(): string {
       <p>In progress. Not earned.</p>
     </article>
     <article class="block">
-      <h2>Languages</h2>
-      <p>Spanish, native. English, C1+. French, A2. German, A1.</p>
+      <h2>${tx("Languages")}</h2>
+      <p>${tx("Spanish, native. English, C1+. French, A2. German, A1.")}</p>
     </article>
     <article class="block">
       <h2>ORCID</h2>
@@ -225,7 +251,7 @@ function contactPage(): string {
         `<li><a rel="noreferrer" href="${escapeHtml(profile.href)}">${escapeHtml(profile.label)}</a></li>`,
     )
     .join("");
-  return `<ul class="ls">${rows}</ul><p>No form. The address above is the one I read.</p>`;
+  return `<ul class="ls">${rows}</ul><p>${tx("No form. The address above is the one I read.")}</p>`;
 }
 
 function radioPage(): string {
@@ -252,13 +278,13 @@ function skillsPage(): string {
     }
   }
   const items = tools.map((tool) => `<li>${escapeHtml(tool)}</li>`).join("");
-  return `<h2>Tools</h2>
-    <p>Tools from the jobs, in the order those jobs are listed.</p>
+  return `<h2>${tx("Tools")}</h2>
+    <p>${tx("Tools from the jobs, in the order those jobs are listed.")}</p>
     <ul class="ls">${items}</ul>
-    <h2>Languages</h2>
-    <p>Spanish, native. English, C1+. French, A2. German, A1.</p>
-    <h2>Agents</h2>
-    <p>A coding agent can draft a change. I still read the diff before it ships. The pipelines I will talk about are the report scripts, the radio tools, and the prototypes already under projects.</p>`;
+    <h2>${tx("Languages")}</h2>
+    <p>${tx("Spanish, native. English, C1+. French, A2. German, A1.")}</p>
+    <h2>${tx("Agents")}</h2>
+    <p>${tx("A coding agent can draft a change. I still read the diff.")} The pipelines I will talk about are the report scripts, the radio tools, and the prototypes already under projects.</p>`;
 }
 
 function notFound(): string {
@@ -296,7 +322,9 @@ export function documentBody(pathname: string): string {
   if (path === "/convert") return `<div class="convert-mount"></div>`;
   if (path === "/facts") return `<div class="facts-mount"></div>`;
   if (path === "/hack") return `<div class="hack-mount"></div>`;
-  if (path === "/buddy") return `<div class="buddy-mount"></div>`;
+  if (path === "/buddy") return `<p>The assistant is on the desktop.</p>`;
+  if (path === "/run") return `<div class="run-mount"></div>`;
+  if (path === "/find") return `<div class="find-mount"></div>`;
   return notFound();
 }
 
@@ -326,6 +354,8 @@ export function commandFor(pathname: string): string {
   if (path === "/facts") return "facts";
   if (path === "/hack") return "hack";
   if (path === "/buddy") return "buddy";
+  if (path === "/run") return "run";
+  if (path === "/find") return "find";
   return "help";
 }
 

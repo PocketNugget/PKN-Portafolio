@@ -12,6 +12,7 @@ export interface Job {
   summary: string;
   body: string[];
   tools: string[];
+  image?: string;
 }
 
 export interface Project {
@@ -24,6 +25,7 @@ export interface Project {
   links: Link[];
   people: string;
   aliases: string[];
+  image?: string;
 }
 
 export interface NoteMeta {
@@ -96,19 +98,6 @@ export const jobs: Job[] = [
     tools: ["Splunk", "Python", "Node.js", "Streamlit", "Selenium", "Datadog"],
   },
   {
-    id: "apple",
-    role: "J-1 intern",
-    org: "Apple",
-    place: "Sponsored by Cultural Vistas",
-    date: "J-1, Cultural Vistas",
-    summary:
-      "J-1 intern at Apple, sponsored by Cultural Vistas. Dates and team are not listed here yet.",
-    body: [
-      "J-1 intern at Apple, sponsored by Cultural Vistas. I am not going to invent the dates, the team, or a project name.",
-    ],
-    tools: [],
-  },
-  {
     id: "stem",
     role: "Researcher and developer",
     org: "STEM UDLAP",
@@ -121,6 +110,7 @@ export const jobs: Job[] = [
       "I also taught a hands-on Docker session at UDLAP: one container, then Compose. The notes are on the Hackztecs page. Type open hackztecs.",
     ],
     tools: ["Linux", "Docker", "Cloudflare Tunnels", "Mac Mini"],
+    image: "/media/docker-course.jpg",
   },
   {
     id: "tsystems",
@@ -313,6 +303,7 @@ export const projects: Project[] = [
     ],
     people:
       "With Azuany Mila, Jorge Venegas, Nina Maeva Mazadiego Cortes, Humberto Zepeda González, and Hector Zepeda González. Mentors: Florian Bauer, J. Adolfo Carril Paniagua, and Alejandro Najera.",
+    image: "/media/austria-hackathon.jpg",
     aliases: ["maia", "obb", "zepedas"],
   },
   {
@@ -341,6 +332,7 @@ export const projects: Project[] = [
       },
     ],
     people: "With Azuany Mila and Zobeida Guzmán.",
+    image: "/media/paper-talk.jpg",
     aliases: ["paper", "springer", "micai", "dataset"],
   },
   {
@@ -372,6 +364,7 @@ export const projects: Project[] = [
     links: [],
     people:
       "With Azuany Mila, Nina Maeva Mazadiego Cortes, and Daniela Renée Ramírez. Guidance from Zobeida Guzmán, support from Humberto Zepeda González.",
+    image: "/media/changemaker-2025.jpg",
     aliases: ["colorscore", "enactus", "xcookers"],
   },
   {
@@ -430,11 +423,33 @@ export const projects: Project[] = [
       },
     ],
     people: "",
+    image: "/media/hackztecs-team.jpg",
     aliases: ["hackztecs", "docker-session"],
   },
 ];
 
-export const earlier: { date: string; text: string }[] = [
+export type ProjectKind = "detection" | "research" | "hackathon" | "apps";
+
+export const projectKind: Record<string, ProjectKind> = {
+  "tbsek-reports": "detection",
+  "iot-edr": "detection",
+  sdr: "detection",
+  "coherence-paper": "research",
+  "conisoft-2025": "research",
+  "cryptographic-toolkit": "research",
+  "hacking-writeups": "research",
+  maia: "hackathon",
+  colorscore: "hackathon",
+  wayzt: "hackathon",
+  "htb-university-2025": "hackathon",
+  "cyber-apocalypse-2025": "hackathon",
+  hackztecs: "hackathon",
+  wifi2go: "apps",
+  where2skate: "apps",
+  homelab: "apps",
+};
+
+export const earlier: { date: string; text: string; image?: string }[] = [
   {
     date: "2024",
     text: "Vendimia, at Swift Change Makers (Enactus, a Banorte challenge), with Rodrigo Espíritu Berra, André Francois Duhamel Gutiérrez, and Alan Pérez Hernández.",
@@ -442,6 +457,7 @@ export const earlier: { date: string; text: string }[] = [
   {
     date: "2024",
     text: "HackMexico with AngelHack. Crypto and interface work, with Juan Pablo Morales Durante, Carlos Javier Galán Zavala, and Gil Andrei Sotomayor Figueroa.",
+    image: "/media/hackmexico.jpg",
   },
   {
     date: "2024",
@@ -513,7 +529,7 @@ export const radio = {
 
 export const bio = [
   "Goben Diego Constantino Aguirre. I finished computer systems engineering at UDLAP, 2021 to 2025, with a 9.0/10. Internships included.",
-  "I have been at TBSeK since April 2025. Part-time Jr. SOC analyst until July 2026, then full-time SOC/MDR analyst, remote from Mexico City. Splunk and the rest of the shift stack, incident notes, and Python and Node.js so the reports took less of the shift. About 70% less. Before TBSeK I was a J-1 intern at Apple through Cultural Vistas.",
+  "I have been at TBSeK since April 2025. Part-time Jr. SOC analyst until July 2026, then full-time SOC/MDR analyst, remote from Mexico City. Splunk and the rest of the shift stack, incident notes, and Python and Node.js so the reports took less of the shift. About 70% less.",
   "STEM UDLAP was February 2024 to June 2026: the MICAI paper, and the lab server on a Mac Mini with Docker and Cloudflare Tunnels. I write Python against a HackRF One and a bladeRF. I chair Hackztecs, after coming in as a member under Juan Pablo Morales Durante.",
   "I am looking at MDR, SOC, and SRE roles in Mexico, the United States, Austria, Ireland, and the Netherlands. A cybersecurity master's, Ireland included, is on that same list.",
 ];

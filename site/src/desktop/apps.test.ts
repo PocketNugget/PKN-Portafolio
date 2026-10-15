@@ -34,6 +34,8 @@ describe("desktop media", () => {
     expect(text.toLowerCase()).not.toContain("cylance");
     expect(text).not.toContain("—");
     expect(text).not.toContain("40%");
+    expect(text).not.toContain("J-1");
+    expect(text).not.toContain("Cultural Vistas");
   });
 
   it("uses original player titles", () => {

@@ -7,6 +7,13 @@ export interface Post {
   updated: number;
 }
 
+export interface AuthRow {
+  passwordHash: string;
+  totpCipher: string;
+  totpReady: number;
+  recovery: string[];
+}
+
 export interface Store {
   ensure(): Promise<void>;
   listPosts(): Promise<Post[]>;
@@ -20,6 +27,11 @@ export interface Store {
   putSession(tokenHash: string, expires: number): Promise<void>;
   getSession(tokenHash: string): Promise<number | null>;
   deleteSession(tokenHash: string): Promise<void>;
+  getAuth(): Promise<AuthRow | null>;
+  saveAuth(row: AuthRow): Promise<void>;
+  setPasswordHash(hash: string): Promise<boolean>;
+  markTotpReady(): Promise<void>;
+  consumeRecovery(hash: string): Promise<boolean>;
 }
 
 interface D1Statement {
@@ -38,6 +50,7 @@ const SCHEMA = [
   "CREATE TABLE IF NOT EXISTS posts (slug TEXT PRIMARY KEY, title TEXT NOT NULL, content TEXT NOT NULL, tags TEXT NOT NULL DEFAULT '', created INTEGER NOT NULL, updated INTEGER NOT NULL)",
   "CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, expires INTEGER NOT NULL)",
   "CREATE TABLE IF NOT EXISTS login_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL)",
+  "CREATE TABLE IF NOT EXISTS auth (id INTEGER PRIMARY KEY CHECK (id = 1), password_hash TEXT NOT NULL DEFAULT '', totp_cipher TEXT NOT NULL DEFAULT '', totp_ready INTEGER NOT NULL DEFAULT 0, recovery TEXT NOT NULL DEFAULT '[]')",
 ];
 
 export class D1Store implements Store {
@@ -119,12 +132,61 @@ export class D1Store implements Store {
   async deleteSession(tokenHash: string): Promise<void> {
     await this.db.prepare("DELETE FROM sessions WHERE token_hash = ?").bind(tokenHash).run();
   }
+
+  async getAuth(): Promise<AuthRow | null> {
+    const row = await this.db
+      .prepare("SELECT password_hash, totp_cipher, totp_ready, recovery FROM auth WHERE id = 1")
+      .first<{ password_hash: string; totp_cipher: string; totp_ready: number; recovery: string }>();
+    if (!row) return null;
+    return decodeAuth(row.password_hash, row.totp_cipher, row.totp_ready, row.recovery);
+  }
+
+  async saveAuth(row: AuthRow): Promise<void> {
+    const recovery = JSON.stringify(row.recovery);
+    await this.db
+      .prepare(
+        "INSERT INTO auth (id, password_hash, totp_cipher, totp_ready, recovery) VALUES (1, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET password_hash = excluded.password_hash, totp_cipher = excluded.totp_cipher, totp_ready = excluded.totp_ready, recovery = excluded.recovery",
+      )
+      .bind(row.passwordHash, row.totpCipher, row.totpReady, recovery)
+      .run();
+  }
+
+  async setPasswordHash(hash: string): Promise<boolean> {
+    const existing = await this.getAuth();
+    if (!existing) return false;
+    await this.db.prepare("UPDATE auth SET password_hash = ? WHERE id = 1").bind(hash).run();
+    return true;
+  }
+
+  async markTotpReady(): Promise<void> {
+    await this.db.prepare("UPDATE auth SET totp_ready = 1 WHERE id = 1").run();
+  }
+
+  async consumeRecovery(hash: string): Promise<boolean> {
+    const row = await this.getAuth();
+    if (!row || !row.recovery.includes(hash)) return false;
+    row.recovery = row.recovery.filter((item) => item !== hash);
+    await this.saveAuth(row);
+    return true;
+  }
+}
+
+function decodeAuth(passwordHash: string, totpCipher: string, totpReady: number, recovery: string): AuthRow {
+  let codes: string[] = [];
+  try {
+    const parsed = JSON.parse(recovery) as unknown;
+    if (Array.isArray(parsed)) codes = parsed.filter((item): item is string => typeof item === "string");
+  } catch {
+    codes = [];
+  }
+  return { passwordHash, totpCipher, totpReady, recovery: codes };
 }
 
 export class MemoryStore implements Store {
   posts: Post[] = [];
   sessions = new Map<string, number>();
   attempts: number[] = [];
+  auth: AuthRow | null = null;
 
   async ensure(): Promise<void> {}
 
@@ -178,5 +240,30 @@ export class MemoryStore implements Store {
 
   async deleteSession(tokenHash: string): Promise<void> {
     this.sessions.delete(tokenHash);
+  }
+
+  async getAuth(): Promise<AuthRow | null> {
+    if (!this.auth) return null;
+    return { ...this.auth, recovery: [...this.auth.recovery] };
+  }
+
+  async saveAuth(row: AuthRow): Promise<void> {
+    this.auth = { ...row, recovery: [...row.recovery] };
+  }
+
+  async setPasswordHash(hash: string): Promise<boolean> {
+    if (!this.auth) return false;
+    this.auth.passwordHash = hash;
+    return true;
+  }
+
+  async markTotpReady(): Promise<void> {
+    if (this.auth) this.auth.totpReady = 1;
+  }
+
+  async consumeRecovery(hash: string): Promise<boolean> {
+    if (!this.auth || !this.auth.recovery.includes(hash)) return false;
+    this.auth.recovery = this.auth.recovery.filter((item) => item !== hash);
+    return true;
   }
 }

@@ -34,7 +34,9 @@ export function isDocumentPath(pathname: string): boolean {
     path === "/convert" ||
     path === "/facts" ||
     path === "/hack" ||
-    path === "/buddy"
+    path === "/buddy" ||
+    path === "/run" ||
+    path === "/find"
   ) {
     return true;
   }

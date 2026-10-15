@@ -43,16 +43,23 @@ Each of these is a normal window. Open it from the icon or from Start. The termi
 - Converter (`encode`). Base64, hex, and URL encode and decode, text to binary, MD5, SHA-1, and SHA-256. It runs in the page. Nothing is uploaded.
 - Facts (`facts`). Short lines from the same record as the catalog, plus buttons that open the other tools.
 - Hack (`hack`). A joke. Fake error windows, a short glitch, then a punchline. Reset or Close puts the desktop back. It does not change files or accounts.
-- Nugget (`buddy`). The assistant. Tips come from the same fact list. The picture is `site/public/buddy/nugget.png`. Replace that file to change the character.
+- Nugget (`buddy`). A floating assistant, not a window. Tips come from the same fact list. Close the balloon and the picture stays. Start has Show Nugget and Hide Nugget for this tab. The picture is `site/public/buddy/nugget.png`. Replace that file to change the character.
+- Run and Find are in the Start menu. Find searches the profile text and opens the matching window.
+- The taskbar EN button cycles English, Spanish, German, and French for this tab. Blog posts stay in the language they were written in.
+- A yellow note shows the current role, city, and email. Closing it lasts for the tab.
+- After a quiet minute and a half the picture bounces on the sky. A click or a key brings the desktop back. No sound.
+- Right-click the desktop for Arrange icons, Display, and Run.
+- Print hides the taskbar and prints About, Jobs, and Projects.
 
 Social icons sit on the wallpaper, in a row at the bottom right (a bar under the icons on a phone). They are PNGs in `site/public/social/`: `github.png`, `linkedin.png`, `x.png`, `instagram.png`, `youtube.png`. The addresses are the same ones as My Links. A click opens a new tab. To point one somewhere else, change the profile in `site/src/catalog.ts`. To redraw an icon, replace the PNG and keep the name.
 
 ## Deploy
 
-Not run from this repo automatically. From `site/`, with a Cloudflare account already logged in:
+Not run from this repo automatically. Run it from `site/` with the pinned Wrangler, after a Cloudflare account is already logged in. Do not run Wrangler from the repository root.
 
 ```bash
-npx wrangler deploy
+cd site
+./node_modules/.bin/wrangler deploy
 ```
 
 The config is `site/wrangler.jsonc`. Compatibility date is 2026-05-03, the newest date Wrangler 4.86's local runtime accepts on Node 20. Static assets are the Vite `dist/` directory. The Worker runs first so it can set headers. Document routes return `index.html`. Unknown paths 404.
@@ -61,7 +68,7 @@ D1 database `pkn` is `d8bf9b4e-7a24-4f1f-997e-a47c99dd6f79` in `site/wrangler.js
 
 ```bash
 cd site
-npx wrangler d1 migrations apply pkn --remote
+./node_modules/.bin/wrangler d1 migrations apply pkn --remote
 ```
 
 The public host is `https://pocketnugget.xyz`. `robots.txt` points at that sitemap. The Worker builds `/sitemap.xml` from the request origin, so the apex and any `workers.dev` hostname stay consistent with the URL that was requested. `www` and `hackztecs` are tunnels and are not routes on this Worker.
@@ -72,31 +79,17 @@ Terraform for the DNS zone is a follow-up against the real zone. It is not in th
 
 `links` is the public list (email, GitHub, LinkedIn, X, Instagram, YouTube). `blog` reads posts. `login` opens the editor.
 
-There is one admin. The password is not in the repo. Make a long one, hash it, and keep the plaintext in a password manager:
+There is one admin, username `goben`. No public signup. The password is not in the repo. Login also asks for a 6 digit code from an authenticator app (TOTP, the same code Google Authenticator and Microsoft Authenticator show). It is not a Google or Microsoft login. The first successful password shows a QR once. After that code is accepted, later logins are password plus code. Eight recovery codes work in the code field, once each.
 
-```bash
-openssl rand -base64 24 | tee "$HOME/pkn-admin-pass" | node scripts/hash-password.mjs
-```
+`node scripts/seed-auth.mjs` from `site/` writes a new password, the recovery codes, and the otpauth URI to `~/Downloads/pkn-admin-login.txt` and then deletes nothing by itself. Scan the file, then delete it. `--apply` also sets the Worker secrets and the D1 row. Do not commit that file.
 
-Put the printed line in `site/.dev.vars` for local preview, then delete the plaintext file:
+The editor can change the password. The new hash is stored in D1 and wins over the Worker secret. Local Vite has no D1, so the login says it is not configured.
 
-```
-ADMIN_USER=goben
-ADMIN_PASSWORD_HASH=sha256$then-the-64-hex-characters
-```
-
-For the deployed Worker:
-
-```bash
-npx wrangler secret put ADMIN_USER
-npx wrangler secret put ADMIN_PASSWORD_HASH
-```
-
-The session is an HttpOnly, SameSite=Strict cookie. The database stores a hash of that cookie, the posts, and login-failure times. It does not store visitor addresses. A wrong password and a wrong username get the same answer. Eight failures in fifteen minutes lock the login. Mutations require the browser Origin.
+The session is an HttpOnly, SameSite=Strict cookie. The database stores a hash of that cookie, the posts, the encrypted authenticator secret, recovery-code hashes, and login-failure times. It does not store visitor addresses. A wrong password and a wrong username get the same answer. Eight failures in fifteen minutes lock the login, including bad codes. Mutations require the browser Origin.
 
 ## What the Worker stores
 
-Blog posts, session hashes, and login-failure times, in D1. No contact form, no third-party script, no analytics table. The window font ships with 98.css in `site/public/vendor/`. `security.txt` points at `goben.ca.pkn@hotmail.com`.
+Blog posts, session hashes, the authenticator secret (encrypted), recovery-code hashes, and login-failure times, in D1. No contact form, no third-party script, no analytics table. The window font ships with 98.css in `site/public/vendor/`. `security.txt` points at `goben.ca.pkn@hotmail.com`.
 
 ## Legacy
 

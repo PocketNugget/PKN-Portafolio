@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { DeskApp } from "./host";
 import { idleApp } from "./host";
 
@@ -5,7 +6,6 @@ import { idleApp } from "./host";
 export const FACTS: string[] = [
   "Goben Diego Constantino Aguirre. Computer systems engineering at UDLAP, 2021 to 2025, graduated, 9.0/10.",
   "Full-time SOC/MDR analyst at TBSeK since July 2026, remote from Mexico City. The part-time Jr. SOC seat was April 2025 to July 2026.",
-  "J-1 intern at Apple, sponsored by Cultural Vistas. Dates, team, and project are not listed.",
   "STEM UDLAP, researcher and developer, February 2024 to June 2026. The lab server was a Mac Mini, with Docker and Cloudflare Tunnels.",
   "Hackztecs president since February 2024. Weekly sessions on TCP/IP, Wireshark, Nmap, Burp Suite, and HTTP. More than 8 CTFs.",
   "HTB University CTF 2025, Jingle Trouble: 52 of 1,014, top 5%, only Mexican university in the top 100.",
@@ -38,7 +38,7 @@ export function mountFacts(host: HTMLElement, open: (path: string) => void): Des
   list.className = "ls";
   for (const fact of FACTS) {
     const item = document.createElement("li");
-    item.textContent = fact;
+    item.textContent = t(fact);
     list.append(item);
   }
   const heading = document.createElement("h2");

@@ -1,10 +1,12 @@
-import { linkPage, notes, openTable, profiles, projects } from "../catalog";
-import { hydrate } from "../client";
+import { jobs, linkPage, notes, openTable, profiles, projects } from "../catalog";
+import { hydrate, setNavigator } from "../client";
+import { getLang, setLang, t, type Lang } from "../i18n";
 import { normalizePath } from "../paths";
 import { documentBody } from "../render";
 import { parseCommand } from "../shell";
-import { mountBuddy } from "./buddy";
+import { mountClippy } from "./buddy";
 import { mountConvert } from "./convert";
+import { mountFind, mountRun } from "./extras";
 import { mountFacts } from "./facts";
 import { mountGallery } from "./gallery";
 import { mountHack } from "./hack";
@@ -54,28 +56,30 @@ const APPS: App[] = [
   { id: "skills", label: "Skills", path: "/skills", icon: "skills", desk: true },
   { id: "radio", label: "Radio", path: "/radio", icon: "radio", desk: true },
   { id: "notes", label: "Notes", path: "/notes", icon: "notes", desk: true },
-  { id: "certs", label: "Certs", path: "/certs", icon: "certs", desk: true },
+  { id: "certs", label: "Courses", path: "/certs", icon: "certs", desk: true },
   { id: "blog", label: "Blog", path: "/blog", icon: "blog", desk: true },
-  { id: "links", label: "My Links", path: "/links", icon: "links", desk: true },
+  { id: "links", label: "My Links", path: "/links", icon: "links", desk: false },
   { id: "contact", label: "Contact", path: "/contact", icon: "contact", desk: true },
   { id: "terminal", label: "Terminal", path: "/terminal", icon: "terminal", desk: true },
   { id: "pictures", label: "My Pictures", path: "/pictures", icon: "pictures", desk: true },
   { id: "awards", label: "Certificates", path: "/awards", icon: "awards", desk: true },
-  { id: "player", label: "Player", path: "/player", icon: "player", desk: true },
-  { id: "convert", label: "Converter", path: "/convert", icon: "convert", desk: true },
-  { id: "facts", label: "Facts", path: "/facts", icon: "facts", desk: true },
-  { id: "hack", label: "Hack", path: "/hack", icon: "hack", desk: true },
-  { id: "buddy", label: "Nugget", path: "/buddy", icon: "buddy", desk: true },
+  { id: "player", label: "Player", path: "/player", icon: "player", desk: false },
+  { id: "convert", label: "Converter", path: "/convert", icon: "convert", desk: false },
+  { id: "facts", label: "Facts", path: "/facts", icon: "facts", desk: false },
+  { id: "hack", label: "Hack", path: "/hack", icon: "hack", desk: false },
+  { id: "buddy", label: "Nugget", path: "/buddy", icon: "buddy", desk: false },
   { id: "help", label: "Help", path: "/help", icon: "help", desk: false },
   { id: "display", label: "Display", path: "/display", icon: "display", desk: false },
   { id: "colophon", label: "Colophon", path: "/colophon", icon: "colophon", desk: false },
-  { id: "login", label: "Login", path: "/admin/login", icon: "login", desk: false },
+  { id: "login", label: "Login", path: "/admin/login", icon: "login", desk: true },
+  { id: "run", label: "Run", path: "/run", icon: "terminal", desk: false },
+  { id: "find", label: "Find", path: "/find", icon: "notes", desk: false },
 ];
 
 const MENU_GROUPS = [
   ["about", "jobs", "projects", "skills"],
   ["radio", "notes", "certs", "blog", "links", "contact"],
-  ["terminal", "help", "display", "colophon", "login"],
+  ["terminal", "help", "display", "run", "find", "colophon", "login"],
   ["pictures", "awards", "player", "convert", "facts", "hack", "buddy"],
 ];
 
@@ -93,7 +97,10 @@ const SIZES: Record<string, [number, number]> = {
   "/convert": [480, 440],
   "/facts": [500, 440],
   "/hack": [440, 320],
-  "/buddy": [300, 400],
+  "/run": [320, 160],
+  "/find": [420, 320],
+  "/admin/login": [360, 520],
+  "/admin": [520, 480],
 };
 
 const SOCIAL: { label: string; href: string; icon: string }[] = [
@@ -124,7 +131,7 @@ function sessionSet(key: string, value: string): void {
 
 function titleFor(path: string): string {
   const app = APPS.find((item) => item.path === path);
-  if (app) return app.label === "Display" ? "Display Properties" : app.label;
+  if (app) return t(app.label === "Display" ? "Display Properties" : app.label);
   if (path.startsWith("/work/")) {
     const slug = path.slice("/work/".length);
     return projects.find((item) => item.slug === slug)?.title ?? "Project";
@@ -133,8 +140,8 @@ function titleFor(path: string): string {
     const slug = path.slice("/notes/".length);
     return notes.find((item) => item.slug === slug)?.title ?? "Note";
   }
-  if (path.startsWith("/blog/")) return "Blog";
-  if (path === "/admin") return "Editor";
+  if (path.startsWith("/blog/")) return t("Blog");
+  if (path === "/admin") return t("Editor");
   return "Window";
 }
 
@@ -146,6 +153,8 @@ function control(label: string): HTMLButtonElement {
 }
 
 export function bootDesktop(): void {
+  setLang(sessionGet("pkn-lang") ?? "en");
+  document.documentElement.lang = getLang();
   const app = document.querySelector("#app");
   if (!(app instanceof HTMLElement)) return;
 
@@ -162,25 +171,34 @@ export function bootDesktop(): void {
 
   const desktop = document.createElement("div");
   desktop.id = "desktop";
+  const wallpaper = document.createElement("div");
+  wallpaper.id = "wallpaper";
   const icons = document.createElement("div");
   icons.id = "icons";
   const social = document.createElement("div");
   social.id = "social";
   const windowsLayer = document.createElement("div");
   windowsLayer.id = "windows";
-  desktop.append(icons, social, windowsLayer);
+  desktop.append(wallpaper, icons, social, windowsLayer);
 
   const taskbar = document.createElement("div");
   taskbar.id = "taskbar";
   const start = document.createElement("button");
   start.type = "button";
   start.className = "start-btn";
-  start.innerHTML = `<span class="k-mark">K</span><span>Start</span>`;
+  start.innerHTML = `<span class="k-mark">K</span><span class="start-label"></span>`;
+  const startLabel = start.querySelector(".start-label");
+  if (startLabel) startLabel.textContent = t("Start");
+  const lang = document.createElement("button");
+  lang.type = "button";
+  lang.id = "lang";
+  lang.textContent = getLang().toUpperCase();
+  lang.setAttribute("aria-label", "Language");
   const tasks = document.createElement("div");
   tasks.id = "tasks";
   const clock = document.createElement("div");
   clock.id = "clock";
-  taskbar.append(start, tasks, clock);
+  taskbar.append(start, tasks, lang, clock);
 
   const menu = document.createElement("div");
   menu.id = "start-menu";
@@ -194,6 +212,9 @@ export function bootDesktop(): void {
   app.replaceChildren(boot, desktop, taskbar, menu);
 
   const windows: Win[] = [];
+  let clippy: ReturnType<typeof mountClippy> | null = null;
+  let idleAt = Date.now();
+  const tipped = new Set<string>();
   let seq = 0;
   let zTop = 2;
   let activeId = 0;
@@ -202,7 +223,7 @@ export function bootDesktop(): void {
   const spots = loadSpots(APPS.filter((item) => item.desk).map((item) => item.id));
 
   function wallpaperId(): string {
-    const saved = sessionGet("pkn-wallpaper");
+    const saved = sessionGet("pkn-wall");
     return WALLPAPERS.some((item) => item.id === saved) ? saved ?? "sky" : "sky";
   }
 
@@ -210,7 +231,7 @@ export function bootDesktop(): void {
     const safe = WALLPAPERS.some((item) => item.id === id) ? id : "sky";
     for (const item of WALLPAPERS) desktop.classList.remove(`wp-${item.id}`);
     desktop.classList.add(`wp-${safe}`);
-    sessionSet("pkn-wallpaper", safe);
+    sessionSet("pkn-wall", safe);
     for (const input of desktop.querySelectorAll<HTMLInputElement>("input[name=wallpaper]")) {
       input.checked = input.value === safe;
     }
@@ -349,8 +370,18 @@ export function bootDesktop(): void {
     if (factsHost instanceof HTMLElement) win.host = mountFacts(factsHost, (href) => openHref(href));
     const hackHost = body.querySelector(".hack-mount");
     if (hackHost instanceof HTMLElement) win.host = mountHack(hackHost, windowsLayer, desktop);
-    const buddyHost = body.querySelector(".buddy-mount");
-    if (buddyHost instanceof HTMLElement) win.host = mountBuddy(buddyHost);
+    const runHost = body.querySelector(".run-mount");
+    if (runHost instanceof HTMLElement) win.host = mountRun(runHost, (href) => openHref(href));
+    const findHost = body.querySelector(".find-mount");
+    if (findHost instanceof HTMLElement) win.host = mountFind(findHost, (href) => openHref(href));
+    const filter = body.querySelector("#work-filter");
+    if (filter instanceof HTMLSelectElement) {
+      filter.addEventListener("change", () => {
+        for (const article of body.querySelectorAll<HTMLElement>("article[data-kind]")) {
+          article.hidden = filter.value !== "all" && article.dataset.kind !== filter.value;
+        }
+      });
+    }
     const termHost = body.querySelector(".term-mount");
     if (termHost instanceof HTMLElement) {
       win.term = new Terminal(termHost, {
@@ -395,7 +426,7 @@ export function bootDesktop(): void {
     place(win);
   }
 
-  function closeWindow(id: number): void {
+  function closeWindow(id: number, quiet = false): void {
     const index = windows.findIndex((win) => win.id === id);
     if (index < 0) return;
     const win = windows[index];
@@ -407,12 +438,17 @@ export function bootDesktop(): void {
     const next = [...windows].reverse().find((item) => !item.min);
     if (next) {
       focusWindow(next);
-      history.replaceState({}, "", next.path);
+      if (!quiet) history.replaceState({}, "", next.path);
     } else {
       activeId = 0;
       renderTasks();
-      history.replaceState({}, "", "/");
+      if (!quiet) history.replaceState({}, "", "/");
     }
+  }
+
+  function closePath(path: string): void {
+    const win = windows.find((item) => item.path === path);
+    if (win) closeWindow(win.id, true);
   }
 
   function bindDrag(win: Win, title: HTMLElement): void {
@@ -571,12 +607,49 @@ export function bootDesktop(): void {
     windowsLayer.append(win.el);
     fill(win);
     focusWindow(win);
+    maybeTip(path);
+    clippy?.nudge();
+    requestAnimationFrame(() => clippy?.nudge());
+  }
+
+  function maybeTip(path: string): void {
+    if (!clippy || tipped.has(path)) return;
+    const line =
+      path === "/jobs"
+        ? jobs[0]?.summary
+        : path === "/work"
+          ? projects[0]?.summary
+          : path === "/awards"
+            ? AWARDS[0]?.caption
+            : "";
+    if (!line) return;
+    tipped.add(path);
+    clippy.tip(line);
   }
 
   function openHref(href: string, push = true): void {
     menu.classList.remove("open");
     const url = new URL(href, location.origin);
     const path = normalizePath(url.pathname);
+    if (path === "/buddy") {
+      clippy?.show();
+      if (push && location.pathname !== "/buddy") history.pushState({}, "", "/buddy");
+      return;
+    }
+    if (path === "/admin/login") {
+      void (async () => {
+        let dest = "/admin/login";
+        try {
+          const response = await fetch("/api/session", { credentials: "same-origin" });
+          if (response.ok) dest = "/admin";
+        } catch {
+          dest = "/admin/login";
+        }
+        if (push && location.pathname !== dest) history.pushState({}, "", dest);
+        openWindow(dest);
+      })();
+      return;
+    }
     const full = `${url.pathname}${url.search}`;
     if (push && `${location.pathname}${location.search}` !== full) history.pushState({}, "", full);
     openWindow(path);
@@ -591,7 +664,7 @@ export function bootDesktop(): void {
       button.dataset.app = item.id;
       button.innerHTML = `${ICONS[item.icon] ?? ""}\n<span class="label"></span>`;
       const label = button.querySelector(".label");
-      if (label) label.textContent = item.label;
+      if (label) label.textContent = t(item.label);
       button.addEventListener("pointerdown", (event) => {
         if (event.button !== 0) return;
         if (!matchMedia("(pointer: fine)").matches || window.innerWidth < 700) return;
@@ -655,6 +728,7 @@ export function bootDesktop(): void {
   }
 
   function loadMenu(): void {
+    menuList.replaceChildren();
     MENU_GROUPS.forEach((group, index) => {
       if (index > 0) {
         const rule = document.createElement("div");
@@ -669,7 +743,20 @@ export function bootDesktop(): void {
         button.className = "menu-item";
         button.innerHTML = `${ICONS[item.icon] ?? ""}<span></span>`;
         const span = button.querySelector("span");
-        if (span) span.textContent = item.label;
+        if (item.id === "buddy") {
+          const nuggetLabel = () => (sessionGet("pkn-clippy") === "0" ? t("Show Nugget") : t("Hide Nugget"));
+          if (span) span.textContent = nuggetLabel();
+          button.addEventListener("click", () => {
+            menu.classList.remove("open");
+            const node = document.getElementById("clippy");
+            if (node?.hidden) clippy?.show();
+            else clippy?.hide();
+            if (span) span.textContent = document.getElementById("clippy")?.hidden ? t("Show Nugget") : t("Hide Nugget");
+          });
+          menuList.append(button);
+          return;
+        }
+        if (span) span.textContent = t(item.label);
         button.addEventListener("click", () => openHref(item.path));
         menuList.append(button);
       }
@@ -681,16 +768,153 @@ export function bootDesktop(): void {
     window.clearInterval(bootTimer);
     boot.hidden = true;
     sessionSet("pkn-boot", "1");
+    idleAt = Date.now();
     const path = normalizePath(location.pathname);
     if (path !== "/") openHref(`${location.pathname}${location.search}`, false);
   }
+
+  function arrangeIcons(): void {
+    try {
+      sessionStorage.removeItem("pkn-icons");
+    } catch {
+      /* storage can be blocked */
+    }
+    const ids = APPS.filter((item) => item.desk).map((item) => item.id);
+    const height = Math.max(200, window.innerHeight - 40);
+    const rows = Math.max(1, Math.floor(height / 88));
+    ids.forEach((id, index) => {
+      const col = Math.floor(index / rows);
+      const row = index % rows;
+      spots[id] = { x: 8 + col * 86, y: 8 + row * 88 };
+    });
+    layoutIcons();
+  }
+
+  function paintPrint(): void {
+    printPack.replaceChildren();
+    for (const path of ["/", "/jobs", "/work"]) {
+      const section = document.createElement("section");
+      section.innerHTML = documentBody(path);
+      printPack.append(section);
+    }
+  }
+
+  function applyLang(next: Lang): void {
+    setLang(next);
+    sessionSet("pkn-lang", getLang());
+    document.documentElement.lang = getLang();
+    lang.textContent = getLang().toUpperCase();
+    if (startLabel) startLabel.textContent = t("Start");
+    for (const button of icons.querySelectorAll<HTMLButtonElement>(".desk-icon")) {
+      const item = APPS.find((appItem) => appItem.id === button.dataset.app);
+      const label = button.querySelector(".label");
+      if (item && label) label.textContent = t(item.label);
+    }
+    loadMenu();
+    for (const button of deskMenu.querySelectorAll<HTMLButtonElement>("button")) {
+      const key = button.dataset.label;
+      if (key) button.textContent = t(key);
+    }
+    for (const win of windows) {
+      win.title = titleFor(win.path);
+      const text = win.el.querySelector(".title-bar-text");
+      if (text) text.textContent = win.title;
+      fill(win);
+    }
+    renderTasks();
+    clippy?.labels();
+    paintPrint();
+  }
+
+  const printPack = document.createElement("div");
+  printPack.id = "print-pack";
+  const sticky = document.createElement("aside");
+  sticky.id = "sticky";
+  sticky.hidden = sessionGet("pkn-note") === "0";
+  const noteClose = document.createElement("button");
+  noteClose.type = "button";
+  noteClose.textContent = "x";
+  noteClose.setAttribute("aria-label", "Close");
+  noteClose.addEventListener("click", () => {
+    sticky.hidden = true;
+    sessionSet("pkn-note", "0");
+  });
+  const role = document.createElement("p");
+  role.textContent = jobs[0]?.role ?? "";
+  const placeLine = document.createElement("p");
+  placeLine.textContent = jobs[0]?.place ?? "";
+  const mail = document.createElement("p");
+  mail.textContent = profiles.email.label;
+  sticky.append(noteClose, role, placeLine, mail);
+  const saver = document.createElement("div");
+  saver.id = "saver";
+  saver.hidden = true;
+  const saverPic = document.createElement("img");
+  saverPic.src = "/buddy/nugget.png";
+  saverPic.alt = "";
+  saver.append(saverPic);
+  const deskMenu = document.createElement("div");
+  deskMenu.id = "desk-menu";
+  deskMenu.hidden = true;
+  for (const [label, action] of [
+    ["Arrange icons", arrangeIcons],
+    ["Display", () => openHref("/display")],
+    ["Run", () => openHref("/run")],
+  ] as const) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.label = label;
+    button.textContent = t(label);
+    button.addEventListener("click", () => {
+      deskMenu.hidden = true;
+      action();
+    });
+    deskMenu.append(button);
+  }
+  desktop.append(sticky);
+  app.append(printPack, saver, deskMenu);
 
   applyWallpaper(wallpaperId());
   loadDesktop();
   loadSocial();
   loadMenu();
+  clippy = mountClippy(desktop);
+  clippy.nudge();
+  paintPrint();
   paintClock();
   window.setInterval(paintClock, 10000);
+
+  const langs: Lang[] = ["en", "es", "de", "fr"];
+  lang.addEventListener("click", () => {
+    const index = langs.indexOf(getLang());
+    applyLang(langs[(index + 1) % langs.length] ?? "en");
+  });
+  setNavigator((dest) => {
+    if (dest === "/admin") closePath("/admin/login");
+    if (dest === "/" || dest === "/admin/login") closePath("/admin");
+    openHref(dest);
+  });
+  const wake = (event: Event) => {
+    idleAt = Date.now();
+    saver.hidden = true;
+    const target = event.target;
+    if (target instanceof Node && deskMenu.contains(target)) return;
+    deskMenu.hidden = true;
+  };
+  document.addEventListener("pointerdown", wake);
+  document.addEventListener("keydown", wake);
+  window.setInterval(() => {
+    if (!boot.hidden || document.hidden) return;
+    if (Date.now() - idleAt > 90_000) saver.hidden = false;
+  }, 5000);
+  desktop.addEventListener("contextmenu", (event) => {
+    const target = event.target;
+    if (target !== desktop && target !== wallpaper && target !== icons) return;
+    event.preventDefault();
+    deskMenu.hidden = false;
+    deskMenu.style.left = `${Math.min(event.clientX, window.innerWidth - 180)}px`;
+    deskMenu.style.top = `${Math.min(event.clientY, window.innerHeight - 120)}px`;
+  });
 
   start.addEventListener("click", (event) => {
     event.stopPropagation();

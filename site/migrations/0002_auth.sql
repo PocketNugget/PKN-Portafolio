@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS auth (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  password_hash TEXT NOT NULL DEFAULT '',
+  totp_cipher TEXT NOT NULL DEFAULT '',
+  totp_ready INTEGER NOT NULL DEFAULT 0,
+  recovery TEXT NOT NULL DEFAULT '[]'
+);

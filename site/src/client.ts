@@ -1,5 +1,16 @@
 import { assertSafeHtml, renderNote } from "./notes";
 import { normalizePath } from "./paths";
+import { drawQr } from "./qr";
+
+type Go = (path: string) => void;
+
+let go: Go = (path) => {
+  location.assign(path);
+};
+
+export function setNavigator(fn: Go): void {
+  go = fn;
+}
 
 interface PostSummary {
   slug: string;
@@ -110,24 +121,64 @@ function renderLogin(root: HTMLElement): void {
   pass.required = true;
   pass.setAttribute("aria-label", "Password");
   pass.placeholder = "password";
+  const code = document.createElement("input");
+  code.name = "code";
+  code.inputMode = "numeric";
+  code.autocomplete = "one-time-code";
+  code.spellcheck = false;
+  code.hidden = true;
+  code.setAttribute("aria-label", "Code");
+  code.placeholder = "6 digit code";
+  const qrHost = document.createElement("div");
+  const manual = el("p", "");
+  manual.className = "meta";
   const button = document.createElement("button");
   button.type = "submit";
   button.textContent = "login";
   const status = el("p", "");
   status.className = "err";
   status.setAttribute("role", "status");
-  form.append(user, pass, button, status);
+  form.append(user, pass, qrHost, manual, code, button, status);
+  let pending = "";
+  let phase: "password" | "code" = "password";
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     void (async () => {
       status.textContent = "";
+      const password = phase === "code" ? pending : pass.value;
       const response = await api("/api/auth", {
         method: "POST",
-        body: JSON.stringify({ username: user.value, password: pass.value }),
+        body: JSON.stringify({
+          username: user.value,
+          password,
+          code: phase === "code" ? code.value.trim() : "",
+        }),
       });
+      if (response.status === 200) {
+        const data = (await response.json()) as { step?: string; otpauth?: string };
+        pending = password;
+        pass.value = "";
+        phase = "code";
+        code.hidden = false;
+        code.required = true;
+        code.focus();
+        qrHost.replaceChildren();
+        manual.textContent = "";
+        if (data.step === "enroll" && data.otpauth) {
+          try {
+            drawQr(qrHost, data.otpauth);
+            manual.textContent = `Secret ${new URL(data.otpauth).searchParams.get("secret") ?? ""}`;
+          } catch {
+            manual.textContent = "Could not draw the QR. Type the secret from the login file.";
+          }
+        }
+        status.textContent = "Enter the 6 digit code.";
+        return;
+      }
+      pending = "";
       pass.value = "";
       if (response.status === 204) {
-        location.assign("/admin");
+        go("/admin");
         return;
       }
       if (response.status === 429) status.textContent = "too many attempts.";
@@ -184,7 +235,22 @@ async function renderAdmin(root: HTMLElement): Promise<void> {
   const status = el("p", "");
   status.className = "err";
   status.setAttribute("role", "status");
-  form.append(field("title", title), field("tags", tags), field("markdown", content), save, status);
+  const previewBtn = document.createElement("button");
+  previewBtn.type = "button";
+  previewBtn.textContent = "preview";
+  const preview = document.createElement("div");
+  preview.className = "note";
+  previewBtn.addEventListener("click", () => {
+    preview.replaceChildren();
+    try {
+      const html = renderNote(content.value);
+      assertSafeHtml(html);
+      preview.innerHTML = html;
+    } catch {
+      preview.textContent = "This post failed the HTML check.";
+    }
+  });
+  form.append(field("title", title), field("tags", tags), field("markdown", content), save, previewBtn, status, preview);
 
   const params = new URLSearchParams(location.search);
   const editing = params.get("slug");
@@ -213,11 +279,11 @@ async function renderAdmin(root: HTMLElement): Promise<void> {
         : await api("/api/blog", { method: "POST", body: payload });
       if (response.status === 201) {
         const created = (await response.json()) as { slug: string };
-        location.assign(`/blog/${created.slug}`);
+        go(`/blog/${created.slug}`);
         return;
       }
       if (response.status === 204) {
-        location.assign(`/blog/${editing}`);
+        go(`/blog/${editing}`);
         return;
       }
       status.textContent = response.status === 401 ? "session ended." : "save failed.";
@@ -249,7 +315,7 @@ async function renderAdmin(root: HTMLElement): Promise<void> {
             return;
           }
           const response = await api(`/api/blog/${post.slug}`, { method: "DELETE" });
-          if (response.status === 204) location.assign("/admin");
+          if (response.status === 204) go("/admin");
           else status.textContent = "delete failed.";
         })();
       });
@@ -264,11 +330,46 @@ async function renderAdmin(root: HTMLElement): Promise<void> {
   logout.addEventListener("click", () => {
     void (async () => {
       await api("/api/logout", { method: "POST" });
-      location.assign("/");
+      go("/");
     })();
   });
 
-  root.append(form, el("h2", "posts"), list, logout);
+  const passForm = document.createElement("form");
+  passForm.className = "editor";
+  const current = document.createElement("input");
+  current.type = "password";
+  current.autocomplete = "current-password";
+  current.required = true;
+  current.setAttribute("aria-label", "Current password");
+  const next = document.createElement("input");
+  next.type = "password";
+  next.autocomplete = "new-password";
+  next.required = true;
+  next.minLength = 16;
+  next.setAttribute("aria-label", "New password");
+  const change = document.createElement("button");
+  change.type = "submit";
+  change.textContent = "change password";
+  const passStatus = el("p", "");
+  passStatus.className = "err";
+  passForm.append(field("current password", current), field("new password", next), change, passStatus);
+  passForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    void (async () => {
+      passStatus.textContent = "";
+      const response = await api("/api/password", {
+        method: "POST",
+        body: JSON.stringify({ current: current.value, password: next.value }),
+      });
+      current.value = "";
+      next.value = "";
+      if (response.status === 204) passStatus.textContent = "password updated.";
+      else if (response.status === 400) passStatus.textContent = "use 16 to 200 characters.";
+      else passStatus.textContent = "password change failed.";
+    })();
+  });
+
+  root.append(form, el("h2", "posts"), list, passForm, logout);
 }
 
 export function hydrate(pathname: string, scope: ParentNode = document): void {
