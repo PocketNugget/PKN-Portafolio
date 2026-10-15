@@ -132,12 +132,14 @@ function home(): string {
     .map((project) => projectBlock(project, false))
     .join("");
   return `<p><img src="/nugg.png" width="32" height="32" alt="PocketNugget" /></p>
+    <h2>Profile</h2>
     ${bio.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
     <h2>Jobs</h2>
     ${lead}
-    <h2>Projects</h2>
+    <h2>Selected work</h2>
     ${head}
-    <p>The rest is <a href="/work" data-cmd="projects">projects</a>. The radios are <a href="/radio" data-cmd="radio">radio</a>.</p>`;
+    <p>The rest is <a href="/work" data-cmd="projects">projects</a>. The radios are <a href="/radio" data-cmd="radio">radio</a>.</p>
+    <p>Certificate scans are in <a href="/awards">Certificates</a>. Photos are in <a href="/pictures">My Pictures</a>.</p>`;
 }
 
 function helpPage(): string {
@@ -159,7 +161,9 @@ function workPage(): string {
         `<li><a rel="noreferrer" href="${escapeHtml(item.href)}">${escapeHtml(item.name)}</a></li>`,
     )
     .join("");
-  return `${list}
+  return `<h2>Work</h2>
+    <p>Projects I will talk about in an interview. Older one-liners sit under Earlier.</p>
+    ${list}
     <h2>Earlier</h2>
     <ul class="ls">${old}</ul>
     <h2>ls ~/archive</h2>
@@ -184,7 +188,7 @@ function certsPage(): string {
     </article>
     <article class="block">
       <h2>Hack The Box</h2>
-      <p>Using the Metasploit Framework, July 2025. macOS Fundamentals, July 2025. Other course badges are on LinkedIn.</p>
+      <p>Using the Metasploit Framework, July 2025. macOS Fundamentals, July 2025. Other course badges are on LinkedIn. Scans of event certificates are in <a href="/awards">Certificates</a>.</p>
     </article>
     <article class="block">
       <h2>CompTIA Security+</h2>
@@ -247,8 +251,10 @@ function skillsPage(): string {
       tools.push(tool);
     }
   }
-  return `<p>Tools from the jobs, in the order those jobs are listed.</p>
-    <p>${tools.map(escapeHtml).join(", ")}</p>
+  const items = tools.map((tool) => `<li>${escapeHtml(tool)}</li>`).join("");
+  return `<h2>Tools</h2>
+    <p>Tools from the jobs, in the order those jobs are listed.</p>
+    <ul class="ls">${items}</ul>
     <h2>Languages</h2>
     <p>Spanish, native. English, C1+. French, A2. German, A1.</p>
     <h2>Agents</h2>
@@ -285,6 +291,12 @@ export function documentBody(pathname: string): string {
   if (path === "/skills") return skillsPage();
   if (path === "/display") return `<div class="display-mount"></div>`;
   if (path === "/terminal") return `<div class="term-mount"></div>`;
+  if (path === "/pictures" || path === "/awards") return `<div class="gallery-mount"></div>`;
+  if (path === "/player") return `<div class="player-mount"></div>`;
+  if (path === "/convert") return `<div class="convert-mount"></div>`;
+  if (path === "/facts") return `<div class="facts-mount"></div>`;
+  if (path === "/hack") return `<div class="hack-mount"></div>`;
+  if (path === "/buddy") return `<div class="buddy-mount"></div>`;
   return notFound();
 }
 
@@ -307,6 +319,13 @@ export function commandFor(pathname: string): string {
   if (path === "/skills") return "skills";
   if (path === "/display") return "display";
   if (path === "/terminal") return "snake";
+  if (path === "/player") return "player";
+  if (path === "/pictures") return "pictures";
+  if (path === "/awards") return "awards";
+  if (path === "/convert") return "encode";
+  if (path === "/facts") return "facts";
+  if (path === "/hack") return "hack";
+  if (path === "/buddy") return "buddy";
   return "help";
 }
 

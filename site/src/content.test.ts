@@ -101,6 +101,10 @@ describe("pages", () => {
     expect(isDocumentPath("/terminal")).toBe(true);
     expect(isDocumentPath("/skills")).toBe(true);
     expect(isDocumentPath("/display")).toBe(true);
+    for (const path of ["/player", "/pictures", "/awards", "/convert", "/facts", "/hack", "/buddy"]) {
+      expect(isDocumentPath(path)).toBe(true);
+      expect(xml).not.toContain(`https://pocketnugget.xyz${path}</loc>`);
+    }
   });
 });
 

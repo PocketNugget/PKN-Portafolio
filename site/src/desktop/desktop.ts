@@ -1,9 +1,17 @@
-import { notes, openTable, projects } from "../catalog";
+import { linkPage, notes, openTable, profiles, projects } from "../catalog";
 import { hydrate } from "../client";
 import { normalizePath } from "../paths";
 import { documentBody } from "../render";
 import { parseCommand } from "../shell";
+import { mountBuddy } from "./buddy";
+import { mountConvert } from "./convert";
+import { mountFacts } from "./facts";
+import { mountGallery } from "./gallery";
+import { mountHack } from "./hack";
+import type { DeskApp } from "./host";
 import { ICONS } from "./icons";
+import { AWARDS, PICTURES } from "./media";
+import { mountPlayer } from "./player";
 import { Terminal } from "./term";
 
 interface App {
@@ -36,6 +44,7 @@ interface Win {
   max: boolean;
   el: HTMLDivElement;
   term: Terminal | null;
+  host: DeskApp | null;
 }
 
 const APPS: App[] = [
@@ -50,6 +59,13 @@ const APPS: App[] = [
   { id: "links", label: "My Links", path: "/links", icon: "links", desk: true },
   { id: "contact", label: "Contact", path: "/contact", icon: "contact", desk: true },
   { id: "terminal", label: "Terminal", path: "/terminal", icon: "terminal", desk: true },
+  { id: "pictures", label: "My Pictures", path: "/pictures", icon: "pictures", desk: true },
+  { id: "awards", label: "Certificates", path: "/awards", icon: "awards", desk: true },
+  { id: "player", label: "Player", path: "/player", icon: "player", desk: true },
+  { id: "convert", label: "Converter", path: "/convert", icon: "convert", desk: true },
+  { id: "facts", label: "Facts", path: "/facts", icon: "facts", desk: true },
+  { id: "hack", label: "Hack", path: "/hack", icon: "hack", desk: true },
+  { id: "buddy", label: "Nugget", path: "/buddy", icon: "buddy", desk: true },
   { id: "help", label: "Help", path: "/help", icon: "help", desk: false },
   { id: "display", label: "Display", path: "/display", icon: "display", desk: false },
   { id: "colophon", label: "Colophon", path: "/colophon", icon: "colophon", desk: false },
@@ -60,12 +76,32 @@ const MENU_GROUPS = [
   ["about", "jobs", "projects", "skills"],
   ["radio", "notes", "certs", "blog", "links", "contact"],
   ["terminal", "help", "display", "colophon", "login"],
+  ["pictures", "awards", "player", "convert", "facts", "hack", "buddy"],
 ];
 
 const WALLPAPERS = [
+  { id: "sky", label: "Sky" },
   { id: "teal", label: "Teal" },
   { id: "clouds", label: "Clouds" },
   { id: "navy", label: "Navy" },
+];
+
+const SIZES: Record<string, [number, number]> = {
+  "/player": [440, 380],
+  "/pictures": [640, 480],
+  "/awards": [640, 480],
+  "/convert": [480, 440],
+  "/facts": [500, 440],
+  "/hack": [440, 320],
+  "/buddy": [300, 400],
+};
+
+const SOCIAL: { label: string; href: string; icon: string }[] = [
+  { label: "GitHub", href: profiles.github.href, icon: "/social/github.png" },
+  { label: "LinkedIn", href: profiles.linkedin.href, icon: "/social/linkedin.png" },
+  { label: "X", href: profiles.x.href, icon: "/social/x.png" },
+  { label: "Instagram", href: linkPage.find((item) => item.label === "Instagram")?.href ?? "", icon: "/social/instagram.png" },
+  { label: "YouTube", href: linkPage.find((item) => item.label === "YouTube")?.href ?? "", icon: "/social/youtube.png" },
 ];
 
 const opens = openTable();
@@ -128,9 +164,11 @@ export function bootDesktop(): void {
   desktop.id = "desktop";
   const icons = document.createElement("div");
   icons.id = "icons";
+  const social = document.createElement("div");
+  social.id = "social";
   const windowsLayer = document.createElement("div");
   windowsLayer.id = "windows";
-  desktop.append(icons, windowsLayer);
+  desktop.append(icons, social, windowsLayer);
 
   const taskbar = document.createElement("div");
   taskbar.id = "taskbar";
@@ -165,12 +203,12 @@ export function bootDesktop(): void {
 
   function wallpaperId(): string {
     const saved = sessionGet("pkn-wallpaper");
-    return WALLPAPERS.some((item) => item.id === saved) ? saved ?? "teal" : "teal";
+    return WALLPAPERS.some((item) => item.id === saved) ? saved ?? "sky" : "sky";
   }
 
   function applyWallpaper(id: string): void {
-    const safe = WALLPAPERS.some((item) => item.id === id) ? id : "teal";
-    desktop.classList.remove("wp-teal", "wp-clouds", "wp-navy");
+    const safe = WALLPAPERS.some((item) => item.id === id) ? id : "sky";
+    for (const item of WALLPAPERS) desktop.classList.remove(`wp-${item.id}`);
     desktop.classList.add(`wp-${safe}`);
     sessionSet("pkn-wallpaper", safe);
     for (const input of desktop.querySelectorAll<HTMLInputElement>("input[name=wallpaper]")) {
@@ -185,7 +223,7 @@ export function bootDesktop(): void {
       return `<div class="field-row"><input type="radio" name="wallpaper" id="wp-${item.id}" value="${item.id}"${checked}><label for="wp-${item.id}">${item.label}</label></div>`;
     }).join("");
     host.innerHTML = `<fieldset><legend>Wallpaper</legend>${rows}</fieldset>
-      <p class="meta">Files live in public/wallpapers. Add a class in styles.css and a radio here. This tab remembers the choice. It is not a cookie.</p>`;
+      <p class="meta">Files live in public/wallpapers. Sky is the photo. Teal and Clouds are the older drawings. This tab remembers the choice. It is not a cookie.</p>`;
     host.addEventListener("change", (event) => {
       const target = event.target;
       if (target instanceof HTMLInputElement && target.name === "wallpaper") applyWallpaper(target.value);
@@ -237,6 +275,7 @@ export function bootDesktop(): void {
           win.min = false;
           win.el.classList.remove("is-min");
           win.term?.resume();
+          win.host?.resume();
           focusWindow(win);
           place(win);
         }
@@ -287,10 +326,31 @@ export function bootDesktop(): void {
     if (!(body instanceof HTMLElement)) return;
     win.term?.destroy();
     win.term = null;
+    win.host?.destroy();
+    win.host = null;
     body.innerHTML = documentBody(win.path);
     if (body.querySelector("#dynamic")) hydrate(win.path, body);
     const display = body.querySelector(".display-mount");
     if (display instanceof HTMLElement) mountDisplay(display);
+    const gallery = body.querySelector(".gallery-mount");
+    if (gallery instanceof HTMLElement) {
+      const shots = win.path === "/awards" ? AWARDS : PICTURES;
+      const intro =
+        win.path === "/awards"
+          ? "Scans copied into this site. A year with no ranking in the record does not get one here."
+          : "Photos copied into this site from the local folder, so they load with the page.";
+      win.host = mountGallery(gallery, shots, intro);
+    }
+    const playerHost = body.querySelector(".player-mount");
+    if (playerHost instanceof HTMLElement) win.host = mountPlayer(playerHost);
+    const convertHost = body.querySelector(".convert-mount");
+    if (convertHost instanceof HTMLElement) win.host = mountConvert(convertHost);
+    const factsHost = body.querySelector(".facts-mount");
+    if (factsHost instanceof HTMLElement) win.host = mountFacts(factsHost, (href) => openHref(href));
+    const hackHost = body.querySelector(".hack-mount");
+    if (hackHost instanceof HTMLElement) win.host = mountHack(hackHost, windowsLayer, desktop);
+    const buddyHost = body.querySelector(".buddy-mount");
+    if (buddyHost instanceof HTMLElement) win.host = mountBuddy(buddyHost);
     const termHost = body.querySelector(".term-mount");
     if (termHost instanceof HTMLElement) {
       win.term = new Terminal(termHost, {
@@ -305,6 +365,7 @@ export function bootDesktop(): void {
     win.min = true;
     win.el.classList.add("is-min");
     win.term?.pause();
+    win.host?.pause();
     const next = [...windows].reverse().find((item) => item.id !== win.id && !item.min);
     if (next) focusWindow(next);
     else {
@@ -340,6 +401,7 @@ export function bootDesktop(): void {
     const win = windows[index];
     if (!win) return;
     win.term?.destroy();
+    win.host?.destroy();
     win.el.remove();
     windows.splice(index, 1);
     const next = [...windows].reverse().find((item) => !item.min);
@@ -428,14 +490,17 @@ export function bootDesktop(): void {
     const areaW = desktop.clientWidth || window.innerWidth;
     const areaH = desktop.clientHeight || window.innerHeight - 30;
     const cascade = windows.length;
+    const preset = SIZES[path];
+    const wantW = preset?.[0] ?? 560;
+    const wantH = preset?.[1] ?? 420;
     const win: Win = {
       id: ++seq,
       path,
       title: titleFor(path),
       x: narrow ? 0 : 24 + (cascade % 8) * 22,
       y: narrow ? 0 : 12 + (cascade % 8) * 20,
-      w: narrow ? areaW : Math.min(560, Math.max(280, areaW - 36)),
-      h: narrow ? areaH : Math.min(420, Math.max(200, areaH - 36)),
+      w: narrow ? areaW : Math.min(wantW, Math.max(240, areaW - 36)),
+      h: narrow ? areaH : Math.min(wantH, Math.max(180, areaH - 36)),
       rx: 0,
       ry: 0,
       rw: 0,
@@ -445,6 +510,7 @@ export function bootDesktop(): void {
       max: narrow,
       el: document.createElement("div"),
       term: null,
+      host: null,
     };
     win.rx = win.x;
     win.ry = win.y;
@@ -494,6 +560,7 @@ export function bootDesktop(): void {
         existing.min = false;
         existing.el.classList.remove("is-min");
         existing.term?.resume();
+        existing.host?.resume();
       }
       focusWindow(existing);
       place(existing);
@@ -567,6 +634,26 @@ export function bootDesktop(): void {
     layoutIcons();
   }
 
+  function loadSocial(): void {
+    for (const item of SOCIAL) {
+      if (!item.href) continue;
+      const link = document.createElement("a");
+      link.className = "social-link";
+      link.href = item.href;
+      link.target = "_blank";
+      link.rel = "noreferrer noopener";
+      const img = document.createElement("img");
+      img.src = item.icon;
+      img.alt = "";
+      img.width = 32;
+      img.height = 32;
+      const label = document.createElement("span");
+      label.textContent = item.label;
+      link.append(img, label);
+      social.append(link);
+    }
+  }
+
   function loadMenu(): void {
     MENU_GROUPS.forEach((group, index) => {
       if (index > 0) {
@@ -600,6 +687,7 @@ export function bootDesktop(): void {
 
   applyWallpaper(wallpaperId());
   loadDesktop();
+  loadSocial();
   loadMenu();
   paintClock();
   window.setInterval(paintClock, 10000);

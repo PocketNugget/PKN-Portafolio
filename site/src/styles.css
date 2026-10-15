@@ -49,6 +49,10 @@ body {
   background: #000080;
 }
 
+#desktop.wp-sky {
+  background: #7eb6e6 url("/wallpapers/sky.jpg") center / cover no-repeat;
+}
+
 #icons {
   position: absolute;
   inset: 0;
@@ -70,6 +74,12 @@ body {
   pointer-events: auto;
   min-width: 0;
   box-sizing: border-box;
+  animation: win-in 140ms steps(2);
+}
+
+@keyframes win-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .desk-win.is-min {
@@ -119,6 +129,13 @@ body {
   margin: 8px 0 4px;
 }
 
+.window-body h2 {
+  font-size: 12px;
+  margin: 10px 0 6px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid #808080;
+}
+
 .window-body p {
   margin: 0 0 8px;
 }
@@ -154,6 +171,12 @@ body {
 
 .window-body img {
   image-rendering: pixelated;
+}
+
+.window-body img.shot,
+.window-body img.buddy-pic,
+button.thumb img {
+  image-rendering: auto;
 }
 
 .window-body:has(.term-mount),
@@ -266,11 +289,18 @@ button.desk-icon:focus {
 
 .desk-icon .label {
   color: #fff;
-  text-shadow: 1px 1px 0 #000;
+  text-shadow: 1px 1px 0 #000, -1px 0 0 #000, 0 -1px 0 #000;
   padding: 0 2px;
   text-align: center;
   line-height: 1.2;
   max-width: 74px;
+}
+
+button.desk-icon:hover .label,
+button.desk-icon:focus .label {
+  background: #000080;
+  color: #fff;
+  text-shadow: none;
 }
 
 .desk-icon.selected .label {
@@ -427,6 +457,7 @@ button.task-btn.down {
 
 .menu-list {
   min-width: 190px;
+  max-height: calc(100vh - 48px);
   overflow: auto;
   padding: 2px;
 }
@@ -493,12 +524,228 @@ form.editor textarea {
   }
 }
 
+#social {
+  position: absolute;
+  z-index: 3;
+  right: 12px;
+  bottom: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+a.social-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 64px;
+  color: #fff;
+  text-shadow: 1px 1px 0 #000, -1px 0 0 #000;
+  text-decoration: none;
+  font-size: 11px;
+  text-align: center;
+}
+
+a.social-link img {
+  width: 32px;
+  height: 32px;
+  image-rendering: auto;
+}
+
+a.social-link:hover,
+a.social-link:focus {
+  outline: 1px dotted #fff;
+}
+
+#desktop.is-glitch {
+  animation: desk-glitch 90ms steps(2) 8;
+}
+
+@keyframes desk-glitch {
+  50% { transform: translate(2px, -1px); }
+  100% { transform: translate(-2px, 1px); }
+}
+
+.hack-pop {
+  position: absolute;
+  width: min(280px, calc(100% - 16px));
+  z-index: 30;
+  pointer-events: auto;
+}
+
+.hack-log {
+  min-height: 88px;
+  margin: 8px 0;
+  padding: 4px;
+  white-space: pre-wrap;
+  background: #fff;
+  color: #222;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px grey, inset -2px -2px #dfdfdf, inset 2px 2px #0a0a0a;
+}
+
+.player,
+.gallery,
+.convert-app,
+.facts-app,
+.hack-app,
+.buddy-app {
+  min-height: 0;
+}
+
+.lcd {
+  background: #000;
+  color: #00a000;
+  padding: 6px;
+  margin-bottom: 8px;
+  font-family: "Courier New", ui-monospace, monospace;
+}
+
+.lcd-title,
+.lcd-time {
+  min-height: 14px;
+}
+
+.player-controls {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.player button,
+.gallery button,
+.convert-app button,
+.facts-app button,
+.hack-app button,
+.buddy-app button,
+.hack-pop button {
+  color: #222;
+  text-shadow: none;
+}
+
+.playlist {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+button.track {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+  color: #222;
+  text-shadow: none;
+}
+
+button.track.on {
+  background: #000080;
+  color: #fff;
+  box-shadow: none;
+}
+
+.thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.thumbs[hidden],
+.viewer[hidden] {
+  display: none;
+}
+
+button.thumb {
+  width: 96px;
+  min-width: 0;
+  padding: 3px;
+  color: #222;
+  text-shadow: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+button.thumb img {
+  width: 88px;
+  height: 64px;
+  object-fit: cover;
+  background: #000;
+}
+
+button.thumb span {
+  max-width: 88px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.viewer img.shot {
+  display: block;
+  max-width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  background: #000;
+  margin: 0 auto 6px;
+}
+
+.tool-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.buddy-pic {
+  display: block;
+  width: min(240px, 100%);
+  height: auto;
+  margin: 0 auto 8px;
+}
+
+.buddy-pic.talk {
+  animation: buddy-talk 160ms steps(2) infinite;
+}
+
+@keyframes buddy-talk {
+  50% { transform: translateY(2px); }
+}
+
+.buddy-say {
+  min-height: 48px;
+}
+
+.convert-app textarea,
+.convert-app select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.vol input {
+  width: 90px;
+  vertical-align: middle;
+}
+
 @media (max-width: 700px) {
+  #desktop {
+    display: flex;
+    flex-direction: column;
+  }
+
   #icons {
+    position: relative;
+    inset: auto;
+    flex: 1;
     display: flex;
     flex-wrap: wrap;
     align-content: flex-start;
     overflow: auto;
+  }
+
+  #social {
+    position: static;
+    order: 2;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 4px 4px 6px;
+    background: #000080;
   }
 
   button.desk-icon {

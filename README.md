@@ -30,9 +30,22 @@ That builds the client and starts `wrangler dev`. Refresh a project URL. It shou
 
 Double-click a desktop icon, or use Start. Windows drag from the title bar, resize from the edges, and minimize, maximize, and close. Open windows sit on the taskbar. On a phone, a tap opens an icon and the window fills the screen.
 
-Wallpaper files are `site/public/wallpapers/`. Display Properties (Start, then Display) switches among them for the current tab. Icon positions after a drag are remembered the same way. Neither is a cookie.
+Wallpaper files are `site/public/wallpapers/`. The default is `sky.jpg`. Display Properties (Start, then Display) switches Sky, Teal, Clouds, and Navy for the current tab. Icon positions after a drag are remembered the same way. Neither is a cookie.
 
 To change a page, edit `site/src/catalog.ts`. The desktop apps are the list at the top of `site/src/desktop/desktop.ts`. Snake and Tetris live in `site/src/desktop/games.ts` and run inside the Terminal window (`snake`, `tetris`, arrows, space, esc).
+
+### Extra apps
+
+Each of these is a normal window. Open it from the icon or from Start. The terminal names are in parentheses.
+
+- Player (`player`). Play, pause, stop, previous, next, volume, and a progress bar. The tunes are short square waves made in the browser. Nothing is streamed, and none of them are commercial tracks.
+- My Pictures (`pictures`) and Certificates (`awards`). Thumbnails, then a larger view with previous and next. The files live in `site/public/media/`. The titles and captions are `site/src/desktop/media.ts`. The public site cannot read a folder on your computer, so copy new photos into `public/media` and add a line to that file. The first set was copied from the local Desktop folder of photos and certificate scans.
+- Converter (`encode`). Base64, hex, and URL encode and decode, text to binary, MD5, SHA-1, and SHA-256. It runs in the page. Nothing is uploaded.
+- Facts (`facts`). Short lines from the same record as the catalog, plus buttons that open the other tools.
+- Hack (`hack`). A joke. Fake error windows, a short glitch, then a punchline. Reset or Close puts the desktop back. It does not change files or accounts.
+- Nugget (`buddy`). The assistant. Tips come from the same fact list. The picture is `site/public/buddy/nugget.png`. Replace that file to change the character.
+
+Social icons sit on the wallpaper, in a row at the bottom right (a bar under the icons on a phone). They are PNGs in `site/public/social/`: `github.png`, `linkedin.png`, `x.png`, `instagram.png`, `youtube.png`. The addresses are the same ones as My Links. A click opens a new tab. To point one somewhere else, change the profile in `site/src/catalog.ts`. To redraw an icon, replace the PNG and keep the name.
 
 ## Deploy
 
