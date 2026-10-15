@@ -57,9 +57,13 @@ export function allDocumentPaths(): string[] {
   ];
 }
 
+function xmlText(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 export function sitemapXml(origin = "https://pocketnugget.xyz", extra: string[] = []): string {
   const body = [...allDocumentPaths(), ...extra]
-    .map((path) => `  <url><loc>${origin}${path}</loc></url>`)
+    .map((path) => `  <url><loc>${xmlText(`${origin}${path}`)}</loc></url>`)
     .join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`;
 }

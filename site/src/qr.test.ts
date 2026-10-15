@@ -30,6 +30,12 @@ describe("qr", () => {
   });
 
   it("grows for a longer byte string", () => {
-    expect(qrMatrix("b".repeat(90)).length).toBe(41);
+    const matrix = qrMatrix("b".repeat(90));
+    expect(matrix.length).toBe(41);
+    expect(matrix.every((row) => row.length === matrix.length)).toBe(true);
+  });
+
+  it("refuses a string that does not fit", () => {
+    expect(() => qrMatrix("b".repeat(200))).toThrow(/qr too long/);
   });
 });

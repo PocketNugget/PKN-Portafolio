@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { openTable } from "./catalog";
+import { safeUrl } from "./markup";
 import {
   COMMANDS,
   applyCompletion,
@@ -44,6 +45,17 @@ describe("parseCommand", () => {
       type: "external",
       href: "https://github.com/PocketNugget",
     });
+    expect(parseCommand("  JoBs  ", opens)).toMatchObject({ type: "nav", path: "/jobs" });
+    expect(parseCommand("open  GitHub", opens)).toMatchObject({
+      type: "external",
+      href: "https://github.com/PocketNugget",
+    });
+    expect(parseCommand("open bad", { bad: "javascript:alert(1)" }).type).toBe("nav");
+    for (const href of Object.values(opens)) expect(safeUrl(href)).toBe(true);
+    for (const cmd of COMMANDS) {
+      if (cmd === "open" || cmd === "snake" || cmd === "tetris" || cmd === "exit") continue;
+      expect(parseCommand(cmd, opens).type).toBe("nav");
+    }
   });
 });
 
@@ -52,6 +64,10 @@ describe("completion and history", () => {
     expect(completions("jo", [])).toEqual(["jobs"]);
     expect(applyCompletion("jo", ["jobs"])).toBe("jobs ");
     expect(completions("open htb", ["htb", "maia"])).toEqual(["htb"]);
+    expect(completions("open ", ["b", "a"])).toEqual(["a", "b"]);
+    expect(completions("open htb extra", ["htb"])).toEqual([]);
+    expect(completions("OPEN", [])).toEqual(["open"]);
+    expect(applyCompletion("open h", ["htb"])).toBe("open htb ");
     const many = completions("c", []);
     expect(many).toEqual(["certs", "contact", "colophon", "clear"]);
   });
@@ -69,6 +85,12 @@ describe("completion and history", () => {
     expect(back.value).toBe("radio");
     const live = histDown(items, items.length - 1, "draft");
     expect(live).toMatchObject({ index: -1, value: "draft" });
+    expect(histUp([], -1, "", "now")).toEqual({ index: -1, draft: "", value: "now" });
+    let capped: string[] = [];
+    for (let i = 0; i < 90; i += 1) capped = pushHist(capped, `cmd${i}`);
+    expect(capped).toHaveLength(80);
+    expect(capped[0]).toBe("cmd10");
+    expect(capped[79]).toBe("cmd89");
   });
 
   it("exposes every help command to tab", () => {

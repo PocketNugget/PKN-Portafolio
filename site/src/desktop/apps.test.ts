@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { FACTS } from "./facts";
+import { ICONS } from "./icons";
 import { AWARDS, PICTURES } from "./media";
 import { TRACKS } from "./player";
 
@@ -43,6 +44,15 @@ describe("desktop media", () => {
     for (const track of TRACKS) {
       expect(track.notes.length).toBeGreaterThan(3);
       expect(track.title.toLowerCase()).not.toContain("metallica");
+    }
+  });
+
+  it("keeps icon markup free of handlers", () => {
+    expect(Object.keys(ICONS).length).toBeGreaterThan(5);
+    for (const svg of Object.values(ICONS)) {
+      expect(svg.startsWith("<svg")).toBe(true);
+      expect(svg).not.toMatch(/<script/i);
+      expect(svg).not.toMatch(/\son\w+\s*=/i);
     }
   });
 });

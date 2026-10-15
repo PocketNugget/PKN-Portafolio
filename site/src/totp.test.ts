@@ -12,7 +12,13 @@ describe("totp", () => {
     expect(await totpAt(SECRET, 1234567890)).toBe("005924");
     expect(await totpAt(SECRET, 2000000000)).toBe("279037");
     expect(await totpMatches(SECRET, "287082", 59)).toBe(true);
+    expect(await totpMatches(SECRET, "287082", 59 + 30)).toBe(true);
+    expect(await totpMatches(SECRET, "287082", 59 - 30)).toBe(true);
+    expect(await totpMatches(SECRET, "287082", 59 + 60)).toBe(false);
     expect(await totpMatches(SECRET, "000000", 59)).toBe(false);
+    expect(await totpMatches(SECRET, "28708", 59)).toBe(false);
+    expect(await totpMatches(SECRET, "2870821", 59)).toBe(false);
+    expect(await totpMatches(SECRET, "287 082", 59)).toBe(false);
   });
 
   it("round-trips the sealed secret into an otpauth URI", async () => {
@@ -22,5 +28,11 @@ describe("totp", () => {
     expect(base32Encode(new TextEncoder().encode("foo"))).toBe("MZXW6");
     expect(otpauthUri(SECRET)).toContain("otpauth://totp/PKN:goben?secret=");
     expect(otpauthUri(SECRET)).toContain("&issuer=PKN");
+    expect(base32Encode(new Uint8Array())).toBe("");
+    expect(base32Encode(new Uint8Array([0]))).toBe("AA");
+    const short = btoa(String.fromCharCode(...new Uint8Array(16).fill(1)));
+    await expect(sealSecret(short, SECRET)).rejects.toThrow(/totp key/);
+    await expect(openSecret(btoa(String.fromCharCode(...new Uint8Array(32).fill(1))), sealed)).rejects.toThrow();
+    await expect(openSecret(KEY, btoa("short"))).rejects.toThrow(/totp cipher/);
   });
 });

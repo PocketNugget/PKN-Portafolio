@@ -6,10 +6,12 @@ import {
   snakeAim,
   snakeRender,
   stepSnake,
+  tetrisDown,
   tetrisHard,
   tetrisLeft,
   tetrisRender,
   tetrisRotate,
+  tetrisTick,
 } from "./games";
 
 describe("snake", () => {
@@ -58,6 +60,9 @@ describe("snake", () => {
       food: { x: 0, y: 0 },
     });
     expect(bite.dead).toBe(true);
+    expect(stepSnake(wall)).toBe(wall);
+    expect(snakeAim(wall, "up")).toBe(wall);
+    expect(snakeRender(wall)).toContain("game over. esc leaves");
     expect(snakeRender(start)).toContain("@");
     expect(snakeRender(start)).toContain("*");
   });
@@ -83,6 +88,7 @@ describe("tetris", () => {
     const dropped = tetrisHard(start);
     expect(dropped.over).toBe(false);
     expect(dropped.kind).toBe("I");
+    expect(dropped.score).toBe(4);
     expect(dropped.grid.reduce((sum, cell) => sum + cell, 0)).toBe(4);
     expect(tetrisRender(dropped)).toContain("[]");
 
@@ -92,5 +98,19 @@ describe("tetris", () => {
     for (let i = 0; i < 20; i += 1) shoved = tetrisLeft(shoved);
     expect(shoved.x).toBeGreaterThanOrEqual(-1);
     expect(tetrisRender(shoved)).toContain("[]");
+
+    const nudged = tetrisDown(start);
+    expect(nudged.y).toBe(start.y + 1);
+    expect(tetrisTick(nudged).y).toBe(start.y + 2);
+
+    const blocked = createTetris({
+      width: 4,
+      height: 4,
+      queue: ["O", "I", "T", "L", "J", "S", "Z"],
+      grid: Array.from({ length: 16 }, () => 1),
+    });
+    expect(blocked.over).toBe(true);
+    expect(tetrisLeft(blocked)).toBe(blocked);
+    expect(tetrisRender(blocked)).toContain("game over. esc leaves");
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { handleApi } from "./api";
+import { handleApi, readCookie, slugify } from "./api";
 import { sha256Hex } from "./password";
 import { renderNote } from "./notes";
 import { MemoryStore } from "./store";
@@ -349,5 +349,190 @@ describe("blog api", () => {
     const map = await handle(new Request("https://pocketnugget.com/sitemap.xml"), env());
     expect(map.status).toBe(200);
     expect(await map.text()).toContain("https://pocketnugget.com/links");
+  });
+
+  it("slugifies titles and keeps a poisoned row from becoming html", async () => {
+    expect(slugify("Señor!!!")).toBe("senor");
+    expect(slugify("!!!")).toBe("post");
+    expect(slugify("a".repeat(80))).toHaveLength(60);
+    expect(readCookie("a=1; pkn_session=token-token-token-token; b=2", "pkn_session")).toBe(
+      "token-token-token-token",
+    );
+    expect(readCookie(null, "pkn_session")).toBeNull();
+
+    const store = new MemoryStore();
+    const hash = await authHash();
+    const auth = { user: "goben", hash };
+    const token = "token-token-token-token";
+    await store.putSession(await sha256Hex(token), NOW + 60_000);
+    const cookie = `pkn_session=${token}`;
+    const created = await handleApi(
+      post("/api/blog", { title: "Señor!!!", content: "plain", tags: "" }, cookie),
+      store,
+      auth,
+      NOW,
+    );
+    expect(created.status).toBe(201);
+    expect(((await created.json()) as { slug: string }).slug).toBe("senor");
+    const again = await handleApi(
+      post("/api/blog", { title: "Señor!!!", content: "plain", tags: "" }, cookie),
+      store,
+      auth,
+      NOW,
+    );
+    expect(((await again.json()) as { slug: string }).slug).toBe("senor-2");
+
+    await store.insertPost({
+      slug: "marked",
+      title: "<script>",
+      content: "x".repeat(40_001),
+      tags: "<b>",
+      created: NOW,
+      updated: NOW,
+    });
+    await store.insertNote({ name: "<script>", body: "hi", created: NOW });
+    const list = await handleApi(new Request("https://pocketnugget.com/api/blog"), store, auth, NOW);
+    const posts = (await list.json()) as { posts: { slug: string; title: string; tags: string }[] };
+    const marked = posts.posts.find((item) => item.slug === "marked");
+    expect(marked).toEqual({ slug: "marked", title: "post", tags: "", created: "2026-10-14T12:00:00.000Z" });
+    const one = await handleApi(new Request("https://pocketnugget.com/api/blog/marked"), store, auth, NOW);
+    expect(((await one.json()) as { content: string }).content).toBe("This post failed the HTML check.");
+    const notes = await handleApi(new Request("https://pocketnugget.com/api/comments"), store, auth, NOW);
+    const bodies = (await notes.json()) as { notes: { name: string }[] };
+    expect(bodies.notes.some((note) => note.name.includes("<"))).toBe(false);
+
+    const badJson = await handleApi(
+      new Request("https://pocketnugget.com/api/comments", {
+        method: "POST",
+        headers: { origin: "https://pocketnugget.com", "content-type": "application/json" },
+        body: "{",
+      }),
+      store,
+      auth,
+      NOW,
+    );
+    expect(badJson.status).toBe(400);
+    const huge = await handleApi(
+      new Request("https://pocketnugget.com/api/comments", {
+        method: "POST",
+        headers: { origin: "https://pocketnugget.com", "content-type": "application/json" },
+        body: "x".repeat(100_001),
+      }),
+      store,
+      auth,
+      NOW,
+    );
+    expect(huge.status).toBe(413);
+    expect(await store.countNoteAttempts(0)).toBe(0);
+
+    const missing = await handleApi(
+      new Request("https://pocketnugget.com/api/blog/missing", {
+        method: "PUT",
+        headers: {
+          origin: "https://pocketnugget.com",
+          "content-type": "application/json",
+          cookie,
+        },
+        body: JSON.stringify({ title: "Hello", content: "text", tags: "" }),
+      }),
+      store,
+      auth,
+      NOW,
+    );
+    expect(missing.status).toBe(404);
+    const removed = await handleApi(
+      new Request("https://pocketnugget.com/api/blog/missing", {
+        method: "DELETE",
+        headers: { origin: "https://pocketnugget.com", cookie },
+      }),
+      store,
+      auth,
+      NOW,
+    );
+    expect(removed.status).toBe(404);
+    expect(
+      (
+        await handleApi(
+          new Request("https://pocketnugget.com/api/nope", { method: "DELETE" }),
+          store,
+          auth,
+          NOW,
+        )
+      ).status,
+    ).toBe(405);
+    const odd = await handleApi(
+      new Request("https://pocketnugget.com/api/comments/9999999999999999999", {
+        method: "DELETE",
+        headers: { origin: "https://pocketnugget.com", cookie },
+      }),
+      store,
+      auth,
+      NOW,
+    );
+    expect(odd.status).toBe(404);
+  });
+
+  it("expires a session, logs out, and changes the password", async () => {
+    const store = await readyStore();
+    const hash = await authHash();
+    const auth = { user: "goben", hash, totpKey: TOTP_KEY };
+    const token = "token-token-token-token";
+    await store.putSession(await sha256Hex(token), NOW - 1);
+    const stale = await handleApi(
+      new Request("https://pocketnugget.com/api/session", {
+        headers: { cookie: `pkn_session=${token}` },
+      }),
+      store,
+      auth,
+      NOW,
+    );
+    expect(stale.status).toBe(401);
+    expect(await store.getSession(await sha256Hex(token))).toBeNull();
+
+    await store.putSession(await sha256Hex(token), NOW + 60_000);
+    const cookie = `pkn_session=${token}`;
+    const short = await handleApi(
+      post("/api/password", { current: PASSWORD, password: "short-password" }, cookie),
+      store,
+      auth,
+      NOW,
+    );
+    expect(short.status).toBe(400);
+    const wrong = await handleApi(
+      post("/api/password", { current: "not-the-password", password: "a-new-password-ok" }, cookie),
+      store,
+      auth,
+      NOW,
+    );
+    expect(wrong.status).toBe(401);
+    const changed = await handleApi(
+      post("/api/password", { current: PASSWORD, password: "a-new-password-ok" }, cookie),
+      store,
+      auth,
+      NOW,
+    );
+    expect(changed.status).toBe(204);
+    const row = await store.getAuth();
+    expect(row?.passwordHash.startsWith("sha256$")).toBe(true);
+
+    const bye = await handleApi(
+      new Request("https://pocketnugget.com/api/logout", {
+        method: "POST",
+        headers: { origin: "https://pocketnugget.com", cookie },
+      }),
+      store,
+      auth,
+      NOW,
+    );
+    expect(bye.status).toBe(204);
+    expect(bye.headers.get("set-cookie")).toContain("Max-Age=0");
+    expect(await store.getSession(await sha256Hex(token))).toBeNull();
+    const who = await handleApi(
+      new Request("https://pocketnugget.com/api/session", { headers: { cookie } }),
+      store,
+      auth,
+      NOW,
+    );
+    expect(who.status).toBe(401);
   });
 });

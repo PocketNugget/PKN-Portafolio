@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import models from "../content/notes/model-files.md?raw";
-import { jobs, projects, validateCatalog } from "./catalog";
+import { jobs, openTable, projects, validateCatalog } from "./catalog";
+import { safeUrl } from "./markup";
 import { assertSafeHtml, renderNote, renderedNotes } from "./notes";
-import { isDocumentPath, sitemapXml } from "./paths";
-import { render } from "./render";
+import { allDocumentPaths, isDocumentPath, sitemapXml } from "./paths";
+import { commandFor, documentBody, render } from "./render";
 
 describe("catalog", () => {
   it("accepts the shipped record", () => {
@@ -22,6 +23,33 @@ describe("catalog", () => {
     expect(jobs.find((job) => job.id === "tbsek-jr")?.date).toBe("April 2025 to July 2026");
     expect(jobs.find((job) => job.id === "stem")?.date).toBe("February 2024 to June 2026");
     expect(jobs.some((job) => job.id === "apple" || job.org === "Apple")).toBe(false);
+    for (const href of Object.values(openTable())) expect(safeUrl(href)).toBe(true);
+  });
+
+  it("drops an unsafe project link and image", () => {
+    const project = projects[0];
+    const links = project.links;
+    const image = project.image;
+    project.links = [
+      { label: "Click", href: "javascript:alert(1)" },
+      { label: "User", href: "https://user:pass@evil.example/a" },
+      { label: "Slash", href: "//evil.example" },
+    ];
+    project.image = "/media/../secret.png";
+    try {
+      const html = render(`/work/${project.slug}`);
+      expect(html).toContain("Click");
+      expect(html).toContain("User");
+      expect(html).toContain("Slash");
+      expect(html).not.toContain("javascript:");
+      expect(html).not.toContain("secret.png");
+      expect(html).not.toContain('href="https://user:pass@evil.example/a"');
+      expect(html).toContain('<p class="links">Click User Slash</p>');
+      expect(html).not.toMatch(/<script/i);
+    } finally {
+      project.links = links;
+      project.image = image;
+    }
   });
 });
 
@@ -75,6 +103,18 @@ describe("pages", () => {
     expect(html).not.toContain("May to July 2026");
     expect(html).not.toContain("expected May 2026");
     expect(html).not.toContain("—");
+    for (const path of allDocumentPaths()) {
+      const page = render(path);
+      expect(page).not.toMatch(/<script/i);
+      expect(page).not.toContain("javascript:");
+      expect(page).not.toMatch(/\son\w+\s*=/i);
+    }
+    expect(commandFor("/pad")).toBe("pad");
+    expect(commandFor("/convert")).toBe("encode");
+    expect(commandFor("/terminal")).toBe("snake");
+    expect(commandFor("/notes/model-files")).toBe("open model-files");
+    expect(documentBody("/pad")).toContain("notepad-mount");
+    expect(documentBody("/no-such")).toContain("no such path");
   });
 
   it("puts the corrected jobs, certs, and links on their pages", () => {

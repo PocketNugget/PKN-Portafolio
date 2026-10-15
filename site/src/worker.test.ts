@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { MemoryStore } from "./store";
 import { handle, type Env } from "./worker";
 
 function env(): Env {
@@ -65,5 +66,41 @@ describe("worker", () => {
     expect(body).toContain("Contact: mailto:goben.ca.pkn@hotmail.com");
     expect(body).toContain("Expires: 2027-10-14T00:00:00.000Z");
     expect(txt.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
+  });
+
+  it("keeps asset urls on the asset handler and hides a store error", async () => {
+    const pad = await handle(new Request("https://pocketnugget.com/pad/"), env());
+    expect(pad.status).toBe(200);
+    expect(await pad.text()).toBe("ok");
+    const media = await handle(new Request("https://pocketnugget.com/media/me.png"), env());
+    expect(media.status).toBe(404);
+    expect(await media.text()).toBe("missing");
+    expect(media.headers.get("content-security-policy")).toContain("default-src 'self'");
+
+    const store = new MemoryStore();
+    await store.insertPost({
+      slug: "shift-note",
+      title: "Shift",
+      content: "hi",
+      tags: "",
+      created: 1,
+      updated: 1,
+    });
+    const map = await handle(new Request("https://pocketnugget.com/sitemap.xml"), env(), undefined, store);
+    expect(await map.text()).toContain("https://pocketnugget.com/blog/shift-note");
+
+    store.listPosts = async () => {
+      throw new Error("secret detail");
+    };
+    const quiet = await handle(new Request("https://pocketnugget.com/sitemap.xml"), env(), undefined, store);
+    expect(quiet.status).toBe(200);
+    expect(await quiet.text()).not.toContain("secret detail");
+
+    store.ensure = async () => {
+      throw new Error("secret detail");
+    };
+    const down = await handle(new Request("https://pocketnugget.com/api/blog"), env(), undefined, store);
+    expect(down.status).toBe(500);
+    expect(await down.text()).toBe("store unavailable\n");
   });
 });

@@ -24,5 +24,10 @@ describe("converter", () => {
   it("rejects a bad decode", async () => {
     expect(await convertText("hexdec", "zz")).toMatch(/^error:/);
     expect(await convertText("b64dec", "!!!!")).toMatch(/^error:/);
+    expect(await convertText("urldec", "%")).toMatch(/^error:/);
+    expect(await convertText("nope", "hi")).toBe("error: unknown operation.");
+    expect(await convertText("b64enc", "a".repeat(20001))).toBe(
+      "error: input is longer than 20000 characters.",
+    );
   });
 });
