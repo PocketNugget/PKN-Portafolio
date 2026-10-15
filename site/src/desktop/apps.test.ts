@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
+import script from "../../public/vendor/webdeck-player/script.js?raw";
 import { FACTS } from "./facts";
 import { ICONS } from "./icons";
 import { AWARDS, PICTURES } from "./media";
-import { TRACKS } from "./player";
+import { PLAYER_PAGE } from "./player";
 
 describe("desktop media", () => {
   it("points every photo and certificate at /media", () => {
@@ -39,12 +40,11 @@ describe("desktop media", () => {
     expect(text).not.toContain("Cultural Vistas");
   });
 
-  it("uses original player titles", () => {
-    expect(TRACKS.length).toBeGreaterThan(1);
-    for (const track of TRACKS) {
-      expect(track.notes.length).toBeGreaterThan(3);
-      expect(track.title.toLowerCase()).not.toContain("metallica");
-    }
+  it("loads the opening video through the vendored player", () => {
+    expect(PLAYER_PAGE).toBe("/vendor/webdeck-player/index.html");
+    expect(script).toContain("JfCNwhWWdCs");
+    expect(script).toContain("loadVideoById");
+    expect(script).toContain("controls");
   });
 
   it("keeps icon markup free of handlers", () => {

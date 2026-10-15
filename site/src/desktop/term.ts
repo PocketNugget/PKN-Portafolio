@@ -66,6 +66,7 @@ export class Terminal {
   constructor(
     host: HTMLElement,
     private readonly hooks: TermHost,
+    start?: "snake" | "tetris",
   ) {
     host.classList.add("term-mount");
     host.innerHTML = `<pre class="dos" tabindex="0"></pre>
@@ -106,6 +107,7 @@ export class Terminal {
       if (key) this.onKey(key, false);
     });
     this.paint();
+    if (start) this.begin(start);
   }
 
   inGame(): boolean {

@@ -19,6 +19,9 @@ describe("converter", () => {
     expect(await convertText("urlenc", "a b")).toBe("a%20b");
     expect(await convertText("urldec", "a%20b")).toBe("a b");
     expect(await convertText("binenc", "A")).toBe("01000001");
+    expect(await convertText("mb2b", "1")).toBe("1048576");
+    expect(await convertText("b2mb", "1048577")).toBe("1 remainder 1 bytes");
+    expect(await convertText("kb2b", "nope")).toBe("error: enter a number.");
   });
 
   it("rejects a bad decode", async () => {

@@ -25,4 +25,19 @@ describe("security headers", () => {
     expect(response.headers.get("x-frame-options")).toBe("DENY");
     expect(response.headers.get("x-content-type-options")).toBe("nosniff");
   });
+
+  it("widens only the player asset path", () => {
+    const player = withSecurity(new Response("ok"), "/vendor/webdeck-player/index.html");
+    const csp = player.headers.get("content-security-policy") ?? "";
+    expect(csp).toContain("https://www.youtube.com");
+    expect(csp).toContain("frame-src https://www.youtube.com");
+    expect(csp).toContain("frame-ancestors 'self'");
+    expect(csp).not.toContain("unsafe-inline");
+    expect(csp).not.toContain("unsafe-eval");
+    expect(player.headers.get("x-frame-options")).toBe("SAMEORIGIN");
+    const home = SECURITY_HEADERS["content-security-policy"] ?? "";
+    expect(home).not.toContain("youtube.com");
+    expect(home).toContain("frame-ancestors 'none'");
+    expect(SECURITY_HEADERS["x-frame-options"]).toBe("DENY");
+  });
 });

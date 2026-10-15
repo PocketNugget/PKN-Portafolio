@@ -93,7 +93,7 @@ export async function handle(
     );
     return withSecurity(response);
   }
-  return withSecurity(await env.ASSETS.fetch(request));
+  return withSecurity(await env.ASSETS.fetch(request), url.pathname);
 }
 
 export default {

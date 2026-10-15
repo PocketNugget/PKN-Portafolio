@@ -154,7 +154,7 @@ function home(): string {
     ${lead}
     <h2>${tx("Selected work")}</h2>
     ${head}
-    <p>The rest is <a href="/work" data-cmd="projects">projects</a>. The radios are <a href="/radio" data-cmd="radio">radio</a>.</p>
+    <p>The rest is <a href="/work" data-cmd="projects">projects</a>. HackRF notes and the iMac G4 are on the <a href="/radio" data-cmd="radio">radio</a> page.</p>
     <p>Certificate scans are in <a href="/awards">Certificates</a>. Photos are in <a href="/pictures">My Pictures</a>.</p>`;
 }
 
@@ -261,9 +261,21 @@ function radioPage(): string {
     `<p><a href="/work/sdr">~/work/sdr</a></p>`;
 }
 
+function legalPage(): string {
+  return `<p>This page is a plain account of what the site uses. It is not a legal opinion.</p>
+    <p>The words and the photos are mine, except where a credit says otherwise.</p>
+    <p>The window chrome is 98.css 0.1.21, MIT, by Jordan Scales. This site is not affiliated with Microsoft. Windows is their mark.</p>
+    <p>The window font is Pixelated MS Sans Serif by lou on Fontstruct, CC BY-SA 3.0, served from this site.</p>
+    <p>The music window is Webdeck Player v1.0.2 by Chris, MIT. The opening video is modest by default : Permaculture, by MTHRBORD, played in YouTube's own player. This site does not host that file. Winamp, Minesweeper, Tetris, and YouTube are other people's marks.</p>
+    <p>The site does not rebroadcast a radio station. SomaFM and TuneIn are not embedded here.</p>
+    <p>Posts, suggestions, and session hashes live in D1. Visitor addresses are not stored. The only cookie is the editor session, and only after login.</p>
+    <p>Copyright questions go to the address in <a href="/.well-known/security.txt">security.txt</a>: goben.ca.pkn@hotmail.com.</p>`;
+}
+
 function colophonPage(): string {
   return `<p>This site is a Vite build served by a Cloudflare Worker. The Worker adds the headers, <a href="/.well-known/security.txt">security.txt</a>, and <a href="/build.json">build.json</a>. Most pages are files. There is no contact form.</p>
     <p>The blog and the suggestions page are the exception. Posts, suggestions, and session hashes live in D1. The password hash is a Worker secret. Sessions are HttpOnly cookies. Visitor addresses are not stored.</p>
+    <p>Licenses, marks, and the music player are on the <a href="/legal" data-cmd="legal">legal</a> page.</p>
     <p>The homelab is where Docker and Cloudflare Tunnels live, on a Raspberry Pi and on the STEM Mac Mini while that apprenticeship ran. I did not put Kubernetes in front of these pages. Naming a cluster here would not make the site safer. Terraform for the DNS zone can come later, against the real zone, not as a diagram.</p>
     <p>Scripts and styles are same-origin. The window font is Pixelated MS Sans Serif by lou on Fontstruct, shipped under CC BY-SA 3.0 with 98.css. It is not loaded from a third party. The only cookie is the editor session, and only after login. <code>scripts/check.sh</code> typechecks, runs the tests, and greps the build for the defaults I do not want shipped.</p>
     <p>A coding agent drafted parts of this, and then the check script and I read it. That is the same habit as the rest of the work: the tool can type, the diff still has to be mine.</p>`;
@@ -316,6 +328,7 @@ export function documentBody(pathname: string): string {
   if (path === "/certs") return certsPage();
   if (path === "/contact") return contactPage();
   if (path === "/colophon") return colophonPage();
+  if (path === "/legal") return legalPage();
   if (path === "/skills") return skillsPage();
   if (path === "/display") return `<div class="display-mount"></div>`;
   if (path === "/terminal") return `<div class="term-mount"></div>`;
@@ -328,6 +341,12 @@ export function documentBody(pathname: string): string {
   if (path === "/run") return `<div class="run-mount"></div>`;
   if (path === "/find") return `<div class="find-mount"></div>`;
   if (path === "/pad") return `<div class="notepad-mount"></div>`;
+  if (path === "/sweep") return `<div class="sweep-mount"></div>`;
+  if (path === "/dice") return `<div class="dice-mount"></div>`;
+  if (path === "/flip") return `<div class="flip-mount"></div>`;
+  if (path === "/math") return `<div class="math-mount"></div>`;
+  if (path === "/wheel") return `<div class="wheel-mount"></div>`;
+  if (path === "/snake" || path === "/tetris") return `<div class="term-mount"></div>`;
   return notFound();
 }
 
@@ -360,6 +379,14 @@ export function commandFor(pathname: string): string {
   if (path === "/run") return "run";
   if (path === "/find") return "find";
   if (path === "/pad") return "pad";
+  if (path === "/legal") return "legal";
+  if (path === "/sweep") return "sweep";
+  if (path === "/dice") return "dice";
+  if (path === "/flip") return "flip";
+  if (path === "/math") return "math";
+  if (path === "/wheel") return "wheel";
+  if (path === "/snake") return "snake";
+  if (path === "/tetris") return "tetris";
   return "help";
 }
 

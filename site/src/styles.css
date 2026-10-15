@@ -1062,9 +1062,106 @@ button#lang,
 
 #saver img {
   position: absolute;
+  left: 12px;
+  top: 12px;
   width: 120px;
   height: auto;
-  animation: saver-bounce 4.5s linear infinite alternate;
+}
+
+.deck-frame {
+  width: 100%;
+  overflow: hidden;
+}
+
+.deck-iframe {
+  display: block;
+  width: 600px;
+  height: 250px;
+  border: 0;
+  transform-origin: top left;
+  background: #000;
+}
+
+.sweep-bar,
+.tool-app {
+  max-width: 420px;
+}
+
+.sweep-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.sweep-grid {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 2px;
+  width: min(100%, 324px);
+}
+
+.sweep-cell {
+  min-width: 0;
+  width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.sweep-cell.open {
+  background: #d4d0c8;
+}
+
+.tool-face {
+  margin: 8px 0;
+  font-size: 28px;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.tool-face.flipping {
+  animation: coin-flip 420ms steps(2, end);
+}
+
+.math-display {
+  display: block;
+  box-sizing: border-box;
+  width: min(100%, 240px);
+  margin: 0 0 8px;
+  padding: 4px 6px;
+  text-align: right;
+  background: #fff;
+  border: 2px solid;
+  border-color: #808080 #fff #fff #808080;
+}
+
+.math-keys {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  width: min(100%, 240px);
+}
+
+.math-keys button {
+  min-width: 0;
+  padding: 4px 0;
+}
+
+.wheel-canvas {
+  display: block;
+  width: min(100%, 280px);
+  height: auto;
+  margin: 8px 0;
+  background: #c0c0c0;
+}
+
+.tool-app textarea,
+.tool-app select {
+  max-width: 320px;
 }
 
 #desk-menu {
@@ -1111,9 +1208,34 @@ button#lang,
   50% { transform: scaleX(-1) translateY(2px); }
 }
 
-@keyframes saver-bounce {
-  from { left: 0; top: 0; }
-  to { left: calc(100% - 120px); top: calc(100% - 160px); }
+@keyframes coin-flip {
+  50% { transform: scaleY(0.15); }
+}
+
+@media (min-width: 701px) and (pointer: fine) {
+  .desk-icon .label {
+    font-size: 13px;
+  }
+
+  .desk-win .window-body {
+    font-size: 13px;
+    line-height: 17px;
+  }
+
+  .desk-win .window-body h1,
+  .desk-win .window-body h2,
+  .desk-win .window-body h3,
+  .desk-win .window-body h4 {
+    font-size: 13px;
+  }
+
+  .desk-win .window-body h2 {
+    font-size: 14px;
+  }
+
+  a.social-link {
+    font-size: 12px;
+  }
 }
 
 @media print {
@@ -1191,8 +1313,19 @@ button#lang,
   form.editor button,
   form.notepad-form button,
   .notepad button,
-  #desk-menu button {
-    min-height: 40px;
+  #desk-menu button,
+  .sweep-bar button,
+  .tool-app > button,
+  .math-keys button {
+    min-height: 44px;
+  }
+
+  .sweep-grid {
+    width: 100%;
+  }
+
+  .sweep-cell {
+    min-height: 0;
   }
 
   form.login svg {

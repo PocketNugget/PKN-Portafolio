@@ -156,7 +156,27 @@ describe("pages", () => {
     expect(isDocumentPath("/terminal")).toBe(true);
     expect(isDocumentPath("/skills")).toBe(true);
     expect(isDocumentPath("/display")).toBe(true);
-    for (const path of ["/player", "/pictures", "/awards", "/convert", "/facts", "/hack", "/buddy", "/run", "/find", "/pad", "/login"]) {
+    expect(xml).toContain("https://pocketnugget.xyz/legal");
+    for (const path of [
+      "/player",
+      "/pictures",
+      "/awards",
+      "/convert",
+      "/facts",
+      "/hack",
+      "/buddy",
+      "/run",
+      "/find",
+      "/pad",
+      "/login",
+      "/sweep",
+      "/dice",
+      "/flip",
+      "/math",
+      "/wheel",
+      "/snake",
+      "/tetris",
+    ]) {
       expect(isDocumentPath(path)).toBe(true);
       expect(xml).not.toContain(`https://pocketnugget.xyz${path}</loc>`);
     }

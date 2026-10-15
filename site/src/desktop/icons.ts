@@ -74,4 +74,28 @@ export const ICONS: Record<string, string> = {
   buddy: svg(
     `<circle cx="16" cy="11" r="7" fill="#c48a3a" stroke="#000"/><circle cx="13" cy="10" r="2" fill="#fff" stroke="#000"/><circle cx="19" cy="10" r="2" fill="#fff" stroke="#000"/><rect x="10" y="17" width="12" height="8" fill="#0a5c2e" stroke="#000"/><path d="M15 17 l2 6 h-4 z" fill="#c00000"/>`,
   ),
+  snake: svg(
+    `<rect x="6" y="8" width="6" height="6" fill="#008000" stroke="#000"/><rect x="12" y="8" width="6" height="6" fill="#008000" stroke="#000"/><rect x="12" y="14" width="6" height="6" fill="#008000" stroke="#000"/><rect x="18" y="14" width="6" height="6" fill="#008000" stroke="#000"/><rect x="22" y="16" width="2" height="2" fill="#ffd200"/>`,
+  ),
+  tetris: svg(
+    `<rect x="8" y="4" width="6" height="6" fill="#000080" stroke="#000"/><rect x="8" y="10" width="6" height="6" fill="#000080" stroke="#000"/><rect x="8" y="16" width="6" height="6" fill="#000080" stroke="#000"/><rect x="14" y="16" width="6" height="6" fill="#008080" stroke="#000"/><rect x="6" y="24" width="20" height="3" fill="#808080" stroke="#000"/>`,
+  ),
+  sweep: svg(
+    `<rect x="4" y="4" width="24" height="24" fill="#c0c0c0" stroke="#000"/><rect x="7" y="7" width="5" height="5" fill="#000080"/><rect x="14" y="7" width="5" height="5" fill="#c0c0c0" stroke="#000"/><rect x="21" y="7" width="5" height="5" fill="#800000"/><rect x="7" y="14" width="5" height="5" fill="#c0c0c0" stroke="#000"/><rect x="14" y="14" width="5" height="5" fill="#008080"/><rect x="21" y="14" width="5" height="5" fill="#c0c0c0" stroke="#000"/>`,
+  ),
+  dice: svg(
+    `<rect x="6" y="6" width="20" height="20" fill="#fff" stroke="#000"/><circle cx="11" cy="11" r="1.6" fill="#000"/><circle cx="21" cy="11" r="1.6" fill="#000"/><circle cx="16" cy="16" r="1.6" fill="#000"/><circle cx="11" cy="21" r="1.6" fill="#000"/><circle cx="21" cy="21" r="1.6" fill="#000"/>`,
+  ),
+  flip: svg(
+    `<circle cx="16" cy="16" r="10" fill="#c0a000" stroke="#000"/><circle cx="16" cy="16" r="6" fill="none" stroke="#000"/>`,
+  ),
+  math: svg(
+    `<rect x="5" y="4" width="22" height="24" fill="#d4d0c8" stroke="#000"/><rect x="8" y="7" width="16" height="5" fill="#fff" stroke="#000"/><rect x="8" y="15" width="4" height="4" fill="#c0c0c0" stroke="#000"/><rect x="14" y="15" width="4" height="4" fill="#c0c0c0" stroke="#000"/><rect x="20" y="15" width="4" height="4" fill="#000080" stroke="#000"/>`,
+  ),
+  wheel: svg(
+    `<circle cx="16" cy="16" r="11" fill="#000080" stroke="#000"/><path d="M16 5 L16 27 M5 16 L27 16" stroke="#c0c0c0"/><path d="M16 3 l3 4 h-6 z" fill="#800000"/>`,
+  ),
+  legal: svg(
+    `<rect x="7" y="3" width="18" height="24" fill="#fff" stroke="#000"/><path d="M11 9 h10 M11 13 h10 M11 17 h8 M11 21 h6" stroke="#000080"/>`,
+  ),
 };

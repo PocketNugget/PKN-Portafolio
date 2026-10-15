@@ -16,7 +16,9 @@ import { ICONS } from "./icons";
 import { AWARDS, PICTURES } from "./media";
 import { phoneLayout } from "./phone";
 import { mountPlayer } from "./player";
+import { mountSweep } from "./sweep";
 import { Terminal } from "./term";
+import { mountDice, mountFlip, mountMath, mountWheel } from "./tools";
 
 interface App {
   id: string;
@@ -30,6 +32,17 @@ interface Spot {
   x: number;
   y: number;
 }
+
+interface LayoutSave {
+  w: number;
+  h: number;
+  spots: Record<string, Spot>;
+}
+
+const CELL_W = 96;
+const CELL_H = 100;
+const SOCIAL_W = 380;
+const SOCIAL_H = 84;
 
 interface Win {
   id: number;
@@ -56,7 +69,7 @@ const APPS: App[] = [
   { id: "jobs", label: "Jobs", path: "/jobs", icon: "jobs", desk: true },
   { id: "projects", label: "Projects", path: "/work", icon: "projects", desk: true },
   { id: "skills", label: "Skills", path: "/skills", icon: "skills", desk: true },
-  { id: "radio", label: "Radio", path: "/radio", icon: "radio", desk: true },
+  { id: "radio", label: "Radio", path: "/radio", icon: "radio", desk: false },
   { id: "notes", label: "Notes", path: "/notes", icon: "notes", desk: true },
   { id: "certs", label: "Courses", path: "/certs", icon: "certs", desk: true },
   { id: "blog", label: "Blog", path: "/blog", icon: "blog", desk: true },
@@ -64,16 +77,24 @@ const APPS: App[] = [
   { id: "links", label: "My Links", path: "/links", icon: "links", desk: false },
   { id: "contact", label: "Contact", path: "/contact", icon: "contact", desk: true },
   { id: "terminal", label: "Terminal", path: "/terminal", icon: "terminal", desk: true },
+  { id: "snake", label: "Snake", path: "/snake", icon: "snake", desk: true },
+  { id: "tetris", label: "Tetris", path: "/tetris", icon: "tetris", desk: true },
+  { id: "sweep", label: "Sweep", path: "/sweep", icon: "sweep", desk: true },
   { id: "pictures", label: "My Pictures", path: "/pictures", icon: "pictures", desk: true },
   { id: "awards", label: "Certificates", path: "/awards", icon: "awards", desk: true },
-  { id: "player", label: "Player", path: "/player", icon: "player", desk: false },
-  { id: "convert", label: "Converter", path: "/convert", icon: "convert", desk: false },
+  { id: "player", label: "Player", path: "/player", icon: "player", desk: true },
+  { id: "convert", label: "Converter", path: "/convert", icon: "convert", desk: true },
+  { id: "dice", label: "Dice", path: "/dice", icon: "dice", desk: true },
+  { id: "flip", label: "Flip", path: "/flip", icon: "flip", desk: true },
+  { id: "math", label: "Calculator", path: "/math", icon: "math", desk: true },
+  { id: "wheel", label: "Wheel", path: "/wheel", icon: "wheel", desk: true },
   { id: "facts", label: "Facts", path: "/facts", icon: "facts", desk: false },
   { id: "hack", label: "Hack", path: "/hack", icon: "hack", desk: false },
   { id: "buddy", label: "Nugget", path: "/buddy", icon: "buddy", desk: false },
   { id: "help", label: "Help", path: "/help", icon: "help", desk: false },
   { id: "display", label: "Display", path: "/display", icon: "display", desk: false },
   { id: "colophon", label: "Colophon", path: "/colophon", icon: "colophon", desk: false },
+  { id: "legal", label: "Legal", path: "/legal", icon: "legal", desk: false },
   { id: "login", label: "Login", path: "/login", icon: "login", desk: false },
   { id: "run", label: "Run", path: "/run", icon: "terminal", desk: false },
   { id: "find", label: "Find", path: "/find", icon: "notes", desk: false },
@@ -81,9 +102,9 @@ const APPS: App[] = [
 
 const MENU_GROUPS = [
   ["about", "jobs", "projects", "skills"],
-  ["radio", "notes", "certs", "blog", "pad", "links", "contact"],
-  ["terminal", "help", "display", "run", "find", "colophon"],
-  ["pictures", "awards", "player", "convert", "facts", "hack", "buddy"],
+  ["notes", "certs", "blog", "pad", "links", "contact"],
+  ["terminal", "snake", "tetris", "sweep", "help", "display", "run", "find", "colophon", "legal"],
+  ["pictures", "awards", "player", "convert", "dice", "flip", "math", "wheel", "facts", "hack", "buddy"],
 ];
 
 const WALLPAPERS = [
@@ -94,10 +115,18 @@ const WALLPAPERS = [
 ];
 
 const SIZES: Record<string, [number, number]> = {
-  "/player": [440, 380],
+  "/player": [640, 380],
   "/pictures": [640, 480],
   "/awards": [640, 480],
-  "/convert": [480, 440],
+  "/convert": [480, 480],
+  "/sweep": [380, 460],
+  "/dice": [280, 260],
+  "/flip": [260, 240],
+  "/math": [280, 380],
+  "/wheel": [400, 560],
+  "/snake": [560, 440],
+  "/tetris": [560, 440],
+  "/legal": [560, 520],
   "/facts": [500, 440],
   "/hack": [440, 320],
   "/run": [320, 160],
@@ -234,7 +263,11 @@ export function bootDesktop(): void {
   let activeId = 0;
   let selected = "";
   let bootTimer = 0;
-  const spots = loadSpots(APPS.filter((item) => item.desk).map((item) => item.id));
+  const deskIds = APPS.filter((item) => item.desk).map((item) => item.id);
+  const opening = deskArea();
+  const spots = readLayout(deskIds, opening.w, opening.h);
+  let laidW = opening.w;
+  let laidH = opening.h;
 
   function wallpaperId(): string {
     const saved = sessionGet("pkn-wall");
@@ -287,6 +320,34 @@ export function bootDesktop(): void {
       button.style.left = `${spot.x}px`;
       button.style.top = `${spot.y}px`;
     }
+  }
+
+  function saveLayout(): void {
+    const size = deskArea();
+    const blob: LayoutSave = { w: size.w, h: size.h, spots };
+    sessionSet("pkn-icons", JSON.stringify(blob));
+  }
+
+  function reflowIcons(force = false): void {
+    const size = deskArea();
+    if (!force && size.w === laidW && size.h === laidH) {
+      layoutIcons();
+      return;
+    }
+    laidW = size.w;
+    laidH = size.h;
+    const next = gridFor(deskIds, size.w, size.h);
+    for (const key of Object.keys(spots)) delete spots[key];
+    Object.assign(spots, next);
+    saveLayout();
+    layoutIcons();
+  }
+
+  function deskArea(): { w: number; h: number } {
+    return {
+      w: desktop.clientWidth || window.innerWidth,
+      h: desktop.clientHeight || Math.max(200, window.innerHeight - 40),
+    };
   }
 
   function paintSelection(): void {
@@ -380,6 +441,16 @@ export function bootDesktop(): void {
     if (playerHost instanceof HTMLElement) win.host = mountPlayer(playerHost);
     const convertHost = body.querySelector(".convert-mount");
     if (convertHost instanceof HTMLElement) win.host = mountConvert(convertHost);
+    const sweepHost = body.querySelector(".sweep-mount");
+    if (sweepHost instanceof HTMLElement) win.host = mountSweep(sweepHost);
+    const diceHost = body.querySelector(".dice-mount");
+    if (diceHost instanceof HTMLElement) win.host = mountDice(diceHost);
+    const flipHost = body.querySelector(".flip-mount");
+    if (flipHost instanceof HTMLElement) win.host = mountFlip(flipHost);
+    const mathHost = body.querySelector(".math-mount");
+    if (mathHost instanceof HTMLElement) win.host = mountMath(mathHost);
+    const wheelHost = body.querySelector(".wheel-mount");
+    if (wheelHost instanceof HTMLElement) win.host = mountWheel(wheelHost);
     const factsHost = body.querySelector(".facts-mount");
     if (factsHost instanceof HTMLElement) win.host = mountFacts(factsHost, (href) => openHref(href));
     const hackHost = body.querySelector(".hack-mount");
@@ -400,10 +471,15 @@ export function bootDesktop(): void {
     }
     const termHost = body.querySelector(".term-mount");
     if (termHost instanceof HTMLElement) {
-      win.term = new Terminal(termHost, {
-        openPath: (href) => openHref(href),
-        close: () => closeWindow(win.id),
-      });
+      const start = win.path === "/snake" ? "snake" : win.path === "/tetris" ? "tetris" : undefined;
+      win.term = new Terminal(
+        termHost,
+        {
+          openPath: (href) => openHref(href),
+          close: () => closeWindow(win.id),
+        },
+        start,
+      );
       if (matchMedia("(pointer: fine)").matches) win.term.focusInput();
     }
   }
@@ -705,7 +781,7 @@ export function bootDesktop(): void {
           button.removeEventListener("pointerup", up);
           if (!dragging) return;
           button.dataset.dragged = "1";
-          sessionSet("pkn-icons", JSON.stringify(spots));
+          saveLayout();
         };
         button.addEventListener("pointermove", move);
         button.addEventListener("pointerup", up);
@@ -794,20 +870,7 @@ export function bootDesktop(): void {
   }
 
   function arrangeIcons(): void {
-    try {
-      sessionStorage.removeItem("pkn-icons");
-    } catch {
-      /* storage can be blocked */
-    }
-    const ids = APPS.filter((item) => item.desk).map((item) => item.id);
-    const height = Math.max(200, window.innerHeight - 40);
-    const rows = Math.max(1, Math.floor(height / 88));
-    ids.forEach((id, index) => {
-      const col = Math.floor(index / rows);
-      const row = index % rows;
-      spots[id] = { x: 8 + col * 86, y: 8 + row * 88 };
-    });
-    layoutIcons();
+    reflowIcons(true);
   }
 
   function paintPrint(): void {
@@ -873,6 +936,63 @@ export function bootDesktop(): void {
   saverPic.src = "/buddy/nugget.png";
   saverPic.alt = "";
   saver.append(saverPic);
+  saverPic.style.left = "12px";
+  saverPic.style.top = "12px";
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let saverFrame = 0;
+  let saverX = 12;
+  let saverY = 12;
+  let saverVx = 0.11;
+  let saverVy = 0.07;
+  let saverLast = 0;
+  function saverStep(now: number): void {
+    saverFrame = 0;
+    if (saver.hidden || reducedMotion) return;
+    const dt = saverLast ? Math.min(34, now - saverLast) : 16;
+    saverLast = now;
+    const maxX = Math.max(0, saver.clientWidth - saverPic.offsetWidth);
+    const maxY = Math.max(0, saver.clientHeight - saverPic.offsetHeight);
+    saverX += saverVx * dt;
+    saverY += saverVy * dt;
+    let hitX = false;
+    let hitY = false;
+    if (saverX <= 0) {
+      saverX = 0;
+      hitX = true;
+    } else if (saverX >= maxX) {
+      saverX = maxX;
+      hitX = true;
+    }
+    if (saverY <= 0) {
+      saverY = 0;
+      hitY = true;
+    } else if (saverY >= maxY) {
+      saverY = maxY;
+      hitY = true;
+    }
+    if (hitX) saverVx = -saverVx;
+    if (hitY) saverVy = -saverVy;
+    saverPic.style.left = `${saverX}px`;
+    saverPic.style.top = `${saverY}px`;
+    saverFrame = window.requestAnimationFrame(saverStep);
+  }
+  function showSaver(): void {
+    if (!saver.hidden) return;
+    saver.hidden = false;
+    if (reducedMotion) {
+      saverPic.style.left = "12px";
+      saverPic.style.top = "12px";
+      return;
+    }
+    saverLast = 0;
+    if (!saverFrame) saverFrame = window.requestAnimationFrame(saverStep);
+  }
+  function hideSaver(): void {
+    saver.hidden = true;
+    if (saverFrame) window.cancelAnimationFrame(saverFrame);
+    saverFrame = 0;
+    saverLast = 0;
+  }
   const deskMenu = document.createElement("div");
   deskMenu.id = "desk-menu";
   deskMenu.hidden = true;
@@ -919,7 +1039,7 @@ export function bootDesktop(): void {
   });
   const wake = (event: Event) => {
     idleAt = Date.now();
-    saver.hidden = true;
+    hideSaver();
     const target = event.target;
     if (target instanceof Node && deskMenu.contains(target)) return;
     deskMenu.hidden = true;
@@ -928,7 +1048,7 @@ export function bootDesktop(): void {
   document.addEventListener("keydown", wake);
   window.setInterval(() => {
     if (!boot.hidden || document.hidden) return;
-    if (Date.now() - idleAt > 90_000) saver.hidden = false;
+    if (Date.now() - idleAt > 90_000) showSaver();
   }, 5000);
   desktop.addEventListener("contextmenu", (event) => {
     const target = event.target;
@@ -1003,9 +1123,10 @@ export function bootDesktop(): void {
     if (path === "/") return;
     openHref(`${location.pathname}${location.search}`, false);
   });
-  const onViewport = () => {
+  const refit = (reflow: boolean) => {
     fitViewport();
-    layoutIcons();
+    if (reflow) reflowIcons();
+    else layoutIcons();
     for (const win of windows) {
       const maxBtn = win.el.querySelectorAll(".title-bar-controls button")[1];
       if (maxBtn instanceof HTMLButtonElement) maxBtn.hidden = phoneLayout();
@@ -1013,9 +1134,9 @@ export function bootDesktop(): void {
       place(win);
     }
   };
-  window.addEventListener("resize", onViewport);
-  window.visualViewport?.addEventListener("resize", onViewport);
-  window.visualViewport?.addEventListener("scroll", onViewport);
+  window.addEventListener("resize", () => refit(true));
+  window.visualViewport?.addEventListener("resize", () => refit(true));
+  window.visualViewport?.addEventListener("scroll", () => refit(false));
 
   if (sessionGet("pkn-boot") === "1") {
     boot.hidden = true;
@@ -1036,27 +1157,43 @@ export function bootDesktop(): void {
   }
 }
 
-function loadSpots(ids: string[]): Record<string, Spot> {
-  const height = Math.max(200, window.innerHeight - 40);
-  const rows = Math.max(1, Math.floor(height / 88));
-  const spots: Record<string, Spot> = {};
+function gridFor(ids: string[], areaW: number, areaH: number): Record<string, Spot> {
+  const width = Math.max(CELL_W, areaW);
+  const height = Math.max(CELL_H, areaH);
+  const rows = Math.max(1, Math.floor((height - 8) / CELL_H));
+  const cells: Spot[] = [];
+  const maxCols = Math.max(1, Math.ceil(ids.length / rows) + 6);
+  for (let col = 0; col < maxCols && cells.length < ids.length; col += 1) {
+    for (let row = 0; row < rows && cells.length < ids.length; row += 1) {
+      const x = 8 + col * CELL_W;
+      const y = 8 + row * CELL_H;
+      if (x + 48 > width) continue;
+      if (x + CELL_W > width - SOCIAL_W && y + CELL_H > height - SOCIAL_H) continue;
+      cells.push({ x, y });
+    }
+  }
+  const laid: Record<string, Spot> = {};
   ids.forEach((id, index) => {
-    const col = Math.floor(index / rows);
-    const row = index % rows;
-    spots[id] = { x: 8 + col * 86, y: 8 + row * 88 };
+    laid[id] = cells[index] ?? { x: 8, y: 8 };
   });
+  return laid;
+}
+
+function readLayout(ids: string[], areaW: number, areaH: number): Record<string, Spot> {
+  const fresh = gridFor(ids, areaW, areaH);
   const raw = sessionGet("pkn-icons");
-  if (!raw) return spots;
+  if (!raw) return fresh;
   try {
-    const parsed = JSON.parse(raw) as Record<string, Spot>;
+    const parsed = JSON.parse(raw) as Partial<LayoutSave>;
+    if (parsed.w !== areaW || parsed.h !== areaH || !parsed.spots) return fresh;
     for (const id of ids) {
-      const spot = parsed[id];
+      const spot = parsed.spots[id];
       if (!spot || typeof spot.x !== "number" || typeof spot.y !== "number") continue;
-      if (spot.x < -40 || spot.y < -40 || spot.x > window.innerWidth || spot.y > window.innerHeight) continue;
-      spots[id] = { x: spot.x, y: spot.y };
+      if (spot.x < -40 || spot.y < -40 || spot.x > areaW || spot.y > areaH) continue;
+      fresh[id] = { x: spot.x, y: spot.y };
     }
   } catch {
     /* ignore a bad saved layout */
   }
-  return spots;
+  return fresh;
 }

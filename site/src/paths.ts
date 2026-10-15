@@ -10,6 +10,7 @@ const PAGES = new Set([
   "/certs",
   "/contact",
   "/colophon",
+  "/legal",
   "/blog",
   "/links",
 ]);
@@ -37,7 +38,14 @@ export function isDocumentPath(pathname: string): boolean {
     path === "/buddy" ||
     path === "/run" ||
     path === "/find" ||
-    path === "/pad"
+    path === "/pad" ||
+    path === "/sweep" ||
+    path === "/dice" ||
+    path === "/flip" ||
+    path === "/math" ||
+    path === "/wheel" ||
+    path === "/snake" ||
+    path === "/tetris"
   ) {
     return true;
   }

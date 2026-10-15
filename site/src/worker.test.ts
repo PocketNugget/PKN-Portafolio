@@ -37,6 +37,8 @@ describe("worker", () => {
     expect(csp).not.toContain("unsafe-eval");
     expect(csp).not.toContain("unsafe-inline");
     expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(csp).not.toContain("youtube.com");
+    expect(response.headers.get("x-frame-options")).toBe("DENY");
   });
 
   it("404s an unknown path and rejects other methods", async () => {
@@ -76,6 +78,12 @@ describe("worker", () => {
     expect(media.status).toBe(404);
     expect(await media.text()).toBe("missing");
     expect(media.headers.get("content-security-policy")).toContain("default-src 'self'");
+    expect(media.headers.get("content-security-policy")).not.toContain("youtube.com");
+    expect(media.headers.get("x-frame-options")).toBe("DENY");
+    const deck = await handle(new Request("https://pocketnugget.com/vendor/webdeck-player/index.html"), env());
+    expect(deck.status).toBe(200);
+    expect(deck.headers.get("content-security-policy")).toContain("https://www.youtube.com");
+    expect(deck.headers.get("x-frame-options")).toBe("SAMEORIGIN");
 
     const store = new MemoryStore();
     await store.insertPost({

@@ -14,7 +14,39 @@ const OPS: { id: string; label: string }[] = [
   { id: "md5", label: "MD5" },
   { id: "sha1", label: "SHA-1" },
   { id: "sha256", label: "SHA-256" },
+  { id: "kb2b", label: "KB to bytes (1024)" },
+  { id: "mb2b", label: "MB to bytes (1024)" },
+  { id: "gb2b", label: "GB to bytes (1024)" },
+  { id: "b2kb", label: "bytes to KB (1024)" },
+  { id: "b2mb", label: "bytes to MB (1024)" },
+  { id: "b2gb", label: "bytes to GB (1024)" },
 ];
+
+const BIN: Record<string, number> = {
+  kb2b: 1024,
+  mb2b: 1024 ** 2,
+  gb2b: 1024 ** 3,
+  b2kb: 1024,
+  b2mb: 1024 ** 2,
+  b2gb: 1024 ** 3,
+};
+
+export function binaryUnits(op: string, input: string): string | null {
+  const factor = BIN[op];
+  if (!factor) return null;
+  const trimmed = input.trim();
+  if (!/^\d+(\.\d+)?$/.test(trimmed)) return "error: enter a number.";
+  const value = Number(trimmed);
+  if (!Number.isFinite(value) || value < 0) return "error: enter a number.";
+  if (op.startsWith("b2")) {
+    if (!Number.isInteger(value)) return "error: enter a whole number of bytes.";
+    const whole = Math.trunc(value);
+    const quot = Math.floor(whole / factor);
+    const rem = whole % factor;
+    return rem === 0 ? String(quot) : `${quot} remainder ${rem} bytes`;
+  }
+  return String(Math.round(value * factor));
+}
 
 const K = [
   0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee, 0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
@@ -164,7 +196,11 @@ export async function convertText(op: string, input: string): Promise<string> {
         return digestHex("SHA-1", bytes);
       case "sha256":
         return digestHex("SHA-256", bytes);
-      default:
+      default: {
+        const units = binaryUnits(op, input);
+        if (units !== null) return units;
+        return "error: unknown operation.";
+      }
         return "error: unknown operation.";
     }
   } catch {

@@ -34,6 +34,14 @@ Hay un admin, usuario `goben`, con contraseña y un código de autenticador. La 
 
 ![Ventana Suggestions, con el pad vacío](docs/screenshots/suggestions.png)
 
+### Player
+
+![Webdeck Player in a desktop window](docs/screenshots/player.png)
+
+### Sweep
+
+![Sweep, the grid game](docs/screenshots/sweep.png)
+
 Otras capturas pueden ir en `docs/screenshots/`. Basta el archivo y una línea en esta sección.
 
 ---
@@ -70,22 +78,28 @@ Double-click a desktop icon, or use Start. Windows drag from the title bar, resi
 
 Wallpaper files are `site/public/wallpapers/`. The default is `sky.jpg`. Display Properties (Start, then Display) switches Sky, Teal, Clouds, and Navy for the current tab. Icon positions after a drag are remembered the same way. Neither is a cookie.
 
-To change a page, edit `site/src/catalog.ts`. The desktop apps are the list at the top of `site/src/desktop/desktop.ts`. Snake and Tetris live in `site/src/desktop/games.ts` and run inside the Terminal window (`snake`, `tetris`, arrows, space, esc).
+To change a page, edit `site/src/catalog.ts`. The desktop apps are the list at the top of `site/src/desktop/desktop.ts`. Snake and Tetris live in `site/src/desktop/games.ts`. The Terminal commands `snake` and `tetris` still start them there. The Snake and Tetris icons open a terminal that is already in that game. Esc leaves it. Radio stays a text page at `/radio` and a terminal command. It is not a desktop icon and it is not in Start.
 
 ### Extra apps
 
 Each of these is a normal window. Open it from the icon or from Start. The terminal names are in parentheses.
 
-- Player (`player`). Play, pause, stop, previous, next, volume, and a progress bar. The tunes are short square waves made in the browser. Nothing is streamed, and none of them are commercial tracks.
+- Player (`player`). Webdeck Player v1.0.2, MIT, by Chris, hosted on this site under `site/public/vendor/webdeck-player/`. Opening the window loads the video modest by default : Permaculture, by MTHRBORD, in YouTube's own player. This site does not host that file. Square-wave tones are gone from this window. The legal page says what is embedded and what is not.
 - My Pictures (`pictures`) and Certificates (`awards`). Thumbnails, then a larger view with previous and next. The files live in `site/public/media/`. The titles and captions are `site/src/desktop/media.ts`. The public site cannot read a folder on your computer, so copy new photos into `public/media` and add a line to that file. The first set was copied from the local Desktop folder of photos and certificate scans.
-- Converter (`encode`). Base64, hex, and URL encode and decode, text to binary, MD5, SHA-1, and SHA-256. It runs in the page. Nothing is uploaded.
+- Converter (`encode`). Base64, hex, and URL encode and decode, text to binary, MD5, SHA-1, and SHA-256, plus KB, MB, and GB using 1024, not 1000. One MB is 1048576 bytes. It runs in the page. Nothing is uploaded.
+- Sweep (`sweep`). A 9 by 9 grid with 10 mines. Click opens a cell. Right-click, or the Flag button, marks one. The first open cell is never a mine.
+- Dice (`dice`). A die with 4, 6, 8, 10, 12, or 20 sides. Six is the default.
+- Flip (`flip`). Heads or tails, with a short flip.
+- Calculator (`math`). Left to right, the way the Windows 98 calculator did it. It does not use `eval`.
+- Wheel (`wheel`). One name on each line, then a spin. The winner is written under the wheel.
 - Facts (`facts`). Short lines from the same record as the catalog, plus buttons that open the other tools.
 - Hack (`hack`). A joke. Fake error windows, a short glitch, then a punchline. Reset or Close puts the desktop back. It does not change files or accounts.
 - Nugget (`buddy`). A floating assistant, not a window. Tips come from the same fact list. Close the balloon and the picture stays. Start has Show Nugget and Hide Nugget for this tab. The picture is `site/public/buddy/nugget.png`. Replace that file to change the character.
 - Run and Find are in the Start menu. Find searches the profile text and opens the matching window.
 - The taskbar EN button cycles English, Spanish, German, and French for this tab. Blog posts stay in the language they were written in.
-- A yellow note shows the current role, city, and email. Closing it lasts for the tab.
-- After a quiet minute and a half the picture bounces on the sky. A click or a key brings the desktop back. No sound.
+- A yellow note shows the current role, place, and email. Closing it lasts for the tab.
+- After a quiet minute and a half the picture bounces inside the sky and turns around when it hits an edge. A click or a key brings the desktop back. No sound. People who prefer less motion get a still picture.
+- Licenses, marks, and the music player are on `/legal` (`legal` in the terminal, and in Start next to Colophon).
 - Right-click the desktop for Arrange icons, Display, and Run.
 - Print hides the taskbar and prints About, Jobs, and Projects.
 

@@ -73,13 +73,13 @@ export const jobs: Job[] = [
     id: "tbsek",
     role: "SOC/MDR analyst",
     org: "TBSeK",
-    place: "Mexico City, remote",
+    place: "Remote",
     date: "July 2026 to present",
     summary:
       "Full-time. Alert triage on SIEM, EDR, and network tools, plus the scripts that feed the shift.",
     body: [
-      "Full-time since July 2026, remote from Mexico City. I watch alerts from the SIEM, EDR, and network tools, correlate them, and escalate the ones that need an owner.",
-      "On a live case I help with detection, evidence, and the first containment steps. I also write in-house scripts for the parts of the shift that were the same every time.",
+      "Full-time since July 2026. I watch alerts from Splunk, Darktrace, CrowdStrike, Cisco AMP, Cisco Umbrella, and GroupIB, correlate them, and open Wireshark when the packet is the question. The ones that need an owner get escalated.",
+      "On a live case I help with detection, evidence, and the first containment steps. The parts of the shift that were the same every time went into in-house scripts.",
     ],
     tools: ["Splunk", "Darktrace", "CrowdStrike", "Cisco AMP", "Cisco Umbrella", "GroupIB", "Wireshark"],
   },
@@ -87,7 +87,7 @@ export const jobs: Job[] = [
     id: "tbsek-jr",
     role: "Jr. SOC analyst",
     org: "TBSeK",
-    place: "Mexico City, remote",
+    place: "Remote",
     date: "April 2025 to July 2026",
     summary:
       "Part-time. Reporting automation in Python and Node.js, about 70% less time on those reports.",
@@ -106,7 +106,7 @@ export const jobs: Job[] = [
     summary:
       "Apprenticeship. The MICAI paper, the public dataset, and the lab server on a Mac Mini.",
     body: [
-      "Apprenticeship from February 2024 to June 2026. The paper and the dataset are on open coherence-paper. The lab server was a Mac Mini. Cloudflare Tunnels published the registration services. Older Angular and Node apps moved into Docker so the host was not the deploy step. Access rules and a basic hardening pass sat on the same box.",
+      "Apprenticeship from February 2024 to June 2026. The paper and the dataset are on open coherence-paper. I stood the lab server up on a Mac Mini, published the registration services with Cloudflare Tunnels, and moved the older Angular and Node apps into Docker so the host was not the deploy step. Access rules and a basic hardening pass sat on the same box.",
       "I also taught a hands-on Docker session at UDLAP: one container, then Compose. The notes are on the Hackztecs page. Type open hackztecs.",
     ],
     tools: ["Linux", "Docker", "Cloudflare Tunnels", "Mac Mini"],
@@ -171,7 +171,7 @@ export const projects: Project[] = [
     tools: ["CTF"],
     links: [],
     people:
-      "With Juan Pablo Morales Durante, Azuany Mila, Georgina Zerón, and Daniel Martínez Maimone.",
+      "With Juan Pablo Morales Durante, Georgina Zerón, and Daniel Martínez Maimone.",
     aliases: ["apocalypse", "htb-apocalypse"],
   },
   {
@@ -302,7 +302,7 @@ export const projects: Project[] = [
       },
     ],
     people:
-      "With Azuany Mila, Jorge Venegas, Nina Maeva Mazadiego Cortes, Humberto Zepeda González, and Hector Zepeda González. Mentors: Florian Bauer, J. Adolfo Carril Paniagua, and Alejandro Najera.",
+      "With Jorge Venegas, Nina Maeva Mazadiego Cortes, Humberto Zepeda González, and Hector Zepeda González. Mentors: Florian Bauer, J. Adolfo Carril Paniagua, and Alejandro Najera.",
     image: "/media/austria-hackathon.jpg",
     aliases: ["maia", "obb", "zepedas"],
   },
@@ -313,7 +313,7 @@ export const projects: Project[] = [
     summary:
       "Springer LNCS paper from MICAI 2024. People spot broken generated images that the metrics still score as fine.",
     body: [
-      "Co-authored with Azuany Mila and Zobeida Guzmán. We presented it at MICAI 2024, with UDLAP, INAOE, and SMIA, and Springer published it in LNCS 15246, pages 198 to 209.",
+      "Co-authored with Zobeida Guzmán. We presented it at MICAI 2024, with UDLAP, INAOE, and SMIA, and Springer published it in LNCS 15246, pages 198 to 209.",
       "The survey covers realism metrics for VAEs, GANs, and diffusion models. The gap is Moravec's paradox in miniature: a person sees that a scene does not hold together, and the number does not. The image set that went with the work is 4,368 PNGs built from COCO.",
     ],
     tools: ["Research"],
@@ -331,7 +331,7 @@ export const projects: Project[] = [
         href: "https://orcid.org/0009-0002-4819-7773",
       },
     ],
-    people: "With Azuany Mila and Zobeida Guzmán.",
+    people: "With Zobeida Guzmán.",
     image: "/media/paper-talk.jpg",
     aliases: ["paper", "springer", "micai", "dataset"],
   },
@@ -342,12 +342,12 @@ export const projects: Project[] = [
     summary:
       "Model files are code. Pickle, .pt, and .pth can run when loaded. SafeTensors and a disposable VM are the boring fix.",
     body: [
-      "At UABCS in La Paz, with Azuany Mila and Dr. Zobeida Guzmán, under the IEEE Computer Society. The session was called \"Models under attack: backdoors, manipulation, and analysis of malicious AI.\"",
+      "At UABCS in La Paz, with Dr. Zobeida Guzmán, under the IEEE Computer Society. The session was called \"Models under attack: backdoors, manipulation, and analysis of malicious AI.\"",
       "Python's docs say pickle is not safe. A weight file that is secretly a pickle runs code on load. We talked about that supply path and about the fixes: SafeTensors, or load the old file inside a container or a VM with no credentials mounted. The note on this site stops there on purpose.",
     ],
     tools: ["SafeTensors", "Docker", "Python"],
     links: [{ label: "Note", href: "/notes/model-files" }],
-    people: "With Azuany Mila and Dr. Zobeida Guzmán.",
+    people: "With Dr. Zobeida Guzmán.",
     aliases: ["conisoft", "pickle", "safetensors"],
   },
   {
@@ -363,7 +363,7 @@ export const projects: Project[] = [
     tools: ["Swift", "SwiftUI", "Core ML"],
     links: [],
     people:
-      "With Azuany Mila, Nina Maeva Mazadiego Cortes, and Daniela Renée Ramírez. Guidance from Zobeida Guzmán, support from Humberto Zepeda González.",
+      "With Nina Maeva Mazadiego Cortes and Daniela Renée Ramírez. Guidance from Zobeida Guzmán, support from Humberto Zepeda González.",
     image: "/media/changemaker-2025.jpg",
     aliases: ["colorscore", "enactus", "xcookers"],
   },
@@ -529,8 +529,10 @@ export const radio = {
 
 export const bio = [
   "Goben Diego Constantino Aguirre. I finished computer systems engineering at UDLAP, 2021 to 2025, with a 9.0/10. Internships included.",
-  "I have been at TBSeK since April 2025. Part-time Jr. SOC analyst until July 2026, then full-time SOC/MDR analyst, remote from Mexico City. Splunk and the rest of the shift stack, incident notes, and Python and Node.js so the reports took less of the shift. About 70% less.",
-  "STEM UDLAP was February 2024 to June 2026: the MICAI paper, and the lab server on a Mac Mini with Docker and Cloudflare Tunnels. I write Python against a HackRF One and a bladeRF. I chair Hackztecs, after coming in as a member under Juan Pablo Morales Durante.",
+  "I have been at TBSeK since April 2025. The part-time Jr. SOC seat ran until July 2026: alert triage for 7 or more clients, playbooks, false positives, and Python and Node.js that cut report time by about 70%. The full-time SOC/MDR seat is Splunk, Darktrace, CrowdStrike, Cisco AMP, Cisco Umbrella, and GroupIB, plus correlation and the first containment steps.",
+  "STEM UDLAP was February 2024 to June 2026. I wrote the MICAI paper, published the dataset, and kept the lab server on a Mac Mini. Cloudflare Tunnels published the registration services. Older Angular and Node apps moved into Docker. I also taught a hands-on Docker session: one container, then Compose.",
+  "T-Systems was a part-time internship in Puebla, April 2024 to July 2024. I built a course platform in Angular, with MySQL behind it, so people could track training. Some of the progress was game-like. I wrote the docs and used the team's Git process.",
+  "I write Python against a HackRF One and a bladeRF. I chair Hackztecs, after coming in as a member under Juan Pablo Morales Durante.",
   "I am looking at MDR, SOC, and SRE roles in Mexico, the United States, Austria, Ireland, and the Netherlands. A cybersecurity master's, Ireland included, is on that same list.",
 ];
 
