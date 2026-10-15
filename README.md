@@ -107,11 +107,15 @@ Social icons sit on the wallpaper, in a row at the bottom right (a bar under the
 
 ## Deploy
 
-Not run from this repo automatically. Run it from `site/` with the pinned Wrangler, after a Cloudflare account is already logged in. Do not run Wrangler from the repository root.
+`prod` is the only branch that publishes pocketnugget.xyz. A push there builds `site/` and deploys with the pinned Wrangler.
+
+`test`, `main`, and any other branch run `npm test` in `site/`. They do not publish the site.
+
+Do not run Wrangler from the repository root. A plain `wrangler deploy` from there can replace the Worker without its login secrets. From `site/`, after a Cloudflare account is already logged in:
 
 ```bash
 cd site
-./node_modules/.bin/wrangler deploy
+./node_modules/.bin/wrangler deploy --keep-vars
 ```
 
 The config is `site/wrangler.jsonc`. Compatibility date is 2026-05-03, the newest date Wrangler 4.86's local runtime accepts on Node 20. Static assets are the Vite `dist/` directory. The Worker runs first so it can set headers. Document routes return `index.html`. Unknown paths 404.
