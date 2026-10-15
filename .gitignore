@@ -5,6 +5,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 package-lock.json
+!site/package-lock.json
+.wrangler/
+site/.wrangler/
 
 # Environment variables and secrets
 .env
@@ -22,11 +25,21 @@ package-lock.json
 # Security and sensitive files
 backend/USER_MANAGEMENT.md
 backend/add_user.ts
+legacy/backend/USER_MANAGEMENT.md
+legacy/backend/USER_MANAGEMENT_TEMPLATE.md
+legacy/backend/add_user.ts
 .env
 .env.local
 .env.production
 backend/data.db
 backend/*.db
+legacy/backend/data.db
+legacy/backend/*.db
+legacy/backend/.env
+site/src/build-info.ts
+site/public/sitemap.xml
+.dev.vars
+site/.dev.vars
 
 # Build outputs
 /build/
@@ -140,8 +153,10 @@ temp/
 # Deno
 .deno_dir/
 
-# Database migrations (if any)
+# Old local sqlite migrations. The Worker schema in site/migrations stays tracked.
 migrations/
+!site/migrations/
+!site/migrations/**
 
 # Local development
 .local/ 
