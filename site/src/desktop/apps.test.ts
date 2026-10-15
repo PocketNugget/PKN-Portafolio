@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import script from "../../public/vendor/webdeck-player/script.js?raw";
-import { FACTS } from "./facts";
+import { FACTS, NUGGET_LINES, NUGGET_TIPS } from "./facts";
 import { ICONS } from "./icons";
 import { AWARDS, PICTURES } from "./media";
 import { PLAYER_PAGE } from "./player";
@@ -38,6 +38,25 @@ describe("desktop media", () => {
     expect(text).not.toContain("40%");
     expect(text).not.toContain("J-1");
     expect(text).not.toContain("Cultural Vistas");
+  });
+
+  it("has the nugget speak to the visitor from the same record", () => {
+    expect(NUGGET_LINES).toHaveLength(FACTS.length);
+    const spoken = NUGGET_LINES.join("\n");
+    expect(spoken).toContain("9.0/10");
+    expect(spoken).toContain("52 of 1,014");
+    expect(spoken).toContain("34,125");
+    expect(spoken).toContain("read the diff");
+    expect(spoken).not.toContain("—");
+    expect(spoken).not.toContain("40%");
+    expect(spoken).not.toContain("J-1");
+    expect(spoken).not.toContain("Cultural Vistas");
+    expect(spoken).not.toContain("Azuany");
+    for (const line of NUGGET_LINES) expect(line.toLowerCase()).toContain("you");
+    expect(NUGGET_TIPS["/"]).toMatch(/Jobs/);
+    expect(NUGGET_TIPS["/jobs"]?.toLowerCase()).toContain("you");
+    expect(NUGGET_TIPS["/jobs"]).not.toContain("Mexico City");
+    expect(NUGGET_TIPS["/hack"]).toBeUndefined();
   });
 
   it("loads the opening video through the vendored player", () => {

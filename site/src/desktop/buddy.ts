@@ -1,4 +1,4 @@
-import { FACTS } from "./facts";
+import { NUGGET_LINES } from "./facts";
 import { t } from "../i18n";
 import { phoneLayout } from "./phone";
 
@@ -96,15 +96,15 @@ export function mountClippy(desktop: HTMLElement): Clippy {
   });
   next.addEventListener("click", (event) => {
     event.stopPropagation();
-    index = (index + 1) % FACTS.length;
-    talk(FACTS[index] ?? "");
+    index = (index + 1) % NUGGET_LINES.length;
+    talk(NUGGET_LINES[index] ?? "");
   });
   pic.addEventListener("click", () => {
     if (dragged) {
       dragged = false;
       return;
     }
-    if (balloon.hidden) talk(FACTS[index] ?? "");
+    if (balloon.hidden) talk(NUGGET_LINES[index] ?? "");
     else next.click();
   });
   pic.addEventListener("pointerdown", (event) => {
@@ -169,7 +169,7 @@ export function mountClippy(desktop: HTMLElement): Clippy {
   };
   window.addEventListener("resize", refit);
   window.visualViewport?.addEventListener("resize", refit);
-  if (!root.hidden) talk(FACTS[0] ?? "");
+  if (!root.hidden) talk(NUGGET_LINES[0] ?? "");
 
   return {
     show() {
@@ -177,7 +177,7 @@ export function mountClippy(desktop: HTMLElement): Clippy {
       sessionStorage.setItem("pkn-clippy", "1");
       placeDefault();
       nudge();
-      talk(FACTS[index] ?? "");
+      talk(NUGGET_LINES[index] ?? "");
     },
     hide() {
       root.hidden = true;
@@ -186,7 +186,7 @@ export function mountClippy(desktop: HTMLElement): Clippy {
     },
     tip(text) {
       if (root.hidden) return;
-      talk(text ?? FACTS[index] ?? "");
+      talk(text ?? NUGGET_LINES[index] ?? "");
     },
     nudge,
     labels() {

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { DeskApp } from "./host";
 import { idleApp } from "./host";
 
@@ -87,9 +88,9 @@ export function mountDice(host: HTMLElement): DeskApp {
   root.className = "tool-app";
   const pick = document.createElement("label");
   pick.className = "field-row";
-  pick.textContent = "Sides";
+  pick.textContent = t("Sides");
   const select = document.createElement("select");
-  select.setAttribute("aria-label", "Sides");
+  select.setAttribute("aria-label", t("Sides"));
   for (const sides of DIE_SIDES) {
     const option = document.createElement("option");
     option.value = String(sides);
@@ -103,7 +104,7 @@ export function mountDice(host: HTMLElement): DeskApp {
   face.textContent = "6";
   const roll = document.createElement("button");
   roll.type = "button";
-  roll.textContent = "Roll";
+  roll.textContent = t("Roll");
   root.append(pick, face, roll);
   host.append(root);
   let timer = 0;
@@ -135,10 +136,10 @@ export function mountFlip(host: HTMLElement): DeskApp {
   root.className = "tool-app";
   const face = document.createElement("p");
   face.className = "tool-face";
-  face.textContent = "heads";
+  face.textContent = t("heads");
   const button = document.createElement("button");
   button.type = "button";
-  button.textContent = "Flip";
+  button.textContent = t("Flip");
   root.append(face, button);
   host.append(root);
   let timer = 0;
@@ -147,7 +148,7 @@ export function mountFlip(host: HTMLElement): DeskApp {
     face.classList.add("flipping");
     timer = window.setTimeout(() => {
       face.classList.remove("flipping");
-      face.textContent = flipCoin();
+      face.textContent = t(flipCoin());
     }, 420);
   });
   return {
@@ -191,18 +192,18 @@ export function mountWheel(host: HTMLElement): DeskApp {
   const box = document.createElement("textarea");
   box.rows = 5;
   box.spellcheck = false;
-  box.setAttribute("aria-label", "Names, one on each line");
-  box.placeholder = "One name on each line";
+  box.setAttribute("aria-label", t("Names, one on each line"));
+  box.placeholder = t("One name on each line");
   const canvas = document.createElement("canvas");
   canvas.width = 280;
   canvas.height = 280;
   canvas.className = "wheel-canvas";
   const spin = document.createElement("button");
   spin.type = "button";
-  spin.textContent = "Spin";
+  spin.textContent = t("Spin");
   const result = document.createElement("p");
   result.className = "tool-face";
-  result.textContent = "Add names, then spin.";
+  result.textContent = t("Add names, then spin.");
   root.append(box, canvas, spin, result);
   host.append(root);
   let frame = 0;
@@ -250,7 +251,7 @@ export function mountWheel(host: HTMLElement): DeskApp {
   spin.addEventListener("click", () => {
     const names = wheelNames(box.value);
     if (!names.length) {
-      result.textContent = "Add a name on each line.";
+      result.textContent = t("Add a name on each line.");
       draw([], 0);
       return;
     }

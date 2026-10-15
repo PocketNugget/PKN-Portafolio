@@ -13,6 +13,7 @@ import { mountGallery } from "./gallery";
 import { mountHack } from "./hack";
 import type { DeskApp } from "./host";
 import { ICONS } from "./icons";
+import { NUGGET_TIPS } from "./facts";
 import { AWARDS, PICTURES } from "./media";
 import { phoneLayout } from "./phone";
 import { mountPlayer } from "./player";
@@ -89,7 +90,7 @@ const APPS: App[] = [
   { id: "math", label: "Calculator", path: "/math", icon: "math", desk: true },
   { id: "wheel", label: "Wheel", path: "/wheel", icon: "wheel", desk: true },
   { id: "facts", label: "Facts", path: "/facts", icon: "facts", desk: false },
-  { id: "hack", label: "Hack", path: "/hack", icon: "hack", desk: false },
+  { id: "hack", label: "Hack", path: "/hack", icon: "hack", desk: true },
   { id: "buddy", label: "Nugget", path: "/buddy", icon: "buddy", desk: false },
   { id: "help", label: "Help", path: "/help", icon: "help", desk: false },
   { id: "display", label: "Display", path: "/display", icon: "display", desk: false },
@@ -127,8 +128,9 @@ const SIZES: Record<string, [number, number]> = {
   "/snake": [560, 440],
   "/tetris": [560, 440],
   "/legal": [560, 520],
+  "/": [560, 620],
   "/facts": [500, 440],
-  "/hack": [440, 320],
+  "/hack": [480, 360],
   "/run": [320, 160],
   "/find": [420, 320],
   "/pad": [420, 480],
@@ -168,15 +170,15 @@ function titleFor(path: string): string {
   if (app) return t(app.label === "Display" ? "Display Properties" : app.label);
   if (path.startsWith("/work/")) {
     const slug = path.slice("/work/".length);
-    return projects.find((item) => item.slug === slug)?.title ?? "Project";
+    return t(projects.find((item) => item.slug === slug)?.title ?? "Project");
   }
   if (path.startsWith("/notes/")) {
     const slug = path.slice("/notes/".length);
-    return notes.find((item) => item.slug === slug)?.title ?? "Note";
+    return t(notes.find((item) => item.slug === slug)?.title ?? "Note");
   }
   if (path.startsWith("/blog/")) return t("Blog");
   if (path === "/admin") return t("Editor");
-  return "Window";
+  return t("Window");
 }
 
 function control(label: string): HTMLButtonElement {
@@ -204,11 +206,11 @@ export function bootDesktop(): void {
   const boot = document.createElement("div");
   boot.id = "boot";
   boot.innerHTML = `<div class="window boot-window">
-      <div class="title-bar"><div class="title-bar-text">Starting PocketNugget</div></div>
+      <div class="title-bar"><div class="title-bar-text">${t("Starting PocketNugget")}</div></div>
       <div class="window-body">
-        <p>Loading the desktop.</p>
-        <div class="progress-indicator" role="progressbar" aria-label="Boot"><span class="progress-indicator-bar" id="boot-bar"></span></div>
-        <p class="meta">Click to skip.</p>
+        <p>${t("Loading the desktop.")}</p>
+        <div class="progress-indicator" role="progressbar" aria-label="${t("Boot")}"><span class="progress-indicator-bar" id="boot-bar"></span></div>
+        <p class="meta">${t("Click to skip.")}</p>
       </div>
     </div>`;
 
@@ -236,7 +238,7 @@ export function bootDesktop(): void {
   lang.type = "button";
   lang.id = "lang";
   lang.textContent = getLang().toUpperCase();
-  lang.setAttribute("aria-label", "Language");
+  lang.setAttribute("aria-label", t("Language"));
   const tasks = document.createElement("div");
   tasks.id = "tasks";
   const clock = document.createElement("div");
@@ -288,10 +290,10 @@ export function bootDesktop(): void {
     const current = wallpaperId();
     const rows = WALLPAPERS.map((item) => {
       const checked = item.id === current ? " checked" : "";
-      return `<div class="field-row"><input type="radio" name="wallpaper" id="wp-${item.id}" value="${item.id}"${checked}><label for="wp-${item.id}">${item.label}</label></div>`;
+      return `<div class="field-row"><input type="radio" name="wallpaper" id="wp-${item.id}" value="${item.id}"${checked}><label for="wp-${item.id}">${t(item.label)}</label></div>`;
     }).join("");
-    host.innerHTML = `<fieldset><legend>Wallpaper</legend>${rows}</fieldset>
-      <p class="meta">Files live in public/wallpapers. Sky is the photo. Teal and Clouds are the older drawings. This tab remembers the choice. It is not a cookie.</p>`;
+    host.innerHTML = `<fieldset><legend>${t("Wallpaper")}</legend>${rows}</fieldset>
+      <p class="meta">${t("Files live in public/wallpapers. Sky is the photo. Teal and Clouds are the older drawings. This tab remembers the choice. It is not a cookie.")}</p>`;
     host.addEventListener("change", (event) => {
       const target = event.target;
       if (target instanceof HTMLInputElement && target.name === "wallpaper") applyWallpaper(target.value);
@@ -382,11 +384,21 @@ export function bootDesktop(): void {
 
   function place(win: Win): void {
     const narrow = phoneLayout();
+    win.el.style.right = "";
+    win.el.style.bottom = "";
+    win.el.style.maxHeight = "";
     if (win.max || narrow) {
       win.el.classList.add("max");
       win.el.style.left = "0";
-      win.el.style.top = "0";
       win.el.style.width = "100%";
+      if (narrow && win.path === "/hack") {
+        win.el.style.top = "auto";
+        win.el.style.bottom = "0";
+        win.el.style.height = "auto";
+        win.el.style.maxHeight = "54%";
+        return;
+      }
+      win.el.style.top = "0";
       win.el.style.height = "100%";
       return;
     }
@@ -621,14 +633,17 @@ export function bootDesktop(): void {
     const preset = SIZES[path];
     const wantW = preset?.[0] ?? 560;
     const wantH = preset?.[1] ?? 420;
+    const fittedW = Math.min(wantW, Math.max(240, areaW - 36));
+    const fittedH = Math.min(wantH, Math.max(180, areaH - 36));
+    const parkHack = path === "/hack" && !narrow;
     const win: Win = {
       id: ++seq,
       path,
       title: titleFor(path),
-      x: narrow ? 0 : 24 + (cascade % 8) * 22,
-      y: narrow ? 0 : 12 + (cascade % 8) * 20,
-      w: narrow ? areaW : Math.min(wantW, Math.max(240, areaW - 36)),
-      h: narrow ? areaH : Math.min(wantH, Math.max(180, areaH - 36)),
+      x: parkHack ? Math.min(220, Math.max(8, areaW - fittedW - 220)) : narrow ? 0 : 24 + (cascade % 8) * 22,
+      y: parkHack ? 36 : narrow ? 0 : 12 + (cascade % 8) * 20,
+      w: narrow ? areaW : fittedW,
+      h: narrow ? areaH : fittedH,
       rx: 0,
       ry: 0,
       rw: 0,
@@ -707,14 +722,7 @@ export function bootDesktop(): void {
 
   function maybeTip(path: string): void {
     if (!clippy || tipped.has(path)) return;
-    const line =
-      path === "/jobs"
-        ? jobs[0]?.summary
-        : path === "/work"
-          ? projects[0]?.summary
-          : path === "/awards"
-            ? AWARDS[0]?.caption
-            : "";
+    const line = NUGGET_TIPS[path];
     if (!line) return;
     tipped.add(path);
     clippy.tip(line);
@@ -888,11 +896,6 @@ export function bootDesktop(): void {
     document.documentElement.lang = getLang();
     lang.textContent = getLang().toUpperCase();
     if (startLabel) startLabel.textContent = t("Start");
-    for (const button of icons.querySelectorAll<HTMLButtonElement>(".desk-icon")) {
-      const item = APPS.find((appItem) => appItem.id === button.dataset.app);
-      const label = button.querySelector(".label");
-      if (item && label) label.textContent = t(item.label);
-    }
     loadMenu();
     for (const button of deskMenu.querySelectorAll<HTMLButtonElement>("button")) {
       const key = button.dataset.label;
@@ -904,8 +907,16 @@ export function bootDesktop(): void {
       if (text) text.textContent = win.title;
       fill(win);
     }
+    for (const button of icons.querySelectorAll<HTMLButtonElement>(".desk-icon")) {
+      const item = APPS.find((appItem) => appItem.id === button.dataset.app);
+      const label = button.querySelector(".label");
+      if (item && label) label.textContent = t(item.label);
+    }
     renderTasks();
     clippy?.labels();
+    role.textContent = t(jobs[0]?.role ?? "");
+    placeLine.textContent = t(jobs[0]?.place ?? "");
+    noteClose.setAttribute("aria-label", t("Close"));
     paintPrint();
   }
 
@@ -917,15 +928,15 @@ export function bootDesktop(): void {
   const noteClose = document.createElement("button");
   noteClose.type = "button";
   noteClose.textContent = "x";
-  noteClose.setAttribute("aria-label", "Close");
+  noteClose.setAttribute("aria-label", t("Close"));
   noteClose.addEventListener("click", () => {
     sticky.hidden = true;
     sessionSet("pkn-note", "0");
   });
   const role = document.createElement("p");
-  role.textContent = jobs[0]?.role ?? "";
+  role.textContent = t(jobs[0]?.role ?? "");
   const placeLine = document.createElement("p");
-  placeLine.textContent = jobs[0]?.place ?? "";
+  placeLine.textContent = t(jobs[0]?.place ?? "");
   const mail = document.createElement("p");
   mail.textContent = profiles.email.label;
   sticky.append(noteClose, role, placeLine, mail);

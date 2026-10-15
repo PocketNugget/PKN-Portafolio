@@ -528,12 +528,9 @@ export const radio = {
 };
 
 export const bio = [
-  "Goben Diego Constantino Aguirre. I finished computer systems engineering at UDLAP, 2021 to 2025, with a 9.0/10. Internships included.",
-  "I have been at TBSeK since April 2025. The part-time Jr. SOC seat ran until July 2026: alert triage for 7 or more clients, playbooks, false positives, and Python and Node.js that cut report time by about 70%. The full-time SOC/MDR seat is Splunk, Darktrace, CrowdStrike, Cisco AMP, Cisco Umbrella, and GroupIB, plus correlation and the first containment steps.",
-  "STEM UDLAP was February 2024 to June 2026. I wrote the MICAI paper, published the dataset, and kept the lab server on a Mac Mini. Cloudflare Tunnels published the registration services. Older Angular and Node apps moved into Docker. I also taught a hands-on Docker session: one container, then Compose.",
-  "T-Systems was a part-time internship in Puebla, April 2024 to July 2024. I built a course platform in Angular, with MySQL behind it, so people could track training. Some of the progress was game-like. I wrote the docs and used the team's Git process.",
-  "I write Python against a HackRF One and a bladeRF. I chair Hackztecs, after coming in as a member under Juan Pablo Morales Durante.",
-  "I am looking at MDR, SOC, and SRE roles in Mexico, the United States, Austria, Ireland, and the Netherlands. A cybersecurity master's, Ireland included, is on that same list.",
+  "Goben Diego Constantino Aguirre. I finished computer systems engineering at UDLAP, 2021 to 2025, with a 9.0/10.",
+  "SOC/MDR analyst at TBSeK, full-time, July 2026 to present. The junior seat was part-time from April 2025. I am looking at MDR, SOC, and SRE roles in Mexico, the United States, Austria, Ireland, and the Netherlands.",
+  "Hack The Box University CTF 2025 finished 52 of 1,014. HTB Cyber Apocalypse CTF 2025 scored 34,125 points.",
 ];
 
 const GH = "https://github.com/PocketNugget";

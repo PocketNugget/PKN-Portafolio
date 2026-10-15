@@ -19,6 +19,36 @@ export const FACTS: string[] = [
   "A coding agent can draft a change. He still has to read the diff.",
 ];
 
+/** Spoken by the nugget, to the visitor. Same record as FACTS. Nothing new is added. */
+export const NUGGET_LINES: string[] = [
+  "You are looking at Goben's desk. He finished computer systems engineering at UDLAP, 2021 to 2025. The grade on the record is 9.0/10.",
+  "If you open Jobs, you get two seats at TBSeK. Part-time Jr. SOC from April 2025 to July 2026, then full-time SOC/MDR.",
+  "If you want the lab story, the STEM server was a Mac Mini. He ran Docker and Cloudflare Tunnels on it from February 2024 to June 2026.",
+  "You can ask about Hackztecs. It still meets weekly: TCP/IP, Wireshark, Nmap, Burp Suite, HTTP. He has chaired it since February 2024. More than 8 CTFs.",
+  "The University board you will see under Projects is Jingle Trouble. Hackztecs finished 52 of 1,014. Top 5%. The only Mexican university in the top 100.",
+  "Do not mix that up when you read the next board. Cyber Apocalypse CTF 2025 is different: 51 of 77 challenges, 34,125 points, rank 293, top 3.5% worldwide, 3rd in Mexico.",
+  "November 2024, if you are looking at MAIA: team Los Zepedas took the ÖBB challenge. First of 22. The prize was a trip to Austria. The hackathon was in Mexico City.",
+  "You can open ColorScore under Projects. November 2025, first place at Enactus Changemakers with team Xcookers. SwiftUI, k-means, geometric marks.",
+  "There is a paper if you need it. MICAI 2024, Easy for Us, Complex for AI, Springer LNCS 15246, pages 198 to 209. He wrote it with Zobeida Guzmán.",
+  "Languages, since you will ask: Spanish is native. English is C1+. French is A2. German is A1.",
+  "If you are hiring, he is looking for MDR, SOC, and SRE work in Mexico, the United States, Austria, Ireland, and the Netherlands. A cybersecurity master's, Ireland included, is on that list.",
+  "On the bench, if you open Radio: a HackRF One and a Nuand bladeRF 2.0, mostly 2.4 to 5.8 GHz. The iMac G4 restoration is a separate pile.",
+  "One habit you should know. A coding agent can draft a change. He still has to read the diff.",
+];
+
+export const NUGGET_TIPS: Record<string, string> = {
+  "/": "Start with Jobs, then Projects, then Skills. Courses and Contact sit on that same row. Hit Next if you want another line from me.",
+  "/jobs": "You are on the jobs. Full-time SOC/MDR at TBSeK, July 2026 to present. The junior seat before that was part-time. STEM and T-Systems are further down.",
+  "/work": "You are on the projects he will talk about. The two HTB boards are different events, so read both.",
+  "/skills": "You are on the tool list from the jobs. A coding agent can draft a change. He still has to read the diff.",
+  "/certs": "You are on the courses. The named ones are Metasploit and macOS Fundamentals, both July 2025. Security+ is in progress, not earned.",
+  "/contact": "You are on contact. There is no form. The address he reads is the mail link above.",
+  "/awards": "You are looking at the scans. If a year has no rank in the record, you will not find one invented here.",
+  "/pictures": "You are in the photos. The portrait is the same one on About.",
+  "/notes": "You are on the notes. Two short ones. Solve steps stay in the repo, not on this page.",
+  "/radio": "You are on the radio page. HackRF One, bladeRF, and the iMac G4. He will tell you it is bench work, not a guide.",
+};
+
 const TOOLS: { label: string; path: string }[] = [
   { label: "Player", path: "/player" },
   { label: "My Pictures", path: "/pictures" },
@@ -33,7 +63,7 @@ export function mountFacts(host: HTMLElement, open: (path: string) => void): Des
   const root = document.createElement("div");
   root.className = "facts-app";
   const lead = document.createElement("p");
-  lead.textContent = "The same record as the rest of the site, told in short lines.";
+  lead.textContent = t("The same record as the rest of the site, told in short lines.");
   const list = document.createElement("ul");
   list.className = "ls";
   for (const fact of FACTS) {
@@ -42,13 +72,13 @@ export function mountFacts(host: HTMLElement, open: (path: string) => void): Des
     list.append(item);
   }
   const heading = document.createElement("h2");
-  heading.textContent = "Tools";
+  heading.textContent = t("Tools");
   const row = document.createElement("div");
   row.className = "tool-row";
   for (const tool of TOOLS) {
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = tool.label;
+    button.textContent = t(tool.label);
     button.addEventListener("click", () => open(tool.path));
     row.append(button);
   }

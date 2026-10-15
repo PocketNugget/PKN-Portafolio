@@ -92,6 +92,22 @@ describe("notes", () => {
 describe("pages", () => {
   it("home matches the record and skips the stale claims", () => {
     const html = render("/");
+    expect(html).toContain("about-go");
+    expect(html).toContain('href="/jobs"');
+    expect(html).toContain('href="/skills"');
+    expect(html).toContain('href="/contact"');
+    expect([...html.matchAll(/class="about-go" href="[^"]+" data-cmd="([^"]+)"/g)].map((match) => match[1])).toEqual([
+      "jobs",
+      "projects",
+      "skills",
+      "certs",
+      "contact",
+      "awards",
+      "writeups",
+      "pictures",
+      "radio",
+    ]);
+    expect(documentBody("/hack")).toContain("hack-mount");
     expect(html).toContain("9.0/10");
     expect(html).toContain("April 2025");
     expect(html).toContain("July 2026 to present");

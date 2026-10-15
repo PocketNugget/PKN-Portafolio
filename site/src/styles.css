@@ -593,17 +593,194 @@ a.social-link:focus {
   100% { transform: translate(-2px, 1px); }
 }
 
+#app.is-hacked #wallpaper {
+  filter: hue-rotate(95deg) saturate(2.8) contrast(1.35);
+  animation: hack-wall 220ms steps(2) infinite;
+}
+
+@keyframes hack-wall {
+  50% { filter: hue-rotate(250deg) saturate(3.4) contrast(1.6); }
+}
+
+#app.is-hacked .desk-icon.is-corrupt svg,
+#app.is-hacked a.social-link.is-corrupt img,
+#app.is-hacked #clippy .buddy-pic {
+  filter: hue-rotate(var(--hack-hue, 140deg)) saturate(4.6) contrast(1.55);
+}
+
+#app.is-hacked .desk-icon.is-invert svg,
+#app.is-hacked a.social-link.is-invert img {
+  filter: invert(1) hue-rotate(var(--hack-hue, 30deg)) saturate(3.4) contrast(1.45);
+}
+
+#app.is-hacked .desk-icon.is-corrupt {
+  animation: hack-jump 180ms steps(3) infinite;
+}
+
+#app.is-hacked .desk-icon.is-slice {
+  animation: hack-slice 150ms steps(2) infinite;
+}
+
+@keyframes hack-jump {
+  0% { transform: translate(0, 0); }
+  35% { transform: translate(6px, -4px); }
+  100% { transform: translate(-5px, 3px); }
+}
+
+@keyframes hack-slice {
+  0% { clip-path: inset(0 0 0 0); }
+  50% { clip-path: inset(22% 0 38% 0); transform: translate(-7px, 1px); }
+  100% { clip-path: inset(48% 0 10% 0); transform: translate(4px, -3px); }
+}
+
+#app.is-hacked .desk-icon .label,
+#app.is-hacked a.social-link {
+  color: #ff3355;
+  text-shadow: 2px 0 #00cccc, -2px 0 #ffe14a;
+  animation: hack-ink 110ms steps(2) infinite;
+}
+
+@keyframes hack-ink {
+  50% { color: #d6ff3c; text-shadow: -3px 0 #ff33aa, 2px 1px #111; }
+}
+
+#app.is-hacked #taskbar {
+  background: #140010;
+  border-top-color: #ff33aa;
+  animation: hack-bar 170ms steps(2) infinite;
+}
+
+@keyframes hack-bar {
+  50% { background: #04140c; border-top-color: #d6ff3c; }
+}
+
+#app.is-hacked #clock,
+#app.is-hacked .start-label,
+#app.is-hacked button.start-btn,
+#app.is-hacked button.task-btn,
+#app.is-hacked button#lang {
+  color: #d6ff3c;
+}
+
+#app.is-hacked button.start-btn,
+#app.is-hacked button.task-btn,
+#app.is-hacked button#lang {
+  background: #2a0018;
+  box-shadow: inset -1px -1px #ff33aa, inset 1px 1px #d6ff3c, inset -2px -2px #6a1040, inset 2px 2px #244018;
+}
+
+#app.is-hacked .desk-win:not(:has(.hack-mount)) .title-bar,
+#app.is-hacked .hack-pop .title-bar {
+  background: #9a1048;
+}
+
+#app.is-hacked .desk-win:not(:has(.hack-mount)) .title-bar.inactive .title-bar-text,
+#app.is-hacked .hack-pop .title-bar-text {
+  color: #ffe14a;
+}
+
+#app.is-hacked .desk-win:not(:has(.hack-mount)) {
+  animation: hack-win 200ms steps(2) infinite;
+}
+
+#app.is-hacked .hack-pop {
+  animation: hack-win 130ms steps(2) infinite;
+}
+
+@keyframes hack-win {
+  35% { transform: translate(4px, -2px) skewX(-2deg); }
+  100% { transform: translate(-5px, 2px) skewX(1deg); }
+}
+
+#app.is-hacked .desk-win:not(:has(.hack-mount)) .window-body,
+#app.is-hacked .hack-pop .window-body {
+  background: #120814;
+  color: #d6ff3c;
+}
+
+#app.is-hacked .menu-item svg {
+  filter: hue-rotate(170deg) saturate(4) contrast(1.4);
+}
+
+#app.is-hacked #start-menu {
+  background: #1a0010;
+  color: #d6ff3c;
+}
+
+.hack-tear {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.hack-tear span {
+  position: absolute;
+  left: -8%;
+  width: 116%;
+  height: 7px;
+  background: #ff2255;
+  mix-blend-mode: screen;
+  opacity: 0.75;
+  animation: hack-tear 160ms steps(2) infinite;
+}
+
+.hack-tear span:nth-child(1) { top: 11%; }
+.hack-tear span:nth-child(2) { top: 29%; height: 4px; background: #00cccc; animation-duration: 120ms; }
+.hack-tear span:nth-child(3) { top: 47%; background: #ffe14a; }
+.hack-tear span:nth-child(4) { top: 66%; height: 10px; background: #ff33aa; animation-duration: 210ms; }
+.hack-tear span:nth-child(5) { top: 83%; background: #7dff3a; animation-duration: 140ms; }
+
+@keyframes hack-tear {
+  50% { transform: translateX(16px); }
+  100% { transform: translateX(-20px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #app.is-hacked #wallpaper,
+  #app.is-hacked .desk-icon,
+  #app.is-hacked .desk-win,
+  #app.is-hacked .hack-pop,
+  #app.is-hacked #taskbar,
+  #app.is-hacked .hack-tear span,
+  #app.is-hacked .desk-icon .label,
+  #app.is-hacked a.social-link {
+    animation: none;
+  }
+}
+
 .hack-pop {
   position: absolute;
-  width: min(280px, calc(100% - 16px));
-  z-index: 30;
+  width: min(196px, calc(100% - 16px));
+  z-index: 2;
   pointer-events: auto;
 }
 
+.hack-app {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.hack-app > p,
+.hack-app .field-row {
+  flex: 0 0 auto;
+}
+
+.desk-win:has(.hack-mount) .window-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .hack-log {
+  flex: 1 1 auto;
   min-height: 88px;
   margin: 8px 0;
   padding: 4px;
+  overflow: auto;
   white-space: pre-wrap;
   background: #fff;
   color: #222;
@@ -718,6 +895,31 @@ img.shot.portrait {
   object-fit: cover;
 }
 
+.about-path {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+a.about-go {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  min-width: 108px;
+  padding: 4px 12px;
+  color: #000;
+  background: silver;
+  text-decoration: none;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
+}
+
+a.about-go:active {
+  padding: 5px 11px 3px 13px;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px grey;
+}
+
 .viewer img.shot {
   display: block;
   max-width: 100%;
@@ -830,6 +1032,16 @@ img.shot.portrait {
     top: 0;
     width: 100%;
     height: 100%;
+  }
+
+  .desk-win:has(.hack-mount),
+  .desk-win.max:has(.hack-mount) {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    max-height: 54%;
   }
 
   .rz {
@@ -1316,8 +1528,19 @@ button#lang,
   #desk-menu button,
   .sweep-bar button,
   .tool-app > button,
-  .math-keys button {
+  .math-keys button,
+  .hack-app button,
+  .hack-pop .title-bar-controls button,
+  a.about-go {
     min-height: 44px;
+  }
+
+  .about-path {
+    flex-direction: column;
+  }
+
+  a.about-go {
+    width: 100%;
   }
 
   .sweep-grid {

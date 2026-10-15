@@ -1,3 +1,5 @@
+import { extraDe, extraEs, extraFr } from "./i18n-extra";
+
 export type Lang = "en" | "es" | "de" | "fr";
 
 const LANGS: Lang[] = ["en", "es", "de", "fr"];
@@ -244,6 +246,10 @@ const fr: Record<string, string> = {
   "Arrange icons": "Ranger les icônes",
   "Display Properties": "Propriétés d'affichage",
 };
+
+Object.assign(es, extraEs);
+Object.assign(de, extraDe);
+Object.assign(fr, extraFr);
 
 const tables: Record<Exclude<Lang, "en">, Record<string, string>> = { es, de, fr };
 

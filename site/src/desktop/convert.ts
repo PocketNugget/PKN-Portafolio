@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { DeskApp } from "./host";
 import { idleApp } from "./host";
 
@@ -216,25 +217,25 @@ export function mountConvert(host: HTMLElement): DeskApp {
   pick.className = "field-row";
   const opLabel = document.createElement("label");
   opLabel.htmlFor = "conv-op";
-  opLabel.textContent = "Operation";
+  opLabel.textContent = t("Operation");
   const select = document.createElement("select");
   select.id = "conv-op";
   for (const op of OPS) {
     const option = document.createElement("option");
     option.value = op.id;
-    option.textContent = op.label;
+    option.textContent = t(op.label);
     select.append(option);
   }
   pick.append(opLabel, select);
 
-  const input = area("Input", "conv-in", false);
+  const input = area(t("Input"), "conv-in", false);
   const go = document.createElement("button");
   go.type = "button";
-  go.textContent = "Process";
-  const output = area("Output", "conv-out", true);
+  go.textContent = t("Process");
+  const output = area(t("Output"), "conv-out", true);
   const note = document.createElement("p");
   note.className = "meta";
-  note.textContent = "Runs in this page. Nothing is uploaded.";
+  note.textContent = t("Runs in this page. Nothing is uploaded.");
 
   root.append(pick, input.wrap, go, output.wrap, note);
   host.append(root);
@@ -247,7 +248,7 @@ export function mountConvert(host: HTMLElement): DeskApp {
     output.box.value = "";
     void convertText(select.value, input.box.value)
       .then((value) => {
-        output.box.value = value;
+        output.box.value = value.startsWith("error:") ? t(value) : value;
       })
       .finally(() => {
         busy = false;

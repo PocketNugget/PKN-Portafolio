@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { DeskApp } from "./host";
 import { idleApp } from "./host";
 import type { Shot } from "./media";
@@ -7,10 +8,10 @@ export function mountGallery(host: HTMLElement, shots: Shot[], intro: string): D
   const root = document.createElement("div");
   root.className = "gallery";
   const lead = document.createElement("p");
-  lead.textContent = intro;
+  lead.textContent = t(intro);
   const count = document.createElement("p");
   count.className = "meta";
-  count.textContent = shots.length === 1 ? "1 file." : `${shots.length} files.`;
+  count.textContent = shots.length === 1 ? t("1 file.") : t("N files.").replace("N", String(shots.length));
   const thumbs = document.createElement("div");
   thumbs.className = "thumbs";
   const viewer = document.createElement("div");
@@ -39,8 +40,8 @@ export function mountGallery(host: HTMLElement, shots: Shot[], intro: string): D
     const shot = shots[index];
     if (!shot) return;
     img.src = shot.src;
-    img.alt = shot.title;
-    cap.textContent = shot.caption
+    img.alt = t(shot.title);
+    cap.textContent = t(shot.caption);
     thumbs.hidden = true;
     viewer.hidden = false;
   }
@@ -51,9 +52,9 @@ export function mountGallery(host: HTMLElement, shots: Shot[], intro: string): D
     tile.className = "thumb";
     const thumb = document.createElement("img");
     thumb.src = shot.src;
-    thumb.alt = shot.title;
+    thumb.alt = t(shot.title);
     const name = document.createElement("span");
-    name.textContent = shot.title;
+    name.textContent = t(shot.title);
     tile.append(thumb, name);
     tile.addEventListener("click", () => show(shotIndex));
     thumbs.append(tile);
@@ -73,6 +74,6 @@ export function mountGallery(host: HTMLElement, shots: Shot[], intro: string): D
 function button(label: string): HTMLButtonElement {
   const el = document.createElement("button");
   el.type = "button";
-  el.textContent = label;
+  el.textContent = t(label);
   return el;
 }

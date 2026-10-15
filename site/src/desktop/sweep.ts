@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { DeskApp } from "./host";
 
 export interface SweepCell {
@@ -134,10 +135,10 @@ export function mountSweep(host: HTMLElement): DeskApp {
   const clock = document.createElement("span");
   const flag = document.createElement("button");
   flag.type = "button";
-  flag.textContent = "Flag";
+  flag.textContent = t("Flag");
   const again = document.createElement("button");
   again.type = "button";
-  again.textContent = "New";
+  again.textContent = t("New");
   const status = document.createElement("p");
   status.className = "meta";
   const grid = document.createElement("div");
@@ -159,10 +160,10 @@ export function mountSweep(host: HTMLElement): DeskApp {
     }, 1000);
   };
   const paint = () => {
-    mines.textContent = `Mines ${sweepFlagsLeft(state)}`;
+    mines.textContent = `${t("Mines")} ${sweepFlagsLeft(state)}`;
     clock.textContent = `${seconds}s`;
     flag.setAttribute("aria-pressed", String(flagMode));
-    status.textContent = state.won ? "Clear." : state.alive ? "Open a cell. Flag marks a guess." : "A mine. New starts again.";
+    status.textContent = state.won ? t("Clear.") : state.alive ? t("Open a cell. Flag marks a guess.") : t("A mine. New starts again.");
     grid.replaceChildren();
     state.cells.forEach((cell, index) => {
       const button = document.createElement("button");

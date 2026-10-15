@@ -17,6 +17,12 @@ describe("parseCommand", () => {
   it("maps the known commands", () => {
     expect(parseCommand("jobs", opens)).toMatchObject({ type: "nav", path: "/jobs" });
     expect(parseCommand("projects", opens)).toMatchObject({ type: "nav", path: "/work" });
+    expect(parseCommand("skills", opens)).toMatchObject({ type: "nav", path: "/skills" });
+    expect(parseCommand("certs", opens)).toMatchObject({ type: "nav", path: "/certs" });
+    expect(parseCommand("awards", opens)).toMatchObject({ type: "nav", path: "/awards" });
+    expect(parseCommand("writeups", opens)).toMatchObject({ type: "nav", path: "/notes" });
+    expect(parseCommand("pictures", opens)).toMatchObject({ type: "nav", path: "/pictures" });
+    expect(parseCommand("hack", opens)).toMatchObject({ type: "nav", path: "/hack" });
     expect(parseCommand("radio", opens)).toMatchObject({ type: "nav", path: "/radio" });
     expect(parseCommand("contact", opens)).toMatchObject({ type: "nav", path: "/contact" });
     expect(parseCommand("blog", opens)).toMatchObject({ type: "nav", path: "/blog" });
