@@ -40,10 +40,10 @@ interface LayoutSave {
   spots: Record<string, Spot>;
 }
 
-const CELL_W = 96;
-const CELL_H = 100;
-const SOCIAL_W = 380;
-const SOCIAL_H = 84;
+const CELL_W = 160;
+const CELL_H = 164;
+const SOCIAL_W = 560;
+const SOCIAL_H = 120;
 
 interface Win {
   id: number;

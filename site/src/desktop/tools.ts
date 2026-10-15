@@ -220,17 +220,20 @@ export function mountWheel(host: HTMLElement): DeskApp {
   box.spellcheck = false;
   box.setAttribute("aria-label", t("Names, one on each line"));
   box.placeholder = t("One name on each line");
+  const stage = document.createElement("div");
+  stage.className = "wheel-stage";
   const canvas = document.createElement("canvas");
   canvas.width = 280;
   canvas.height = 280;
   canvas.className = "wheel-canvas";
+  stage.append(canvas);
   const spin = document.createElement("button");
   spin.type = "button";
   spin.textContent = t("Spin");
   const result = document.createElement("p");
   result.className = "tool-face";
   result.textContent = t("Add names, then spin.");
-  root.append(box, canvas, spin, result);
+  root.append(box, stage, spin, result);
   host.append(root);
   let frame = 0;
   const draw = (names: string[], angle: number) => {
@@ -267,9 +270,9 @@ export function mountWheel(host: HTMLElement): DeskApp {
     ctx.restore();
     ctx.fillStyle = "#000";
     ctx.beginPath();
-    ctx.moveTo(size / 2, 6);
-    ctx.lineTo(size / 2 - 8, 22);
-    ctx.lineTo(size / 2 + 8, 22);
+    ctx.moveTo(size / 2, 22);
+    ctx.lineTo(size / 2 - 8, 6);
+    ctx.lineTo(size / 2 + 8, 6);
     ctx.closePath();
     ctx.fill();
   };
