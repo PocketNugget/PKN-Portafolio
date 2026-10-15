@@ -981,7 +981,7 @@ button#lang,
 #clippy .buddy-pic {
   width: 140px;
   margin: 0 0 0 auto;
-  transform: scaleY(-1);
+  transform: scaleX(-1);
   animation: nugget-idle 2.8s ease-in-out infinite;
 }
 
@@ -1102,13 +1102,13 @@ button#lang,
 }
 
 @keyframes nugget-idle {
-  0%, 100% { transform: scaleY(-1); }
-  50% { transform: scaleY(-1) translateY(3px); }
+  0%, 100% { transform: scaleX(-1); }
+  50% { transform: scaleX(-1) translateY(3px); }
 }
 
 @keyframes nugget-talk {
-  0%, 100% { transform: scaleY(-1); }
-  50% { transform: scaleY(-1) translateY(2px); }
+  0%, 100% { transform: scaleX(-1); }
+  50% { transform: scaleX(-1) translateY(2px); }
 }
 
 @keyframes saver-bounce {
