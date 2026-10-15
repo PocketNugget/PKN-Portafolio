@@ -60,7 +60,7 @@ const APPS: App[] = [
   { id: "notes", label: "Notes", path: "/notes", icon: "notes", desk: true },
   { id: "certs", label: "Courses", path: "/certs", icon: "certs", desk: true },
   { id: "blog", label: "Blog", path: "/blog", icon: "blog", desk: true },
-  { id: "pad", label: "Notepad", path: "/pad", icon: "pad", desk: true },
+  { id: "pad", label: "Suggestions", path: "/pad", icon: "pad", desk: true },
   { id: "links", label: "My Links", path: "/links", icon: "links", desk: false },
   { id: "contact", label: "Contact", path: "/contact", icon: "contact", desk: true },
   { id: "terminal", label: "Terminal", path: "/terminal", icon: "terminal", desk: true },
@@ -74,7 +74,7 @@ const APPS: App[] = [
   { id: "help", label: "Help", path: "/help", icon: "help", desk: false },
   { id: "display", label: "Display", path: "/display", icon: "display", desk: false },
   { id: "colophon", label: "Colophon", path: "/colophon", icon: "colophon", desk: false },
-  { id: "login", label: "Login", path: "/admin/login", icon: "login", desk: true },
+  { id: "login", label: "Login", path: "/login", icon: "login", desk: false },
   { id: "run", label: "Run", path: "/run", icon: "terminal", desk: false },
   { id: "find", label: "Find", path: "/find", icon: "notes", desk: false },
 ];
@@ -82,7 +82,7 @@ const APPS: App[] = [
 const MENU_GROUPS = [
   ["about", "jobs", "projects", "skills"],
   ["radio", "notes", "certs", "blog", "pad", "links", "contact"],
-  ["terminal", "help", "display", "run", "find", "colophon", "login"],
+  ["terminal", "help", "display", "run", "find", "colophon"],
   ["pictures", "awards", "player", "convert", "facts", "hack", "buddy"],
 ];
 
@@ -103,6 +103,7 @@ const SIZES: Record<string, [number, number]> = {
   "/run": [320, 160],
   "/find": [420, 320],
   "/pad": [420, 480],
+  "/login": [360, 520],
   "/admin/login": [360, 520],
   "/admin": [560, 640],
 };
@@ -652,16 +653,19 @@ export function bootDesktop(): void {
       if (push && location.pathname !== "/buddy") history.pushState({}, "", "/buddy");
       return;
     }
-    if (path === "/admin/login") {
+    if (path === "/login" || path === "/admin/login") {
       void (async () => {
-        let dest = "/admin/login";
+        let dest = "/login";
         try {
           const response = await fetch("/api/session", { credentials: "same-origin" });
           if (response.ok) dest = "/admin";
         } catch {
-          dest = "/admin/login";
+          dest = "/login";
         }
-        if (push && location.pathname !== dest) history.pushState({}, "", dest);
+        if (location.pathname !== dest) {
+          if (push) history.pushState({}, "", dest);
+          else history.replaceState({}, "", dest);
+        }
         openWindow(dest);
       })();
       return;
@@ -906,8 +910,11 @@ export function bootDesktop(): void {
     applyLang(langs[(index + 1) % langs.length] ?? "en");
   });
   setNavigator((dest) => {
-    if (dest === "/admin") closePath("/admin/login");
-    if (dest === "/" || dest === "/admin/login") closePath("/admin");
+    if (dest === "/admin") {
+      closePath("/login");
+      closePath("/admin/login");
+    }
+    if (dest === "/" || dest === "/login" || dest === "/admin/login") closePath("/admin");
     openHref(dest);
   });
   const wake = (event: Event) => {

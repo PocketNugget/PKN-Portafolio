@@ -1,4 +1,42 @@
-# Goben Diego
+# PocketNugget 🖥️
+
+[![Made with TypeScript](https://img.shields.io/badge/Made%20with-TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Bundled with Vite](https://img.shields.io/badge/Bundled%20with-Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev/)
+[![Cloudflare Workers](https://img.shields.io/badge/Runs%20on-Cloudflare%20Workers-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://workers.cloudflare.com/)
+[![Database: D1](https://img.shields.io/badge/Database-D1%20SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://developers.cloudflare.com/d1/)
+[![Tested with Vitest](https://img.shields.io/badge/Tested%20with-Vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
+[![UI: 98.css](https://img.shields.io/badge/UI-98.css-000080?style=for-the-badge)](https://jdan.github.io/98.css/)
+[![Live](https://img.shields.io/badge/Live-pocketnugget.xyz-111111?style=for-the-badge)](https://pocketnugget.xyz)
+
+> Escritorio al estilo Windows 98 para el portafolio de Goben Diego Constantino Aguirre. TypeScript y Vite, servido por un Cloudflare Worker. Los posts y las sugerencias viven en D1. El sitio público está en inglés.
+
+---
+
+## 📋 Estado
+
+El sitio que se publica es `site/`. El escritorio, el menú Start y la terminal no ofrecen el login. La entrada del editor es [`/login`](https://pocketnugget.xyz/login). El enlace viejo `/admin/login` abre esa misma página. El bloc público se llama Suggestions. Las writeups siguen en el icono Notes.
+
+Hay un admin, usuario `goben`, con contraseña y un código de autenticador. La contraseña no está en el repo. Las direcciones de los visitantes no se guardan.
+
+---
+
+## 📸 Capturas
+
+### Escritorio
+
+![Escritorio en el wallpaper Sky, sin icono de login](docs/screenshots/desktop.png)
+
+### Teléfono
+
+![El mismo escritorio en una pantalla de teléfono](docs/screenshots/phone.png)
+
+### Suggestions
+
+![Ventana Suggestions, con el pad vacío](docs/screenshots/suggestions.png)
+
+Otras capturas pueden ir en `docs/screenshots/`. Basta el archivo y una línea en esta sección.
+
+---
 
 Portfolio for Goben Diego Constantino Aguirre (PocketNugget). English, static, and meant to run on Cloudflare Workers.
 
@@ -77,7 +115,7 @@ Terraform for the DNS zone is a follow-up against the real zone. It is not in th
 
 ## Login and the blog
 
-`links` is the public list (email, GitHub, LinkedIn, X, Instagram, YouTube). `blog` reads posts. `login` opens the editor.
+`links` is the public list (email, GitHub, LinkedIn, X, Instagram, YouTube). `blog` reads posts. `pad` opens Suggestions. The editor is not a desktop icon, a Start item, or a terminal command. Open `/login` in the address bar. `/admin/login` lands on that same form. A valid session opens `/admin`.
 
 There is one admin, username `goben`. No public signup. The password is not in the repo. Login also asks for a 6 digit code from an authenticator app (TOTP, the same code Google Authenticator and Microsoft Authenticator show). It is not a Google or Microsoft login. The first successful password shows a QR once. After that code is accepted, later logins are password plus code. Eight recovery codes work in the code field, once each.
 
@@ -89,7 +127,7 @@ The session is an HttpOnly, SameSite=Strict cookie. The database stores a hash o
 
 ## What the Worker stores
 
-Blog posts, session hashes, the authenticator secret (encrypted), recovery-code hashes, and login-failure times, in D1. No contact form, no third-party script, no analytics table. The window font ships with 98.css in `site/public/vendor/`. `security.txt` points at `goben.ca.pkn@hotmail.com`.
+Blog posts, public suggestions, session hashes, the authenticator secret (encrypted), recovery-code hashes, and login-failure times, in D1. No contact form, no third-party script, no analytics table. The window font ships with 98.css in `site/public/vendor/`. `security.txt` points at `goben.ca.pkn@hotmail.com`.
 
 ## Legacy
 

@@ -38,7 +38,7 @@ function line(parent: HTMLElement, className: string, text: string): HTMLElement
 export function paintNotes(list: HTMLElement, notes: PublicNote[]): void {
   list.replaceChildren();
   if (notes.length === 0) {
-    line(list, "notepad-line", "The pad is empty.");
+    line(list, "notepad-line", "No suggestions yet.");
     return;
   }
   for (const note of notes) {
@@ -66,8 +66,8 @@ export function mountPad(host: HTMLElement): DeskApp {
   body.maxLength = 600;
   body.required = true;
   body.rows = 4;
-  body.placeholder = "Note";
-  body.setAttribute("aria-label", "Note");
+  body.placeholder = "Suggestion";
+  body.setAttribute("aria-label", "Suggestion");
   const trapWrap = document.createElement("div");
   trapWrap.className = "notepad-hp";
   trapWrap.setAttribute("aria-hidden", "true");
@@ -78,11 +78,11 @@ export function mountPad(host: HTMLElement): DeskApp {
   trapWrap.append(trap);
   const button = document.createElement("button");
   button.type = "submit";
-  button.textContent = "leave note";
+  button.textContent = "leave suggestion";
   const status = document.createElement("p");
   status.className = "err";
   status.setAttribute("role", "status");
-  form.append(line(form, "notepad-lead", "Leave a note. It stays on this pad, and I can read it in the editor."), name, body, trapWrap, button, status);
+  form.append(line(form, "notepad-lead", "Leave a suggestion. It stays on this page, and I can read it in the editor."), name, body, trapWrap, button, status);
 
   const list = document.createElement("div");
   list.className = "notepad-sheet";
@@ -91,7 +91,7 @@ export function mountPad(host: HTMLElement): DeskApp {
   async function load(): Promise<void> {
     const response = await fetch("/api/comments", { credentials: "same-origin" });
     if (!response.ok) {
-      status.textContent = "The pad did not load.";
+      status.textContent = "The suggestions did not load.";
       return;
     }
     paintNotes(list, readNotes(await response.json()));
@@ -102,7 +102,7 @@ export function mountPad(host: HTMLElement): DeskApp {
     void (async () => {
       status.textContent = "";
       if (!cleanLine(name.value, NOTE_NAME_MAX) || !cleanBlock(body.value, NOTE_BODY_MAX, NOTE_LINES)) {
-        status.textContent = "The pad did not save that.";
+        status.textContent = "The suggestion did not save.";
         return;
       }
       const response = await fetch("/api/comments", {
@@ -119,7 +119,7 @@ export function mountPad(host: HTMLElement): DeskApp {
         await load();
         return;
       }
-      status.textContent = response.status === 429 ? "too many notes. try later." : "The pad did not save that.";
+      status.textContent = response.status === 429 ? "too many suggestions. try later." : "The suggestion did not save.";
     })();
   });
 

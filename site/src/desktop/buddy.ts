@@ -56,14 +56,28 @@ export function mountClippy(desktop: HTMLElement): Clippy {
     return socialH + stickyH + 8;
   }
 
-  function placeDefault(): void {
+  function rightSpot(): { left: number; top: number } {
     const narrow = phoneLayout();
     const height = root.offsetHeight || (narrow ? 160 : 240);
     const width = root.offsetWidth || (narrow ? 168 : 200);
+    const left = Math.max(8, desktop.clientWidth - width - 8);
     const areaH = Math.max(desktop.clientHeight, window.innerHeight - 40);
-    const top = Math.max(8, areaH - height - bottomReserve());
-    const left = narrow ? Math.max(8, desktop.clientWidth - width - 8) : 12;
-    moveTo(left, top);
+    let top = Math.max(8, areaH - height - bottomReserve());
+    if (!narrow) {
+      const social = desktop.querySelector("#social");
+      if (social instanceof HTMLElement) {
+        const host = desktop.getBoundingClientRect();
+        const band = social.getBoundingClientRect();
+        const socialTop = band.top - host.top;
+        if (socialTop > 40) top = Math.max(8, Math.min(top, socialTop - height - 8));
+      }
+    }
+    return { left, top };
+  }
+
+  function placeDefault(): void {
+    const spot = rightSpot();
+    moveTo(spot.left, spot.top);
   }
 
   function talk(text: string): void {
@@ -130,22 +144,18 @@ export function mountClippy(desktop: HTMLElement): Clippy {
     const left = Number.parseFloat(root.style.left) || 0;
     const top = Number.parseFloat(root.style.top) || 0;
     if (!hits(left, top)) return;
-    const narrow = phoneLayout();
-    const reserve = narrow ? bottomReserve() : 8;
+    const parked = rightSpot();
     const spots = [
-      { left: 12, top: Math.max(8, desktop.clientHeight - height - reserve) },
-      { left: Math.max(8, desktop.clientWidth - width - 8), top: 12 },
-      { left: 12, top: 12 },
-      { left: Math.max(8, desktop.clientWidth - width - 8), top: Math.max(8, desktop.clientHeight - height - (narrow ? reserve : 72)) },
+      parked,
+      { left: parked.left, top: 12 },
+      { left: parked.left, top: Math.max(8, (desktop.clientHeight - height) / 2) },
     ];
     for (const spot of spots) {
       if (hits(spot.left, spot.top)) continue;
       moveTo(spot.left, spot.top);
       return;
     }
-    const areaH = Math.max(desktop.clientHeight, window.innerHeight - 40);
-    const parkLeft = narrow ? Math.max(8, desktop.clientWidth - width - 8) : 12;
-    moveTo(parkLeft, Math.max(8, areaH - height - reserve));
+    moveTo(parked.left, parked.top);
   }
 
   placeDefault();

@@ -8,20 +8,20 @@ describe("i18n", () => {
 
   it("keeps English until a known language is selected", () => {
     expect(getLang()).toBe("en");
-    expect(t("Notepad")).toBe("Notepad");
+    expect(t("Suggestions")).toBe("Suggestions");
     setLang("nope");
     expect(getLang()).toBe("en");
-    expect(t("Notepad")).toBe("Notepad");
+    expect(t("Suggestions")).toBe("Suggestions");
     expect(t("this string is not translated")).toBe("this string is not translated");
   });
 
-  it("translates the notepad label", () => {
+  it("translates the suggestions label", () => {
     setLang("es");
-    expect(t("Notepad")).toBe("Bloc de notas");
+    expect(t("Suggestions")).toBe("Sugerencias");
     setLang("de");
-    expect(t("Notepad")).toBe("Notizblock");
+    expect(t("Suggestions")).toBe("Vorschläge");
     setLang("fr");
-    expect(t("Notepad")).toBe("Bloc-notes");
+    expect(t("Suggestions")).toBe("Suggestions");
     expect(t("A coding agent can draft a change. I still read the diff.")).toContain("diff");
   });
 });

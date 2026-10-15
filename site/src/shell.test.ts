@@ -21,7 +21,8 @@ describe("parseCommand", () => {
     expect(parseCommand("contact", opens)).toMatchObject({ type: "nav", path: "/contact" });
     expect(parseCommand("blog", opens)).toMatchObject({ type: "nav", path: "/blog" });
     expect(parseCommand("links", opens)).toMatchObject({ type: "nav", path: "/links" });
-    expect(parseCommand("login", opens)).toMatchObject({ type: "nav", path: "/admin/login" });
+    expect(parseCommand("pad", opens)).toMatchObject({ type: "nav", path: "/pad" });
+    expect(parseCommand("login", opens).type).toBe("error");
     expect(parseCommand("clear", opens)).toMatchObject({ type: "nav", path: "/", echo: "whoami" });
     expect(parseCommand("   ", opens)).toEqual({ type: "noop" });
   });
@@ -95,6 +96,8 @@ describe("completion and history", () => {
 
   it("exposes every help command to tab", () => {
     expect(COMMANDS).toContain("writeups");
+    expect(COMMANDS).toContain("pad");
+    expect(COMMANDS).not.toContain("login");
     expect(COMMANDS).not.toContain("sudo");
   });
 });

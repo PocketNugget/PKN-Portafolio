@@ -50,7 +50,7 @@ describe("notepad", () => {
   it("paints a note as text", () => {
     const list = document.createElement("div");
     paintNotes(list, []);
-    expect(list.textContent).toBe("The pad is empty.");
+    expect(list.textContent).toBe("No suggestions yet.");
     paintNotes(list, [
       {
         id: 1,
@@ -82,8 +82,8 @@ describe("notepad", () => {
     body!.value = "hello <script>alert(1)</script>";
     host.querySelector("form")!.requestSubmit(button!);
     await flush();
-    expect(host.querySelector(".err")?.textContent).toBe("The pad did not save that.");
-    expect(host.querySelector(".notepad-sheet")?.textContent).toBe("The pad is empty.");
+    expect(host.querySelector(".err")?.textContent).toBe("The suggestion did not save.");
+    expect(host.querySelector(".notepad-sheet")?.textContent).toBe("No suggestions yet.");
     expect(host.querySelectorAll("script")).toHaveLength(0);
     expect(host.querySelectorAll("img")).toHaveLength(0);
     expect(calls.some((call) => call.startsWith("POST"))).toBe(false);
@@ -184,6 +184,8 @@ describe("blog client", () => {
     await flush();
     expect(root.querySelectorAll("img")).toHaveLength(0);
     expect(root.querySelectorAll("script")).toHaveLength(0);
+    expect([...root.querySelectorAll("h2")].map((node) => node.textContent)).toContain("Suggestions");
+    expect(root.textContent).not.toContain("Notepad");
     expect(root.textContent).toContain("goben<img src=x onerror=alert(1)>");
     expect(root.querySelector("a")?.textContent).toBe("<script>");
 

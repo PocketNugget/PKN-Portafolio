@@ -980,7 +980,8 @@ button#lang,
 
 #clippy .buddy-pic {
   width: 140px;
-  margin: 0;
+  margin: 0 0 0 auto;
+  transform: scaleY(-1);
   animation: nugget-idle 2.8s ease-in-out infinite;
 }
 
@@ -1008,7 +1009,7 @@ button#lang,
 #clippy .balloon::after {
   content: "";
   position: absolute;
-  left: 28px;
+  right: 28px;
   bottom: -8px;
   border-width: 8px 8px 0;
   border-style: solid;
@@ -1101,11 +1102,13 @@ button#lang,
 }
 
 @keyframes nugget-idle {
-  50% { transform: translateY(3px); }
+  0%, 100% { transform: scaleY(-1); }
+  50% { transform: scaleY(-1) translateY(3px); }
 }
 
 @keyframes nugget-talk {
-  50% { transform: translateY(2px); }
+  0%, 100% { transform: scaleY(-1); }
+  50% { transform: scaleY(-1) translateY(2px); }
 }
 
 @keyframes saver-bounce {

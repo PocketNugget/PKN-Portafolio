@@ -23,7 +23,7 @@ export function normalizePath(pathname: string): string {
 
 export function isDocumentPath(pathname: string): boolean {
   const path = normalizePath(pathname);
-  if (PAGES.has(path) || path === "/admin" || path === "/admin/login") return true;
+  if (PAGES.has(path) || path === "/admin" || path === "/admin/login" || path === "/login") return true;
   if (
     path === "/terminal" ||
     path === "/skills" ||

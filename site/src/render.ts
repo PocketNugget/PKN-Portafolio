@@ -263,7 +263,7 @@ function radioPage(): string {
 
 function colophonPage(): string {
   return `<p>This site is a Vite build served by a Cloudflare Worker. The Worker adds the headers, <a href="/.well-known/security.txt">security.txt</a>, and <a href="/build.json">build.json</a>. Most pages are files. There is no contact form.</p>
-    <p>The blog and the notepad are the exception. Posts, notepad notes, and session hashes live in D1. The password hash is a Worker secret. Sessions are HttpOnly cookies. Visitor addresses are not stored.</p>
+    <p>The blog and the suggestions page are the exception. Posts, suggestions, and session hashes live in D1. The password hash is a Worker secret. Sessions are HttpOnly cookies. Visitor addresses are not stored.</p>
     <p>The homelab is where Docker and Cloudflare Tunnels live, on a Raspberry Pi and on the STEM Mac Mini while that apprenticeship ran. I did not put Kubernetes in front of these pages. Naming a cluster here would not make the site safer. Terraform for the DNS zone can come later, against the real zone, not as a diagram.</p>
     <p>Scripts and styles are same-origin. The window font is Pixelated MS Sans Serif by lou on Fontstruct, shipped under CC BY-SA 3.0 with 98.css. It is not loaded from a third party. The only cookie is the editor session, and only after login. <code>scripts/check.sh</code> typechecks, runs the tests, and greps the build for the defaults I do not want shipped.</p>
     <p>A coding agent drafted parts of this, and then the check script and I read it. That is the same habit as the rest of the work: the tool can type, the diff still has to be mine.</p>`;
@@ -305,7 +305,7 @@ export function documentBody(pathname: string): string {
   }
   if (path === "/blog" || path.startsWith("/blog/")) return dynamicPage("Loading posts.");
   if (path === "/links") return linksPage();
-  if (path === "/admin/login") return dynamicPage("Loading login.");
+  if (path === "/login" || path === "/admin/login") return dynamicPage("Loading login.");
   if (path === "/admin") return dynamicPage("Loading editor.");
   if (path === "/notes") return notesPage();
   if (path.startsWith("/notes/")) {
@@ -339,7 +339,7 @@ export function commandFor(pathname: string): string {
   if (path.startsWith("/work/")) return `open ${path.slice("/work/".length)}`;
   if (path === "/blog" || path.startsWith("/blog/")) return "blog";
   if (path === "/links") return "links";
-  if (path === "/admin" || path === "/admin/login") return "login";
+  if (path === "/admin" || path === "/admin/login" || path === "/login") return "login";
   if (path === "/notes") return "writeups";
   if (path.startsWith("/notes/")) return `open ${path.slice("/notes/".length)}`;
   if (path === "/radio") return "radio";

@@ -148,6 +148,7 @@ describe("pages", () => {
     expect(xml).toContain("https://pocketnugget.xyz/blog");
     expect(xml).toContain("https://pocketnugget.xyz/links");
     expect(xml).not.toContain("/admin");
+    expect(xml).not.toContain("/login");
     expect(xml).not.toContain("/terminal");
     expect(xml).not.toContain("/skills");
     expect(xml).not.toContain("/display");
@@ -155,10 +156,14 @@ describe("pages", () => {
     expect(isDocumentPath("/terminal")).toBe(true);
     expect(isDocumentPath("/skills")).toBe(true);
     expect(isDocumentPath("/display")).toBe(true);
-    for (const path of ["/player", "/pictures", "/awards", "/convert", "/facts", "/hack", "/buddy", "/run", "/find", "/pad"]) {
+    for (const path of ["/player", "/pictures", "/awards", "/convert", "/facts", "/hack", "/buddy", "/run", "/find", "/pad", "/login"]) {
       expect(isDocumentPath(path)).toBe(true);
       expect(xml).not.toContain(`https://pocketnugget.xyz${path}</loc>`);
     }
+    expect(documentBody("/login")).toContain("Loading login.");
+    expect(commandFor("/login")).toBe("login");
+    expect(render("/help")).not.toContain(">login<");
+    expect(render("/colophon")).toContain("suggestions");
   });
 });
 

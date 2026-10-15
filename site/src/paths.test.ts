@@ -17,6 +17,8 @@ describe("paths", () => {
     expect(isDocumentPath("/work/no-such-project")).toBe(false);
     expect(isDocumentPath("/notes/model-files")).toBe(true);
     expect(isDocumentPath("/admin")).toBe(true);
+    expect(isDocumentPath("/login")).toBe(true);
+    expect(isDocumentPath("/admin/login")).toBe(true);
     const xml = sitemapXml();
     expect(xml.startsWith("<?xml")).toBe(true);
     expect(xml).toContain("https://pocketnugget.xyz/notes/model-files");
@@ -25,6 +27,7 @@ describe("paths", () => {
       expect(path.startsWith("/admin")).toBe(false);
     }
     expect(xml).not.toContain("/admin");
+    expect(xml).not.toContain("/login");
     expect(xml).not.toContain("/pad</loc>");
   });
 

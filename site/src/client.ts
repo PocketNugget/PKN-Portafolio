@@ -212,8 +212,7 @@ async function renderAdmin(root: HTMLElement): Promise<void> {
   const session = await api("/api/session");
   if (session.status === 401) {
     const anchor = document.createElement("a");
-    anchor.href = "/admin/login";
-    anchor.dataset.cmd = "login";
+    anchor.href = "/login";
     anchor.textContent = "login";
     const note = el("p", "No session. ");
     note.append(anchor);
@@ -380,16 +379,16 @@ async function renderAdmin(root: HTMLElement): Promise<void> {
     })();
   });
 
-  const notesHead = el("h2", "Notepad");
+  const notesHead = el("h2", "Suggestions");
   const notesWrap = document.createElement("div");
   notesWrap.className = "notepad";
   const noteResponse = await api("/api/comments");
   let armedNote = 0;
   if (!noteResponse.ok) {
-    notesWrap.append(el("p", "The pad did not load."));
+    notesWrap.append(el("p", "The suggestions did not load."));
   } else {
     const notes = readNotes(await noteResponse.json());
-    if (notes.length === 0) notesWrap.append(el("p", "The pad is empty."));
+    if (notes.length === 0) notesWrap.append(el("p", "No suggestions yet."));
     for (const note of notes) {
       const row = document.createElement("article");
       row.className = "notepad-line";
@@ -430,6 +429,6 @@ export function hydrate(pathname: string, scope: ParentNode = document): void {
     if (/^[a-z0-9-]+$/.test(slug)) void renderBlogPost(root, slug);
     else line(root, "no such post.");
   }
-  else if (path === "/admin/login") renderLogin(root);
+  else if (path === "/login" || path === "/admin/login") renderLogin(root);
   else if (path === "/admin") void renderAdmin(root);
 }
