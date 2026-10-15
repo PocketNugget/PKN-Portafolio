@@ -261,7 +261,7 @@ function radioPage(): string {
 
 function colophonPage(): string {
   return `<p>This site is a Vite build served by a Cloudflare Worker. The Worker adds the headers, <a href="/.well-known/security.txt">security.txt</a>, and <a href="/build.json">build.json</a>. Most pages are files. There is no contact form.</p>
-    <p>The blog is the exception. Posts and session hashes live in D1. The password hash is a Worker secret. Sessions are HttpOnly cookies. Visitor addresses are not stored.</p>
+    <p>The blog and the notepad are the exception. Posts, notepad notes, and session hashes live in D1. The password hash is a Worker secret. Sessions are HttpOnly cookies. Visitor addresses are not stored.</p>
     <p>The homelab is where Docker and Cloudflare Tunnels live, on a Raspberry Pi and on the STEM Mac Mini while that apprenticeship ran. I did not put Kubernetes in front of these pages. Naming a cluster here would not make the site safer. Terraform for the DNS zone can come later, against the real zone, not as a diagram.</p>
     <p>Scripts and styles are same-origin. The window font is Pixelated MS Sans Serif by lou on Fontstruct, shipped under CC BY-SA 3.0 with 98.css. It is not loaded from a third party. The only cookie is the editor session, and only after login. <code>scripts/check.sh</code> typechecks, runs the tests, and greps the build for the defaults I do not want shipped.</p>
     <p>A coding agent drafted parts of this, and then the check script and I read it. That is the same habit as the rest of the work: the tool can type, the diff still has to be mine.</p>`;
@@ -325,6 +325,7 @@ export function documentBody(pathname: string): string {
   if (path === "/buddy") return `<p>The assistant is on the desktop.</p>`;
   if (path === "/run") return `<div class="run-mount"></div>`;
   if (path === "/find") return `<div class="find-mount"></div>`;
+  if (path === "/pad") return `<div class="notepad-mount"></div>`;
   return notFound();
 }
 
@@ -356,6 +357,7 @@ export function commandFor(pathname: string): string {
   if (path === "/buddy") return "buddy";
   if (path === "/run") return "run";
   if (path === "/find") return "find";
+  if (path === "/pad") return "pad";
   return "help";
 }
 

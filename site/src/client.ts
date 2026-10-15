@@ -1,3 +1,4 @@
+import { readNotes } from "./desktop/pad";
 import { assertSafeHtml, renderNote } from "./notes";
 import { normalizePath } from "./paths";
 import { drawQr } from "./qr";
@@ -369,7 +370,44 @@ async function renderAdmin(root: HTMLElement): Promise<void> {
     })();
   });
 
-  root.append(form, el("h2", "posts"), list, passForm, logout);
+  const notesHead = el("h2", "Notepad");
+  const notesWrap = document.createElement("div");
+  notesWrap.className = "notepad";
+  const noteResponse = await api("/api/comments");
+  let armedNote = 0;
+  if (!noteResponse.ok) {
+    notesWrap.append(el("p", "The pad did not load."));
+  } else {
+    const notes = readNotes(await noteResponse.json());
+    if (notes.length === 0) notesWrap.append(el("p", "The pad is empty."));
+    for (const note of notes) {
+      const row = document.createElement("article");
+      row.className = "notepad-line";
+      const who = el("p", `${note.name}  ${note.created.slice(0, 10)}`);
+      who.className = "notepad-who";
+      const text = el("p", note.body);
+      text.className = "notepad-body";
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "delete";
+      remove.addEventListener("click", () => {
+        void (async () => {
+          if (armedNote !== note.id) {
+            armedNote = note.id;
+            remove.textContent = "delete, again";
+            return;
+          }
+          const response = await api(`/api/comments/${note.id}`, { method: "DELETE" });
+          if (response.status === 204) row.remove();
+          else status.textContent = "delete failed.";
+        })();
+      });
+      row.append(who, text, remove);
+      notesWrap.append(row);
+    }
+  }
+
+  root.append(form, el("h2", "posts"), list, notesHead, notesWrap, passForm, logout);
 }
 
 export function hydrate(pathname: string, scope: ParentNode = document): void {

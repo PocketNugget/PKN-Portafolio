@@ -36,7 +36,8 @@ export function isDocumentPath(pathname: string): boolean {
     path === "/hack" ||
     path === "/buddy" ||
     path === "/run" ||
-    path === "/find"
+    path === "/find" ||
+    path === "/pad"
   ) {
     return true;
   }

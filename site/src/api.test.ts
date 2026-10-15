@@ -183,6 +183,119 @@ describe("blog api", () => {
     expect(locked.status).toBe(429);
   });
 
+  it("stores a public note as text and lets the editor delete it", async () => {
+    const store = new MemoryStore();
+    const hash = await authHash();
+    const auth = { user: "goben", hash };
+    const foreign = await handleApi(
+      new Request("https://pocketnugget.com/api/comments", {
+        method: "POST",
+        headers: { origin: "https://evil.example", "content-type": "application/json" },
+        body: JSON.stringify({ name: "Ada", body: "hi" }),
+      }),
+      store,
+      auth,
+      NOW,
+    );
+    expect(foreign.status).toBe(403);
+
+    const badType = await handleApi(
+      new Request("https://pocketnugget.com/api/comments", {
+        method: "POST",
+        headers: { origin: "https://pocketnugget.com", "content-type": "text/plain" },
+        body: "nope",
+      }),
+      store,
+      auth,
+      NOW,
+    );
+    expect(badType.status).toBe(415);
+
+    const created = await handleApi(
+      post("/api/comments", { name: "Ada", body: "hello <script>alert(1)</script>\nsecond line" }),
+      store,
+      auth,
+      NOW,
+    );
+    expect(created.status).toBe(201);
+    const saved = (await created.json()) as { note: { id: number; body: string; created: string } };
+    expect(saved.note.body).toContain("<script>");
+    expect(saved.note.created).toBe("2026-10-14T12:00:00.000Z");
+
+    const listed = await handleApi(new Request("https://pocketnugget.com/api/comments"), store, auth, NOW);
+    expect(listed.headers.get("cache-control")).toBe("no-store");
+    const notes = (await listed.json()) as { notes: { body: string; name: string }[] };
+    expect(notes.notes).toHaveLength(1);
+    expect(notes.notes[0].name).toBe("Ada");
+    expect(notes.notes[0].body).toContain("<script>");
+
+    const tooLong = await handleApi(post("/api/comments", { name: "Ada", body: "x".repeat(601) }), store, auth, NOW);
+    expect(tooLong.status).toBe(400);
+    const tooManyLines = await handleApi(
+      post("/api/comments", { name: "Ada", body: "a\nb\nc\nd\ne\nf\ng\nh\ni" }),
+      store,
+      auth,
+      NOW,
+    );
+    expect(tooManyLines.status).toBe(400);
+    const control = await handleApi(post("/api/comments", { name: "Ada", body: "hi\u0007" }), store, auth, NOW);
+    expect(control.status).toBe(400);
+
+    const trap = await handleApi(
+      post("/api/comments", { name: "Bot", body: "spam", company: "acme" }),
+      store,
+      auth,
+      NOW,
+    );
+    expect(trap.status).toBe(201);
+    const afterTrap = await handleApi(new Request("https://pocketnugget.com/api/comments"), store, auth, NOW);
+    const kept = (await afterTrap.json()) as { notes: unknown[] };
+    expect(kept.notes).toHaveLength(1);
+
+    for (let i = 0; i < 8; i++) {
+      const extra = await handleApi(post("/api/comments", { name: "Ada", body: `note ${i}` }), store, auth, NOW + i + 1);
+      expect(extra.status).toBe(201);
+    }
+    const limited = await handleApi(post("/api/comments", { name: "Ada", body: "one more" }), store, auth, NOW + 20);
+    expect(limited.status).toBe(429);
+    const full = await handleApi(new Request("https://pocketnugget.com/api/comments"), store, auth, NOW);
+    const rows = (await full.json()) as { notes: { body: string }[] };
+    expect(rows.notes.some((note) => note.body === "one more")).toBe(false);
+
+    const token = "token-token-token-token";
+    await store.putSession(await sha256Hex(token), NOW + 60_000);
+    const denied = await handleApi(
+      new Request("https://pocketnugget.com/api/comments/1", {
+        method: "DELETE",
+        headers: { origin: "https://pocketnugget.com" },
+      }),
+      store,
+      auth,
+      NOW,
+    );
+    expect(denied.status).toBe(401);
+    const removed = await handleApi(
+      new Request("https://pocketnugget.com/api/comments/1", {
+        method: "DELETE",
+        headers: { origin: "https://pocketnugget.com", cookie: `pkn_session=${token}` },
+      }),
+      store,
+      auth,
+      NOW,
+    );
+    expect(removed.status).toBe(204);
+    const missing = await handleApi(
+      new Request("https://pocketnugget.com/api/comments/1", {
+        method: "DELETE",
+        headers: { origin: "https://pocketnugget.com", cookie: `pkn_session=${token}` },
+      }),
+      store,
+      auth,
+      NOW,
+    );
+    expect(missing.status).toBe(404);
+  });
+
   it("serves the api as unavailable when there is no store", async () => {
     const response = await handle(new Request("https://pocketnugget.com/api/blog"), env());
     expect(response.status).toBe(503);

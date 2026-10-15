@@ -26,6 +26,9 @@ export const ICONS: Record<string, string> = {
   certs: svg(
     `<rect x="5" y="5" width="22" height="16" fill="#f4f0e4" stroke="#000"/><path d="M8 10 h16 M8 14 h12" stroke="#000080"/><circle cx="16" cy="24" r="4" fill="#c0a000" stroke="#000"/>`,
   ),
+  pad: svg(
+    `<rect x="7" y="3" width="18" height="26" fill="#fff8a0" stroke="#000"/><path d="M12 3 v26" stroke="#c00000"/><path d="M15 9 h7 M15 13 h7 M15 17 h7 M15 21 h5" stroke="#000080"/><circle cx="9" cy="8" r="1.2" fill="#808080"/><circle cx="9" cy="14" r="1.2" fill="#808080"/><circle cx="9" cy="20" r="1.2" fill="#808080"/>`,
+  ),
   blog: svg(
     `<rect x="5" y="4" width="22" height="24" fill="#fff" stroke="#000"/><rect x="5" y="4" width="22" height="6" fill="#000080"/><path d="M8 14 h16 M8 18 h16 M8 22 h10" stroke="#222"/>`,
   ),

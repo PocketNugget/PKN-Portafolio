@@ -7,6 +7,7 @@ import { parseCommand } from "../shell";
 import { mountClippy } from "./buddy";
 import { mountConvert } from "./convert";
 import { mountFind, mountRun } from "./extras";
+import { mountPad } from "./pad";
 import { mountFacts } from "./facts";
 import { mountGallery } from "./gallery";
 import { mountHack } from "./hack";
@@ -59,6 +60,7 @@ const APPS: App[] = [
   { id: "notes", label: "Notes", path: "/notes", icon: "notes", desk: true },
   { id: "certs", label: "Courses", path: "/certs", icon: "certs", desk: true },
   { id: "blog", label: "Blog", path: "/blog", icon: "blog", desk: true },
+  { id: "pad", label: "Notepad", path: "/pad", icon: "pad", desk: true },
   { id: "links", label: "My Links", path: "/links", icon: "links", desk: false },
   { id: "contact", label: "Contact", path: "/contact", icon: "contact", desk: true },
   { id: "terminal", label: "Terminal", path: "/terminal", icon: "terminal", desk: true },
@@ -79,7 +81,7 @@ const APPS: App[] = [
 
 const MENU_GROUPS = [
   ["about", "jobs", "projects", "skills"],
-  ["radio", "notes", "certs", "blog", "links", "contact"],
+  ["radio", "notes", "certs", "blog", "pad", "links", "contact"],
   ["terminal", "help", "display", "run", "find", "colophon", "login"],
   ["pictures", "awards", "player", "convert", "facts", "hack", "buddy"],
 ];
@@ -100,8 +102,9 @@ const SIZES: Record<string, [number, number]> = {
   "/hack": [440, 320],
   "/run": [320, 160],
   "/find": [420, 320],
+  "/pad": [420, 480],
   "/admin/login": [360, 520],
-  "/admin": [520, 480],
+  "/admin": [560, 640],
 };
 
 const SOCIAL: { label: string; href: string; icon: string }[] = [
@@ -384,6 +387,8 @@ export function bootDesktop(): void {
     if (runHost instanceof HTMLElement) win.host = mountRun(runHost, (href) => openHref(href));
     const findHost = body.querySelector(".find-mount");
     if (findHost instanceof HTMLElement) win.host = mountFind(findHost, (href) => openHref(href));
+    const padHost = body.querySelector(".notepad-mount");
+    if (padHost instanceof HTMLElement) win.host = mountPad(padHost);
     const filter = body.querySelector("#work-filter");
     if (filter instanceof HTMLSelectElement) {
       filter.addEventListener("change", () => {

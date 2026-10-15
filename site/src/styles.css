@@ -1178,8 +1178,16 @@ button#lang,
     flex-wrap: wrap;
   }
 
+  form.editor > label {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
   form.login button,
   form.editor button,
+  form.notepad-form button,
+  .notepad button,
   #desk-menu button {
     min-height: 40px;
   }
@@ -1225,4 +1233,82 @@ button#lang,
     min-width: 196px;
     max-width: 240px;
   }
+}
+
+.notepad {
+  background: #fff8a0;
+  border-left: 16px solid #c00000;
+  padding: 8px 10px 10px;
+  box-sizing: border-box;
+}
+
+.notepad-mount {
+  min-height: 100%;
+}
+
+.notepad-form {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.notepad-lead {
+  margin: 0;
+}
+
+.notepad-form input,
+.notepad-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: #fff8a0;
+  border: 0;
+  border-bottom: 1px solid #7a1f1f;
+  box-shadow: none;
+  color: #111;
+}
+
+.notepad-form textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.notepad-form button {
+  align-self: flex-start;
+}
+
+.notepad-hp {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.notepad-hp input {
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+}
+
+.notepad-line {
+  border-bottom: 1px solid #e0c878;
+  padding: 6px 0;
+  margin: 0;
+}
+
+.notepad-who {
+  font-weight: 700;
+  margin: 0 0 2px;
+}
+
+.notepad-body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }

@@ -14,6 +14,13 @@ export interface AuthRow {
   recovery: string[];
 }
 
+export interface Note {
+  id: number;
+  name: string;
+  body: string;
+  created: number;
+}
+
 export interface Store {
   ensure(): Promise<void>;
   listPosts(): Promise<Post[]>;
@@ -32,13 +39,19 @@ export interface Store {
   setPasswordHash(hash: string): Promise<boolean>;
   markTotpReady(): Promise<void>;
   consumeRecovery(hash: string): Promise<boolean>;
+  listNotes(limit: number): Promise<Note[]>;
+  insertNote(note: Omit<Note, "id">): Promise<Note>;
+  deleteNote(id: number): Promise<boolean>;
+  countNoteAttempts(since: number): Promise<number>;
+  addNoteAttempt(at: number): Promise<void>;
+  clearNoteAttempts(before: number): Promise<void>;
 }
 
 interface D1Statement {
   bind(...values: unknown[]): D1Statement;
   all<T>(): Promise<{ results?: T[] }>;
   first<T>(): Promise<T | null>;
-  run(): Promise<unknown>;
+  run(): Promise<{ meta?: { last_row_id?: number } }>;
 }
 
 export interface D1Like {
@@ -51,6 +64,8 @@ const SCHEMA = [
   "CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, expires INTEGER NOT NULL)",
   "CREATE TABLE IF NOT EXISTS login_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL)",
   "CREATE TABLE IF NOT EXISTS auth (id INTEGER PRIMARY KEY CHECK (id = 1), password_hash TEXT NOT NULL DEFAULT '', totp_cipher TEXT NOT NULL DEFAULT '', totp_ready INTEGER NOT NULL DEFAULT 0, recovery TEXT NOT NULL DEFAULT '[]')",
+  "CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, body TEXT NOT NULL, created INTEGER NOT NULL)",
+  "CREATE TABLE IF NOT EXISTS comment_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL)",
 ];
 
 export class D1Store implements Store {
@@ -169,6 +184,52 @@ export class D1Store implements Store {
     await this.saveAuth(row);
     return true;
   }
+
+  async listNotes(limit: number): Promise<Note[]> {
+    const cap = Math.max(0, Math.min(80, limit));
+    const rows = await this.db
+      .prepare("SELECT id, name, body, created FROM comments ORDER BY created DESC, id DESC LIMIT ?")
+      .bind(cap)
+      .all<Note>();
+    return rows.results ?? [];
+  }
+
+  async insertNote(note: Omit<Note, "id">): Promise<Note> {
+    const result = await this.db
+      .prepare("INSERT INTO comments (name, body, created) VALUES (?, ?, ?)")
+      .bind(note.name, note.body, note.created)
+      .run();
+    const id = result.meta?.last_row_id;
+    if (id && id > 0) return { id, ...note };
+    const row = await this.db
+      .prepare("SELECT id FROM comments WHERE created = ? ORDER BY id DESC LIMIT 1")
+      .bind(note.created)
+      .first<{ id: number }>();
+    return { id: row?.id ?? 0, ...note };
+  }
+
+  async deleteNote(id: number): Promise<boolean> {
+    const existing = await this.db.prepare("SELECT id FROM comments WHERE id = ?").bind(id).first<{ id: number }>();
+    if (!existing) return false;
+    await this.db.prepare("DELETE FROM comments WHERE id = ?").bind(id).run();
+    return true;
+  }
+
+  async countNoteAttempts(since: number): Promise<number> {
+    const row = await this.db
+      .prepare("SELECT COUNT(*) AS n FROM comment_attempts WHERE at >= ?")
+      .bind(since)
+      .first<{ n: number }>();
+    return row?.n ?? 0;
+  }
+
+  async addNoteAttempt(at: number): Promise<void> {
+    await this.db.prepare("INSERT INTO comment_attempts (at) VALUES (?)").bind(at).run();
+  }
+
+  async clearNoteAttempts(before: number): Promise<void> {
+    await this.db.prepare("DELETE FROM comment_attempts WHERE at < ?").bind(before).run();
+  }
 }
 
 function decodeAuth(passwordHash: string, totpCipher: string, totpReady: number, recovery: string): AuthRow {
@@ -187,6 +248,9 @@ export class MemoryStore implements Store {
   sessions = new Map<string, number>();
   attempts: number[] = [];
   auth: AuthRow | null = null;
+  notes: Note[] = [];
+  noteAttempts: number[] = [];
+  private noteSeq = 1;
 
   async ensure(): Promise<void> {}
 
@@ -265,5 +329,35 @@ export class MemoryStore implements Store {
     if (!this.auth || !this.auth.recovery.includes(hash)) return false;
     this.auth.recovery = this.auth.recovery.filter((item) => item !== hash);
     return true;
+  }
+
+  async listNotes(limit: number): Promise<Note[]> {
+    const cap = Math.max(0, Math.min(80, limit));
+    return [...this.notes].sort((a, b) => b.created - a.created || b.id - a.id).slice(0, cap);
+  }
+
+  async insertNote(note: Omit<Note, "id">): Promise<Note> {
+    const saved = { ...note, id: this.noteSeq };
+    this.noteSeq += 1;
+    this.notes.push(saved);
+    return saved;
+  }
+
+  async deleteNote(id: number): Promise<boolean> {
+    const before = this.notes.length;
+    this.notes = this.notes.filter((note) => note.id !== id);
+    return this.notes.length !== before;
+  }
+
+  async countNoteAttempts(since: number): Promise<number> {
+    return this.noteAttempts.filter((at) => at >= since).length;
+  }
+
+  async addNoteAttempt(at: number): Promise<void> {
+    this.noteAttempts.push(at);
+  }
+
+  async clearNoteAttempts(before: number): Promise<void> {
+    this.noteAttempts = this.noteAttempts.filter((at) => at >= before);
   }
 }

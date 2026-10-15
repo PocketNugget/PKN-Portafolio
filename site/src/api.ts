@@ -1,10 +1,12 @@
 import { randomToken, safeEqual, sha256Hex, verifyPassword } from "./password";
-import type { Store } from "./store";
+import type { Note, Store } from "./store";
 import { openSecret, otpauthUri, totpMatches } from "./totp";
 
 const COOKIE = "pkn_session";
 const WINDOW_MS = 15 * 60 * 1000;
 const LOCK_AFTER = 8;
+const NOTE_LIMIT = 10;
+const NOTE_LINES = 8;
 const SESSION_MS = 12 * 60 * 60 * 1000;
 const MAX_BODY = 100_000;
 
@@ -77,6 +79,51 @@ function field(value: unknown, max: number): string | null {
   if (!trimmed || trimmed.length > max) return null;
   if (trimmed.includes("\0")) return null;
   return trimmed;
+}
+
+function noteName(value: unknown): string | null {
+  const name = field(value, 40);
+  if (!name || /[\u0000-\u001F\u007F]/.test(name)) return null;
+  return name;
+}
+
+function noteBody(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const text = value.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
+  if (!text || text.length > 600) return null;
+  if (/[\u0000-\u0009\u000B-\u001F\u007F]/.test(text)) return null;
+  if (text.split("\n").length > NOTE_LINES) return null;
+  return text;
+}
+
+function publicNote(note: Note) {
+  return {
+    id: note.id,
+    name: note.name,
+    body: note.body,
+    created: new Date(note.created).toISOString(),
+  };
+}
+
+async function createNote(request: Request, store: Store, now: number): Promise<Response> {
+  if (!originOk(request)) return text(403, "bad origin\n");
+  const body = await readJson(request);
+  if (body instanceof Response) return body;
+  const record = body as { name?: unknown; body?: unknown; company?: unknown };
+  const trap = typeof record.company === "string" && record.company.trim().length > 0;
+  await store.clearNoteAttempts(now - WINDOW_MS);
+  const full = (await store.countNoteAttempts(now - WINDOW_MS)) >= NOTE_LIMIT;
+  if (trap) {
+    if (!full) await store.addNoteAttempt(now);
+    return json(201, { note: { id: 0, name: "ok", body: "", created: new Date(now).toISOString() } });
+  }
+  const name = noteName(record.name);
+  const written = noteBody(record.body);
+  if (!name || !written) return text(400, "name and note are required\n");
+  if (full) return text(429, "too many notes\n");
+  const saved = await store.insertNote({ name, body: written, created: now });
+  await store.addNoteAttempt(now);
+  return json(201, { note: publicNote(saved) });
 }
 
 export function slugify(title: string): string {
@@ -270,6 +317,23 @@ export async function handleApi(
     return json(200, { posts: posts.map(publicPost) });
   }
   if (path === "/api/blog" && method === "POST") return create(request, store, auth, now);
+  if (path === "/api/comments" && method === "GET") {
+    const notes = await store.listNotes(80);
+    return json(200, { notes: notes.map(publicNote) });
+  }
+  if (path === "/api/comments" && method === "POST") return createNote(request, store, now);
+
+  const comment = /^\/api\/comments\/([1-9]\d*)$/.exec(path);
+  if (comment) {
+    if (method !== "DELETE") return text(405, "method not allowed\n");
+    const denied = await requireUser(request, store, auth, now);
+    if (denied) return denied;
+    const id = Number(comment[1]);
+    if (!Number.isSafeInteger(id)) return text(404, "no such note\n");
+    const removed = await store.deleteNote(id);
+    if (!removed) return text(404, "no such note\n");
+    return text(204, "");
+  }
 
   const one = /^\/api\/blog\/([a-z0-9-]+)$/.exec(path);
   if (!one) {
