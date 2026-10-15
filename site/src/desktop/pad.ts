@@ -1,3 +1,4 @@
+import { cleanBlock, cleanLine, NOTE_BODY_MAX, NOTE_LINES, NOTE_NAME_MAX } from "../plain";
 import type { DeskApp } from "./host";
 import { idleApp } from "./host";
 
@@ -16,13 +17,12 @@ export function readNotes(value: unknown): PublicNote[] {
   for (const item of notes) {
     if (!item || typeof item !== "object") continue;
     const note = item as { id?: unknown; name?: unknown; body?: unknown; created?: unknown };
-    if (typeof note.id !== "number" || typeof note.name !== "string" || typeof note.body !== "string") continue;
-    out.push({
-      id: note.id,
-      name: note.name,
-      body: note.body,
-      created: typeof note.created === "string" ? note.created : "",
-    });
+    if (typeof note.id !== "number" || !Number.isSafeInteger(note.id) || note.id < 1) continue;
+    if (typeof note.name !== "string" || typeof note.body !== "string" || typeof note.created !== "string") continue;
+    const name = cleanLine(note.name, NOTE_NAME_MAX);
+    const body = cleanBlock(note.body, NOTE_BODY_MAX, NOTE_LINES);
+    if (!name || !body || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(note.created)) continue;
+    out.push({ id: note.id, name, body, created: note.created });
   }
   return out;
 }
@@ -101,6 +101,10 @@ export function mountPad(host: HTMLElement): DeskApp {
     event.preventDefault();
     void (async () => {
       status.textContent = "";
+      if (!cleanLine(name.value, NOTE_NAME_MAX) || !cleanBlock(body.value, NOTE_BODY_MAX, NOTE_LINES)) {
+        status.textContent = "The pad did not save that.";
+        return;
+      }
       const response = await fetch("/api/comments", {
         method: "POST",
         credentials: "same-origin",

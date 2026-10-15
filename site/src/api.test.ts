@@ -212,14 +212,15 @@ describe("blog api", () => {
     expect(badType.status).toBe(415);
 
     const created = await handleApi(
-      post("/api/comments", { name: "Ada", body: "hello <script>alert(1)</script>\nsecond line" }),
+      post("/api/comments", { name: "Ada", body: "Tom & Jerry said \"hi\"\nsecond line" }),
       store,
       auth,
       NOW,
     );
     expect(created.status).toBe(201);
     const saved = (await created.json()) as { note: { id: number; body: string; created: string } };
-    expect(saved.note.body).toContain("<script>");
+    expect(saved.note.body).toBe("Tom & Jerry said \"hi\"\nsecond line");
+    expect(saved.note.body).not.toContain("<");
     expect(saved.note.created).toBe("2026-10-14T12:00:00.000Z");
 
     const listed = await handleApi(new Request("https://pocketnugget.com/api/comments"), store, auth, NOW);
@@ -227,7 +228,19 @@ describe("blog api", () => {
     const notes = (await listed.json()) as { notes: { body: string; name: string }[] };
     expect(notes.notes).toHaveLength(1);
     expect(notes.notes[0].name).toBe("Ada");
-    expect(notes.notes[0].body).toContain("<script>");
+    expect(notes.notes[0].body).toContain("Tom & Jerry");
+
+    const markup = await handleApi(
+      post("/api/comments", { name: "Ada", body: "hello <script>alert(1)</script>" }),
+      store,
+      auth,
+      NOW,
+    );
+    expect(markup.status).toBe(400);
+    const wide = await handleApi(post("/api/comments", { name: "Ada", body: "hello \uFF1Cscript\uFF1E" }), store, auth, NOW);
+    expect(wide.status).toBe(400);
+    const hidden = await handleApi(post("/api/comments", { name: "Ada", body: "hello <\u200Bscript>" }), store, auth, NOW);
+    expect(hidden.status).toBe(400);
 
     const tooLong = await handleApi(post("/api/comments", { name: "Ada", body: "x".repeat(601) }), store, auth, NOW);
     expect(tooLong.status).toBe(400);
@@ -294,6 +307,40 @@ describe("blog api", () => {
       NOW,
     );
     expect(missing.status).toBe(404);
+  });
+
+  it("rejects markup in a post title and still escapes markup inside the body", async () => {
+    const store = new MemoryStore();
+    const hash = await authHash();
+    const auth = { user: "goben", hash };
+    const token = "token-token-token-token";
+    await store.putSession(await sha256Hex(token), NOW + 60_000);
+    const badTitle = await handleApi(
+      post("/api/blog", { title: "hello <script>", content: "plain text", tags: "soc" }, `pkn_session=${token}`),
+      store,
+      auth,
+      NOW,
+    );
+    expect(badTitle.status).toBe(400);
+    const badTags = await handleApi(
+      post("/api/blog", { title: "Shift note", content: "plain text", tags: "<script>" }, `pkn_session=${token}`),
+      store,
+      auth,
+      NOW,
+    );
+    expect(badTags.status).toBe(400);
+    const created = await handleApi(
+      post("/api/blog", { title: "Shift note", content: "hello <script>alert(1)</script>", tags: "soc" }, `pkn_session=${token}`),
+      store,
+      auth,
+      NOW,
+    );
+    expect(created.status).toBe(201);
+    const { slug } = (await created.json()) as { slug: string };
+    const pub = await handleApi(new Request(`https://pocketnugget.com/api/blog/${slug}`), store, auth, NOW);
+    const body = (await pub.json()) as { content: string; title: string };
+    expect(body.content).toContain("<script>");
+    expect(renderNote(body.content)).not.toMatch(/<script/i);
   });
 
   it("serves the api as unavailable when there is no store", async () => {

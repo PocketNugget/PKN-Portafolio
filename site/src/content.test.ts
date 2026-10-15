@@ -43,6 +43,21 @@ describe("notes", () => {
 
   it("rejects a handler that got past the renderer", () => {
     expect(() => assertSafeHtml('<a href="/" onclick="x">t</a>')).toThrow(/rejected/);
+    expect(() => assertSafeHtml("<iframe src=https://example.com></iframe>")).toThrow(/rejected/);
+    expect(() => assertSafeHtml("<svg/onload=alert(1)>")).toThrow(/rejected/);
+  });
+
+  it("drops script urls and escapes raw tags", () => {
+    const scriptLink = renderNote("see [x](javascript:alert(1))");
+    expect(scriptLink).not.toContain("javascript");
+    expect(scriptLink).not.toContain("<a");
+    expect(renderNote("see [x](//evil.example)")).toBe("<p>see x</p>");
+    expect(renderNote("see [x](data:text/html,hi)")).toBe("<p>see x</p>");
+    const linked = renderNote("see [x](https://example.com/a)");
+    expect(linked).toContain('href="https://example.com/a"');
+    expect(linked).toContain('rel="noreferrer noopener"');
+    expect(renderNote("hello <svg/onload=alert(1)>")).not.toContain("<svg");
+    expect(renderNote("# <script>alert(1)</script>")).toContain("&lt;script&gt;");
   });
 });
 

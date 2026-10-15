@@ -1,6 +1,7 @@
 import { readNotes } from "./desktop/pad";
 import { assertSafeHtml, renderNote } from "./notes";
 import { normalizePath } from "./paths";
+import { cleanLine, cleanTags } from "./plain";
 import { drawQr } from "./qr";
 
 type Go = (path: string) => void;
@@ -43,7 +44,7 @@ function line(parent: HTMLElement, text: string, className = "err"): void {
 }
 
 function dateLabel(iso: string): string {
-  return iso.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}/.test(iso) ? iso.slice(0, 10) : "";
 }
 
 async function renderBlogList(root: HTMLElement): Promise<void> {
@@ -61,12 +62,16 @@ async function renderBlogList(root: HTMLElement): Promise<void> {
   const list = document.createElement("ul");
   list.className = "ls";
   for (const post of data.posts) {
+    if (!/^[a-z0-9-]+$/.test(post.slug)) continue;
+    const title = cleanLine(post.title, 160);
+    const tags = cleanTags(post.tags);
+    if (!title || tags === null) continue;
     const item = document.createElement("li");
     const anchor = document.createElement("a");
     anchor.href = `/blog/${post.slug}`;
-    anchor.textContent = post.title;
+    anchor.textContent = title;
     item.append(anchor, document.createTextNode(` ${dateLabel(post.created)}`));
-    if (post.tags) item.append(document.createTextNode(` · ${post.tags}`));
+    if (tags) item.append(document.createTextNode(` · ${tags}`));
     list.append(item);
   }
   root.append(list);
@@ -84,10 +89,15 @@ async function renderBlogPost(root: HTMLElement, slug: string): Promise<void> {
     return;
   }
   const post = (await response.json()) as PostFull;
+  if (!/^[a-z0-9-]+$/.test(post.slug)) {
+    line(root, "no such post.");
+    return;
+  }
+  const title = cleanLine(post.title, 160) ?? "post";
   const article = document.createElement("article");
   article.className = "note";
   article.append(el("p", `~/blog/${post.slug}`));
-  article.append(el("h2", post.title));
+  article.append(el("h2", title));
   const meta = el("p", dateLabel(post.created));
   meta.className = "meta";
   article.append(meta);
@@ -415,7 +425,11 @@ export function hydrate(pathname: string, scope: ParentNode = document): void {
   if (!(root instanceof HTMLElement)) return;
   const path = normalizePath(pathname);
   if (path === "/blog") void renderBlogList(root);
-  else if (path.startsWith("/blog/")) void renderBlogPost(root, path.slice("/blog/".length));
+  else if (path.startsWith("/blog/")) {
+    const slug = path.slice("/blog/".length);
+    if (/^[a-z0-9-]+$/.test(slug)) void renderBlogPost(root, slug);
+    else line(root, "no such post.");
+  }
   else if (path === "/admin/login") renderLogin(root);
   else if (path === "/admin") void renderAdmin(root);
 }

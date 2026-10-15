@@ -1,4 +1,6 @@
+import { renderNote } from "./markup";
 import { randomToken, safeEqual, sha256Hex, verifyPassword } from "./password";
+import { cleanBlock, cleanLine, cleanTags, NOTE_BODY_MAX, NOTE_LINES, NOTE_NAME_MAX, scrubInvisible } from "./plain";
 import type { Note, Store } from "./store";
 import { openSecret, otpauthUri, totpMatches } from "./totp";
 
@@ -6,7 +8,6 @@ const COOKIE = "pkn_session";
 const WINDOW_MS = 15 * 60 * 1000;
 const LOCK_AFTER = 8;
 const NOTE_LIMIT = 10;
-const NOTE_LINES = 8;
 const SESSION_MS = 12 * 60 * 60 * 1000;
 const MAX_BODY = 100_000;
 
@@ -73,34 +74,40 @@ async function readJson(request: Request): Promise<unknown | Response> {
   }
 }
 
-function field(value: unknown, max: number): string | null {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  if (!trimmed || trimmed.length > max) return null;
-  if (trimmed.includes("\0")) return null;
-  return trimmed;
-}
-
 function noteName(value: unknown): string | null {
-  const name = field(value, 40);
-  if (!name || /[\u0000-\u001F\u007F]/.test(name)) return null;
-  return name;
+  if (typeof value !== "string") return null;
+  return cleanLine(value, NOTE_NAME_MAX);
 }
 
 function noteBody(value: unknown): string | null {
   if (typeof value !== "string") return null;
-  const text = value.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
-  if (!text || text.length > 600) return null;
-  if (/[\u0000-\u0009\u000B-\u001F\u007F]/.test(text)) return null;
-  if (text.split("\n").length > NOTE_LINES) return null;
-  return text;
+  return cleanBlock(value, NOTE_BODY_MAX, NOTE_LINES);
+}
+
+function markdown(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const cleaned = scrubInvisible(value).trim();
+  if (!cleaned || cleaned.length > 40_000) return null;
+  try {
+    renderNote(cleaned);
+  } catch {
+    return null;
+  }
+  return cleaned;
+}
+
+function publicMarkdown(value: string): string {
+  return markdown(value) ?? "This post failed the HTML check.";
 }
 
 function publicNote(note: Note) {
+  const name = cleanLine(note.name, NOTE_NAME_MAX);
+  const body = cleanBlock(note.body, NOTE_BODY_MAX, NOTE_LINES);
+  if (!name || !body || !Number.isSafeInteger(note.id) || note.id < 1) return null;
   return {
     id: note.id,
-    name: note.name,
-    body: note.body,
+    name,
+    body,
     created: new Date(note.created).toISOString(),
   };
 }
@@ -253,8 +260,8 @@ async function logout(request: Request, store: Store): Promise<Response> {
 function publicPost(post: { slug: string; title: string; tags: string; created: number }) {
   return {
     slug: post.slug,
-    title: post.title,
-    tags: post.tags,
+    title: cleanLine(post.title, 160) ?? "post",
+    tags: cleanTags(post.tags) ?? "",
     created: new Date(post.created).toISOString(),
   };
 }
@@ -265,10 +272,10 @@ async function create(request: Request, store: Store, auth: AuthConfig, now: num
   const body = await readJson(request);
   if (body instanceof Response) return body;
   const record = body as { title?: unknown; content?: unknown; tags?: unknown };
-  const title = field(record.title, 160);
-  const content = field(record.content, 40_000);
-  const tags = typeof record.tags === "string" ? record.tags.trim().slice(0, 200) : "";
-  if (!title || !content) return text(400, "title and content are required\n");
+  const title = typeof record.title === "string" ? cleanLine(record.title, 160) : null;
+  const content = markdown(record.content);
+  const tags = cleanTags(typeof record.tags === "string" ? record.tags : "");
+  if (!title || !content || tags === null) return text(400, "title and content are required\n");
   let slug = slugify(title);
   let n = 2;
   while (await store.getPost(slug)) {
@@ -286,10 +293,10 @@ async function update(request: Request, store: Store, auth: AuthConfig, now: num
   const body = await readJson(request);
   if (body instanceof Response) return body;
   const record = body as { title?: unknown; content?: unknown; tags?: unknown };
-  const title = field(record.title, 160);
-  const content = field(record.content, 40_000);
-  const tags = typeof record.tags === "string" ? record.tags.trim().slice(0, 200) : "";
-  if (!title || !content) return text(400, "title and content are required\n");
+  const title = typeof record.title === "string" ? cleanLine(record.title, 160) : null;
+  const content = markdown(record.content);
+  const tags = cleanTags(typeof record.tags === "string" ? record.tags : "");
+  if (!title || !content || tags === null) return text(400, "title and content are required\n");
   const ok = await store.updatePost(slug, { title, content, tags, updated: now });
   if (!ok) return text(404, "no such post\n");
   return text(204, "");
@@ -318,8 +325,8 @@ export async function handleApi(
   }
   if (path === "/api/blog" && method === "POST") return create(request, store, auth, now);
   if (path === "/api/comments" && method === "GET") {
-    const notes = await store.listNotes(80);
-    return json(200, { notes: notes.map(publicNote) });
+    const notes = (await store.listNotes(80)).map(publicNote).filter((note) => note !== null);
+    return json(200, { notes });
   }
   if (path === "/api/comments" && method === "POST") return createNote(request, store, now);
 
@@ -346,7 +353,7 @@ export async function handleApi(
     if (!post) return text(404, "no such post\n");
     return json(200, {
       ...publicPost(post),
-      content: post.content,
+      content: publicMarkdown(post.content),
       updated: new Date(post.updated).toISOString(),
     });
   }

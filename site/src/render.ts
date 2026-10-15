@@ -13,6 +13,7 @@ import {
   type Project,
 } from "./catalog";
 import { t } from "./i18n";
+import { safeUrl } from "./markup";
 import { noteBySlug, noteSource, renderNote, escapeHtml } from "./notes";
 import { HELP } from "./shell";
 import { normalizePath } from "./paths";
@@ -38,14 +39,15 @@ function tools(list: string[]): string {
   return `<p class="tools">${list.map(escapeHtml).join(", ")}</p>`;
 }
 
+function anchor(href: string, label: string): string {
+  if (!safeUrl(href)) return escapeHtml(label);
+  const rel = href.startsWith("/") ? "" : ' rel="noreferrer noopener"';
+  return `<a href="${escapeHtml(href)}"${rel}>${escapeHtml(label)}</a>`;
+}
+
 function links(list: { label: string; href: string }[]): string {
   if (list.length === 0) return "";
-  return `<p class="links">${list
-    .map((link) => {
-      const rel = link.href.startsWith("/") ? "" : ' rel="noreferrer"';
-      return `<a href="${escapeHtml(link.href)}"${rel}>${escapeHtml(link.label)}</a>`;
-    })
-    .join(" ")}</p>`;
+  return `<p class="links">${list.map((link) => anchor(link.href, link.label)).join(" ")}</p>`;
 }
 
 function tx(value: string): string {
@@ -53,7 +55,7 @@ function tx(value: string): string {
 }
 
 function shot(src: string | undefined): string {
-  if (!src) return "";
+  if (!src || !/^\/media\/[A-Za-z0-9._-]+$/.test(src)) return "";
   return `<img class="shot" src="${escapeHtml(src)}" alt="" />`;
 }
 
@@ -73,7 +75,7 @@ function jobBlock(job: Job, full: boolean): string {
 function projectBlock(project: Project, full: boolean): string {
   const title = full
     ? escapeHtml(project.title)
-    : `<a href="/work/${project.slug}">${escapeHtml(project.title)}</a>`;
+    : anchor(`/work/${project.slug}`, project.title);
   const body = full
     ? `<p>${tx(project.summary)}</p>${project.body.map((paragraph) => `<p>${tx(paragraph)}</p>`).join("")}`
     : `<p>${tx(project.summary)}</p>`;
@@ -175,7 +177,7 @@ function workPage(): string {
   const dump = archive
     .map(
       (item) =>
-        `<li><a rel="noreferrer" href="${escapeHtml(item.href)}">${escapeHtml(item.name)}</a></li>`,
+        `<li>${anchor(item.href, item.name)}</li>`,
     )
     .join("");
   return `<h2>${tx("Work")}</h2>
@@ -200,7 +202,7 @@ function notesPage(): string {
   const items = notes
     .map(
       (note) =>
-        `<li><a href="/notes/${note.slug}">${escapeHtml(note.title)}</a> <span class="meta">${escapeHtml(note.date)}</span></li>`,
+        `<li>${anchor(`/notes/${note.slug}`, note.title)} <span class="meta">${escapeHtml(note.date)}</span></li>`,
     )
     .join("");
   return `<ul class="ls">${items}</ul>
@@ -234,7 +236,7 @@ function linksPage(): string {
   const rows = linkPage
     .map(
       (link) =>
-        `<li><a rel="noreferrer" href="${escapeHtml(link.href)}">${escapeHtml(link.label)}</a></li>`,
+        `<li>${anchor(link.href, link.label)}</li>`,
     )
     .join("");
   return `<p class="path">~/links</p><ul class="ls">${rows}</ul>`;
@@ -248,7 +250,7 @@ function contactPage(): string {
   const rows = Object.values(profiles)
     .map(
       (profile) =>
-        `<li><a rel="noreferrer" href="${escapeHtml(profile.href)}">${escapeHtml(profile.label)}</a></li>`,
+        `<li>${anchor(profile.href, profile.label)}</li>`,
     )
     .join("");
   return `<ul class="ls">${rows}</ul><p>${tx("No form. The address above is the one I read.")}</p>`;
