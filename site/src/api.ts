@@ -1,0 +1,237 @@
+import { randomToken, safeEqual, sha256Hex, verifyPassword } from "./password";
+import type { Store } from "./store";
+
+const COOKIE = "pkn_session";
+const WINDOW_MS = 15 * 60 * 1000;
+const LOCK_AFTER = 8;
+const SESSION_MS = 12 * 60 * 60 * 1000;
+const MAX_BODY = 100_000;
+
+export interface AuthConfig {
+  user: string;
+  hash: string;
+}
+
+function text(status: number, body: string, extra?: Headers): Response {
+  const headers = extra ?? new Headers();
+  headers.set("content-type", "text/plain; charset=utf-8");
+  headers.set("cache-control", "no-store");
+  return new Response(status === 204 ? null : body, { status, headers });
+}
+
+function json(status: number, value: unknown, extra?: Headers): Response {
+  const headers = extra ?? new Headers();
+  headers.set("content-type", "application/json; charset=utf-8");
+  headers.set("cache-control", "no-store");
+  return Response.json(value, { status, headers });
+}
+
+function cookieHeader(request: Request): string | null {
+  return request.headers.get("cookie");
+}
+
+export function readCookie(header: string | null, name: string): string | null {
+  if (!header) return null;
+  for (const part of header.split(";")) {
+    const trimmed = part.trim();
+    const eq = trimmed.indexOf("=");
+    if (eq === -1) continue;
+    if (trimmed.slice(0, eq) === name) return trimmed.slice(eq + 1);
+  }
+  return null;
+}
+
+function sessionCookie(token: string, request: Request, maxAge: number): string {
+  const secure = new URL(request.url).protocol === "https:" ? "; Secure" : "";
+  return `${COOKIE}=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${maxAge}${secure}`;
+}
+
+function originOk(request: Request): boolean {
+  const origin = request.headers.get("origin");
+  if (!origin) return false;
+  return origin === new URL(request.url).origin;
+}
+
+function configured(auth: AuthConfig): boolean {
+  return auth.user.length > 0 && /^sha256\$[0-9a-f]{64}$/.test(auth.hash);
+}
+
+async function readJson(request: Request): Promise<unknown | Response> {
+  if (!(request.headers.get("content-type") ?? "").toLowerCase().startsWith("application/json")) {
+    return text(415, "content-type must be application/json\n");
+  }
+  const raw = await request.text();
+  if (raw.length > MAX_BODY) return text(413, "too large\n");
+  try {
+    return JSON.parse(raw) as unknown;
+  } catch {
+    return text(400, "bad json\n");
+  }
+}
+
+function field(value: unknown, max: number): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.length > max) return null;
+  if (trimmed.includes("\0")) return null;
+  return trimmed;
+}
+
+export function slugify(title: string): string {
+  const slug = title
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+  return slug || "post";
+}
+
+async function sessionUser(request: Request, store: Store, auth: AuthConfig, now: number): Promise<boolean> {
+  const token = readCookie(cookieHeader(request), COOKIE);
+  if (!token || token.length < 20 || token.length > 80) return false;
+  const tokenHash = await sha256Hex(token);
+  const expires = await store.getSession(tokenHash);
+  if (!expires || expires < now) {
+    if (expires) await store.deleteSession(tokenHash);
+    return false;
+  }
+  return configured(auth);
+}
+
+async function requireUser(request: Request, store: Store, auth: AuthConfig, now: number): Promise<Response | null> {
+  if (!originOk(request)) return text(403, "bad origin\n");
+  if (!(await sessionUser(request, store, auth, now))) return text(401, "no\n");
+  return null;
+}
+
+async function login(request: Request, store: Store, auth: AuthConfig, now: number): Promise<Response> {
+  if (!originOk(request)) return text(403, "bad origin\n");
+  const body = await readJson(request);
+  if (body instanceof Response) return body;
+  if (!configured(auth)) return text(503, "login is not configured\n");
+  await store.clearAttempts(now - 24 * 60 * 60 * 1000);
+  if ((await store.countAttempts(now - WINDOW_MS)) >= LOCK_AFTER) return text(429, "too many attempts\n");
+  const record = body as { username?: unknown; password?: unknown };
+  const username = typeof record.username === "string" ? record.username : "";
+  const password = typeof record.password === "string" ? record.password : "";
+  if (username.length > 64 || password.length < 1 || password.length > 200) {
+    await store.addAttempt(now);
+    return text(401, "no\n");
+  }
+  const userOk = safeEqual(username, auth.user);
+  const passOk = await verifyPassword(password, auth.hash);
+  if (!userOk || !passOk) {
+    await store.addAttempt(now);
+    return text(401, "no\n");
+  }
+  await store.clearAttempts(now + 1);
+  const token = randomToken();
+  await store.putSession(await sha256Hex(token), now + SESSION_MS);
+  const headers = new Headers();
+  headers.set("set-cookie", sessionCookie(token, request, SESSION_MS / 1000));
+  return text(204, "", headers);
+}
+
+async function logout(request: Request, store: Store): Promise<Response> {
+  if (!originOk(request)) return text(403, "bad origin\n");
+  const token = readCookie(cookieHeader(request), COOKIE);
+  if (token) await store.deleteSession(await sha256Hex(token));
+  const headers = new Headers();
+  headers.set("set-cookie", sessionCookie("", request, 0));
+  return text(204, "", headers);
+}
+
+function publicPost(post: { slug: string; title: string; tags: string; created: number }) {
+  return {
+    slug: post.slug,
+    title: post.title,
+    tags: post.tags,
+    created: new Date(post.created).toISOString(),
+  };
+}
+
+async function create(request: Request, store: Store, auth: AuthConfig, now: number): Promise<Response> {
+  const denied = await requireUser(request, store, auth, now);
+  if (denied) return denied;
+  const body = await readJson(request);
+  if (body instanceof Response) return body;
+  const record = body as { title?: unknown; content?: unknown; tags?: unknown };
+  const title = field(record.title, 160);
+  const content = field(record.content, 40_000);
+  const tags = typeof record.tags === "string" ? record.tags.trim().slice(0, 200) : "";
+  if (!title || !content) return text(400, "title and content are required\n");
+  let slug = slugify(title);
+  let n = 2;
+  while (await store.getPost(slug)) {
+    slug = `${slugify(title).slice(0, 54)}-${n}`;
+    n += 1;
+    if (n > 50) return text(409, "slug collision\n");
+  }
+  await store.insertPost({ slug, title, content, tags, created: now, updated: now });
+  return json(201, { slug });
+}
+
+async function update(request: Request, store: Store, auth: AuthConfig, now: number, slug: string): Promise<Response> {
+  const denied = await requireUser(request, store, auth, now);
+  if (denied) return denied;
+  const body = await readJson(request);
+  if (body instanceof Response) return body;
+  const record = body as { title?: unknown; content?: unknown; tags?: unknown };
+  const title = field(record.title, 160);
+  const content = field(record.content, 40_000);
+  const tags = typeof record.tags === "string" ? record.tags.trim().slice(0, 200) : "";
+  if (!title || !content) return text(400, "title and content are required\n");
+  const ok = await store.updatePost(slug, { title, content, tags, updated: now });
+  if (!ok) return text(404, "no such post\n");
+  return text(204, "");
+}
+
+export async function handleApi(
+  request: Request,
+  store: Store,
+  auth: AuthConfig,
+  now = Date.now(),
+): Promise<Response> {
+  const url = new URL(request.url);
+  const method = request.method;
+  const path = url.pathname;
+
+  if (path === "/api/auth" && method === "POST") return login(request, store, auth, now);
+  if (path === "/api/logout" && method === "POST") return logout(request, store);
+  if (path === "/api/session" && method === "GET") {
+    if (!(await sessionUser(request, store, auth, now))) return text(401, "no\n");
+    return json(200, { user: auth.user });
+  }
+  if (path === "/api/blog" && method === "GET") {
+    const posts = await store.listPosts();
+    return json(200, { posts: posts.map(publicPost) });
+  }
+  if (path === "/api/blog" && method === "POST") return create(request, store, auth, now);
+
+  const one = /^\/api\/blog\/([a-z0-9-]+)$/.exec(path);
+  if (!one) {
+    if (path.startsWith("/api/")) return text(method === "GET" || method === "HEAD" ? 404 : 405, "no\n");
+    return text(404, "no\n");
+  }
+  const slug = one[1];
+  if (method === "GET") {
+    const post = await store.getPost(slug);
+    if (!post) return text(404, "no such post\n");
+    return json(200, {
+      ...publicPost(post),
+      content: post.content,
+      updated: new Date(post.updated).toISOString(),
+    });
+  }
+  if (method === "PUT") return update(request, store, auth, now, slug);
+  if (method === "DELETE") {
+    const denied = await requireUser(request, store, auth, now);
+    if (denied) return denied;
+    const ok = await store.deletePost(slug);
+    if (!ok) return text(404, "no such post\n");
+    return text(204, "");
+  }
+  return text(405, "method not allowed\n");
+}

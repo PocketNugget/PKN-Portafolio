@@ -1,0 +1,313 @@
+:root {
+  --bg: #161513;
+  --fg: #e7e1d5;
+  --dim: #8d877b;
+  --amber: #d0893a;
+  --err: #d06a60;
+  --line: #2c2924;
+  --sans: "IBM Plex Sans", "Source Sans 3", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+body {
+  font-family: var(--sans);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--fg);
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  color: var(--amber);
+}
+
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+}
+
+.frame {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.rail {
+  border-right: 1px solid var(--line);
+  padding: 1.25rem 1rem 6rem;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  color: var(--dim);
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+}
+
+.rail img {
+  width: 36px;
+  height: 36px;
+  display: block;
+  margin-bottom: 0.8rem;
+  object-fit: cover;
+}
+
+.rail p {
+  margin: 0;
+}
+
+.host {
+  color: var(--amber);
+}
+
+.stage {
+  padding: 1.25rem 1.5rem 7rem;
+  max-width: 44rem;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  margin: 0 0 1.4rem;
+  font-family: var(--mono);
+  font-size: 0.84rem;
+}
+
+.nav a {
+  color: var(--dim);
+  text-decoration: none;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.nav a[aria-current="page"] {
+  color: var(--amber);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.echo,
+.path,
+.meta,
+.tools,
+.foot,
+.hint {
+  font-family: var(--mono);
+  font-size: 0.84rem;
+}
+
+.echo {
+  color: var(--dim);
+  margin: 0 0 0.7rem;
+}
+
+.echo b {
+  color: var(--amber);
+  font-weight: 500;
+}
+
+h1,
+h2 {
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 1.05rem;
+  margin: 0 0 0.45rem;
+}
+
+p {
+  margin: 0 0 0.85rem;
+}
+
+.block {
+  margin: 0 0 1.6rem;
+}
+
+.path,
+.meta,
+.tools,
+.foot,
+.hint {
+  color: var(--dim);
+}
+
+.links a + a {
+  margin-left: 0.9rem;
+}
+
+.err {
+  color: var(--err);
+  font-family: var(--mono);
+  font-size: 0.9rem;
+}
+
+.help {
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 0.86rem;
+}
+
+.help th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--amber);
+  padding: 0.28rem 1rem 0.28rem 0;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.help td {
+  padding: 0.28rem 0;
+  color: var(--fg);
+}
+
+.ls {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.4rem;
+  font-family: var(--mono);
+  font-size: 0.86rem;
+}
+
+.ls li {
+  margin: 0.28rem 0;
+}
+
+.note h2 {
+  margin-top: 0;
+}
+
+.note code,
+code {
+  font-family: var(--mono);
+  font-size: 0.92em;
+}
+
+.shell {
+  position: fixed;
+  left: 11rem;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  padding: 0.35rem 1rem calc(0.35rem + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+  font-family: var(--mono);
+}
+
+.shell:focus-within {
+  border-top-color: var(--amber);
+}
+
+.shell label {
+  color: var(--amber);
+}
+
+.shell input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  padding: 0;
+}
+
+.shell input:focus,
+.shell input:focus-visible {
+  outline: none;
+}
+
+@media (max-width: 720px) {
+  .frame {
+    grid-template-columns: 1fr;
+  }
+
+  .rail {
+    position: static;
+    height: auto;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 0.8rem 1rem;
+  }
+
+  .rail img {
+    margin: 0;
+  }
+
+  .stage {
+    padding: 1rem 1rem 6.5rem;
+  }
+
+  .shell {
+    left: 0;
+  }
+}
+
+.login,
+.editor {
+  display: grid;
+  gap: 0.7rem;
+  max-width: 40rem;
+}
+
+.editor label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.login input,
+.editor input,
+.editor textarea,
+.editor button,
+.login button,
+#dynamic button {
+  width: 100%;
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--line);
+  font: inherit;
+  padding: 0.45rem 0.55rem;
+  min-height: 44px;
+}
+
+.editor textarea {
+  min-height: 14rem;
+  font-family: var(--mono);
+  resize: vertical;
+}
+
+#dynamic button,
+.login button,
+.editor button {
+  width: auto;
+}
+
+#dynamic .ls button {
+  width: auto;
+  min-height: 32px;
+  padding: 0 0.45rem;
+}

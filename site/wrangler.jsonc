@@ -1,0 +1,39 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "portfolio",
+  "account_id": "5e60d106c2bb92fb9e1550f4e7230745",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-05-03",
+  "workers_dev": true,
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": true
+    }
+  },
+  "routes": [
+    {
+      "pattern": "pocketnugget.xyz",
+      "custom_domain": true
+    }
+  ],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "none",
+    "html_handling": "none",
+    "run_worker_first": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "pkn",
+      "database_id": "d8bf9b4e-7a24-4f1f-997e-a47c99dd6f79",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

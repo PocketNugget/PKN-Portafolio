@@ -1,0 +1,142 @@
+export interface HelpLine {
+  cmd: string;
+  blurb: string;
+}
+
+export const HELP: HelpLine[] = [
+  { cmd: "help", blurb: "this list" },
+  { cmd: "whoami", blurb: "name, school, where I am looking" },
+  { cmd: "jobs", blurb: "TBSeK, Apple, STEM, T-Systems" },
+  { cmd: "projects", blurb: "the work I will actually talk about" },
+  { cmd: "open <name>", blurb: "a project, a note, or github, linkedin, email, x" },
+  { cmd: "blog", blurb: "posts from the editor" },
+  { cmd: "links", blurb: "email, GitHub, LinkedIn, X, Instagram, YouTube" },
+  { cmd: "writeups", blurb: "two short notes, plus the writeup repo" },
+  { cmd: "radio", blurb: "HackRF, bladeRF, the iMac G4" },
+  { cmd: "certs", blurb: "degree, HTB badges, languages, Security+ in progress" },
+  { cmd: "contact", blurb: "email, GitHub, LinkedIn, X" },
+  { cmd: "colophon", blurb: "why this is a Worker, and what it stores" },
+  { cmd: "login", blurb: "the editor session" },
+  { cmd: "clear", blurb: "back to the top of home" },
+];
+
+export const COMMANDS = HELP.map((line) => line.cmd.split(" ")[0]);
+
+export type Step =
+  | { type: "nav"; path: string; echo: string }
+  | { type: "external"; href: string; echo: string }
+  | { type: "error"; message: string; echo: string }
+  | { type: "noop" };
+
+const ROUTES: Record<string, string> = {
+  help: "/help",
+  whoami: "/",
+  clear: "/",
+  jobs: "/jobs",
+  projects: "/work",
+  blog: "/blog",
+  links: "/links",
+  writeups: "/notes",
+  login: "/admin/login",
+  radio: "/radio",
+  certs: "/certs",
+  contact: "/contact",
+  colophon: "/colophon",
+};
+
+export function parseCommand(raw: string, opens: Record<string, string>): Step {
+  const line = raw.trim().replace(/\s+/g, " ");
+  if (!line) return { type: "noop" };
+  const [head, ...rest] = line.split(" ");
+  const cmd = head.toLowerCase();
+  const arg = rest.join(" ").toLowerCase();
+  if (cmd === "open") {
+    if (!arg) {
+      return {
+        type: "error",
+        message: "open: need a name. try `help`.",
+        echo: line,
+      };
+    }
+    const href = opens[arg];
+    if (!href) {
+      return {
+        type: "error",
+        message: `open: ${arg} not found. try \`help\`.`,
+        echo: line,
+      };
+    }
+    if (/^(https?:|mailto:)/.test(href)) {
+      return { type: "external", href, echo: line };
+    }
+    return { type: "nav", path: href, echo: line };
+  }
+  const path = ROUTES[cmd];
+  if (!path) {
+    return {
+      type: "error",
+      message: `${cmd}: command not found. try \`help\`.`,
+      echo: line,
+    };
+  }
+  return { type: "nav", path, echo: cmd === "clear" ? "whoami" : line };
+}
+
+export function completions(line: string, openNames: string[]): string[] {
+  const endsWithSpace = /\s$/.test(line);
+  const parts = line.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return [...COMMANDS];
+  const head = parts[0].toLowerCase();
+  if (parts.length === 1 && !endsWithSpace) {
+    return COMMANDS.filter((cmd) => cmd.startsWith(head));
+  }
+  if (head === "open" && (endsWithSpace || parts.length >= 2)) {
+    const prefix = parts.length >= 2 && !endsWithSpace ? parts[1].toLowerCase() : "";
+    if (parts.length > 2) return [];
+    return openNames.filter((name) => name.startsWith(prefix)).sort();
+  }
+  return [];
+}
+
+export function applyCompletion(line: string, matches: string[]): string {
+  if (matches.length !== 1) return line;
+  const match = matches[0];
+  const trimmed = line.trim();
+  const parts = trimmed.split(/\s+/);
+  if (parts.length <= 1 && !/\s$/.test(line)) return `${match} `;
+  return `open ${match} `;
+}
+
+export function pushHist(items: string[], line: string): string[] {
+  const text = line.trim();
+  if (!text) return items;
+  if (items[items.length - 1] === text) return items;
+  return [...items, text].slice(-80);
+}
+
+export function histUp(
+  items: string[],
+  index: number,
+  draft: string,
+  current: string,
+): { index: number; draft: string; value: string } {
+  if (items.length === 0) return { index, draft, value: current };
+  if (index === -1) {
+    const next = items.length - 1;
+    return { index: next, draft: current, value: items[next] };
+  }
+  if (index === 0) return { index, draft, value: items[0] };
+  const next = index - 1;
+  return { index: next, draft, value: items[next] };
+}
+
+export function histDown(
+  items: string[],
+  index: number,
+  draft: string,
+): { index: number; draft: string; value: string } {
+  if (index === -1) return { index, draft, value: draft };
+  if (index >= items.length - 1) return { index: -1, draft: "", value: draft };
+  const next = index + 1;
+  return { index: next, draft, value: items[next] };
+}
