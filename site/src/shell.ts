@@ -35,9 +35,9 @@ export const HELP: HelpLine[] = [
   { cmd: "run", blurb: "open a command" },
   { cmd: "find", blurb: "search the profile text" },
   { cmd: "pad", blurb: "a public page for suggestions. they show in the editor" },
-  { cmd: "snake", blurb: "dark board, arrows, esc to leave" },
-  { cmd: "tetris", blurb: "dark board, arrows, space drops, esc to leave" },
-  { cmd: "tron", blurb: "light cycle. arrows. a crash clears your trail. esc leaves" },
+  { cmd: "snake", blurb: "dark board, arrows, r restarts, esc to leave" },
+  { cmd: "tetris", blurb: "dark board, arrows, space drops, r restarts, esc to leave" },
+  { cmd: "tron", blurb: "light cycle. arrows. r restarts. a crash clears both trails. esc leaves" },
   { cmd: "clear", blurb: "clear the terminal" },
   { cmd: "exit", blurb: "leave a game, or close the terminal" },
 ];

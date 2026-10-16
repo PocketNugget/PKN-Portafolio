@@ -3,6 +3,7 @@ import {
   clearLines,
   createSnake,
   createTetris,
+  placeFood,
   snakeAim,
   snakeLevel,
   snakePace,
@@ -20,7 +21,8 @@ import {
 
 describe("snake", () => {
   it("moves, eats, and refuses a reversal", () => {
-    const start = createSnake();
+    const start = createSnake(() => 0);
+    expect(start.food).toEqual({ x: 0, y: 0 });
     const moved = stepSnake(start);
     expect(moved.dead).toBe(false);
     expect(moved.body[0]).toEqual({ x: 6, y: 5 });
@@ -33,8 +35,26 @@ describe("snake", () => {
     expect(ate.body[0]).toEqual({ x: 6, y: 5 });
 
     expect(snakeAim(start, "left").pending).toBeUndefined();
-    expect(snakeAim(start, "up").pending).toBe("up");
-    expect(stepSnake(snakeAim(start, "up")).body[0]).toEqual({ x: 5, y: 4 });
+    const turned = snakeAim(snakeAim(start, "up"), "left");
+    expect(turned.pending).toBe("up");
+    expect(turned.buffered).toBe("left");
+    expect(snakeAim(turned, "right")).toBe(turned);
+    const once = stepSnake(turned);
+    expect(once.body[0]).toEqual({ x: 5, y: 4 });
+    expect(once.pending).toBe("left");
+    expect(stepSnake(once).body[0]).toEqual({ x: 4, y: 4 });
+  });
+
+  it("places the next bite on a random open cell", () => {
+    const start = createSnake(() => 0);
+    const eating = { ...start, food: { x: 6, y: 5 } };
+    const low = stepSnake(eating, () => 0).food;
+    const high = stepSnake(eating, () => 0.999).food;
+    expect(low).not.toEqual(high);
+    expect(placeFood(start.width, start.height, eating.body, () => 0)).toEqual(low);
+    for (const spot of [low, high]) {
+      expect(eating.body.some((point) => point.x === spot.x && point.y === spot.y)).toBe(false);
+    }
   });
 
   it("dies on a wall and on its body", () => {
@@ -66,7 +86,7 @@ describe("snake", () => {
     expect(bite.dead).toBe(true);
     expect(stepSnake(wall)).toBe(wall);
     expect(snakeAim(wall, "up")).toBe(wall);
-    expect(snakeRender(wall)).toContain("game over. esc leaves");
+    expect(snakeRender(wall)).toContain("game over. r restarts. esc leaves");
     expect(snakeRender(start)).toContain("@");
     expect(snakeRender(start)).toContain("*");
     expect(snakeRender(start)).toContain("level 1");
@@ -124,7 +144,7 @@ describe("tetris", () => {
     });
     expect(blocked.over).toBe(true);
     expect(tetrisLeft(blocked)).toBe(blocked);
-    expect(tetrisRender(blocked)).toContain("game over. esc leaves");
+    expect(tetrisRender(blocked)).toContain("game over. r restarts. esc leaves");
     expect(tetrisLevel(0)).toBe(1);
     expect(tetrisLevel(2)).toBe(2);
     expect(tetrisPace(1)).toBeGreaterThan(tetrisPace(4));

@@ -381,6 +381,7 @@ button.thumb img {
   gap: 0;
   background: silver;
   container-type: size;
+  touch-action: none;
 }
 
 .play-fit {

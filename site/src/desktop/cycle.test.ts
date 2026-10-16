@@ -5,6 +5,9 @@ describe("tron", () => {
   it("moves both bikes and refuses a reversal", () => {
     const start = createCycle();
     expect(cycleAim(start, "left").pending).toBeUndefined();
+    const turned = cycleAim(cycleAim(start, "up"), "right");
+    expect(turned.pending).toBe("up");
+    expect(turned.buffered).toBe("right");
     expect(cycleAim(start, "up").pending).toBe("up");
     const moved = stepCycle(cycleAim(start, "up"));
     expect(start.you).toEqual({ x: 4, y: 8 });
@@ -44,7 +47,9 @@ describe("tron", () => {
     expect(next.fresh).toBe(12);
     expect(next.trail.filter((cell) => cell === 1)).toEqual([1]);
     expect(next.trail[next.you.y * next.width + next.you.x]).toBe(1);
-    expect(next.trail[1]).toBe(2);
+    expect(next.trail.filter((cell) => cell === 2)).toEqual([2]);
+    expect(next.trail[1]).toBe(0);
+    expect(next.trail[next.foe.y * next.width + next.foe.x]).toBe(2);
     expect(cycleLevel(0)).toBe(1);
     expect(cycleLevel(20)).toBe(2);
     expect(cyclePace(1)).toBeGreaterThan(cyclePace(6));

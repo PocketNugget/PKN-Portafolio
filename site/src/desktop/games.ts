@@ -11,6 +11,7 @@ export interface SnakeState {
   body: Point[];
   dir: Dir;
   pending?: Dir;
+  buffered?: Dir;
   food: Point;
   score: number;
   dead: boolean;
@@ -31,14 +32,33 @@ const STEP: Record<Dir, Point> = {
   right: { x: 1, y: 0 },
 };
 
-function placeFood(width: number, height: number, body: Point[]): Point {
+export function placeFood(
+  width: number,
+  height: number,
+  body: Point[],
+  roll: () => number = Math.random,
+): Point {
   const used = new Set(body.map((point) => `${point.x},${point.y}`));
+  const open: Point[] = [];
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
-      if (!used.has(`${x},${y}`)) return { x, y };
+      if (!used.has(`${x},${y}`)) open.push({ x, y });
     }
   }
-  return { x: 0, y: 0 };
+  const spot = open[Math.floor(roll() * open.length)];
+  return spot ?? { x: 0, y: 0 };
+}
+
+export function queueTurn(
+  dir: Dir,
+  pending: Dir | undefined,
+  buffered: Dir | undefined,
+  aim: Dir,
+): { pending?: Dir; buffered?: Dir } | null {
+  const last = buffered ?? pending ?? dir;
+  if (aim === last || OPPOSITE[last] === aim) return null;
+  if (pending === undefined) return { pending: aim };
+  return { pending, buffered: aim };
 }
 
 export function snakeLevel(score: number): number {
@@ -50,17 +70,18 @@ export function snakePace(level: number): number {
   return Math.max(60, 140 - step * 12);
 }
 
-export function createSnake(): SnakeState {
+export function createSnake(roll: () => number = Math.random): SnakeState {
+  const body = [
+    { x: 5, y: 5 },
+    { x: 4, y: 5 },
+    { x: 3, y: 5 },
+  ];
   return {
     width: 20,
     height: 12,
-    body: [
-      { x: 5, y: 5 },
-      { x: 4, y: 5 },
-      { x: 3, y: 5 },
-    ],
+    body,
     dir: "right",
-    food: { x: 8, y: 5 },
+    food: placeFood(20, 12, body, roll),
     score: 0,
     dead: false,
     tick: 0,
@@ -69,13 +90,12 @@ export function createSnake(): SnakeState {
 
 export function snakeAim(state: SnakeState, aim: Dir): SnakeState {
   if (state.dead) return state;
-  if (OPPOSITE[state.dir] === aim) return state;
-  if (state.pending && OPPOSITE[state.pending] === aim) return state;
-  if (aim === (state.pending ?? state.dir)) return state;
-  return { ...state, pending: aim };
+  const next = queueTurn(state.dir, state.pending, state.buffered, aim);
+  if (!next) return state;
+  return { ...state, pending: next.pending, buffered: next.buffered };
 }
 
-export function stepSnake(state: SnakeState): SnakeState {
+export function stepSnake(state: SnakeState, roll: () => number = Math.random): SnakeState {
   if (state.dead) return state;
   const head = state.body[0];
   if (!head) return { ...state, dead: true };
@@ -84,11 +104,11 @@ export function stepSnake(state: SnakeState): SnakeState {
   const next = { x: head.x + delta.x, y: head.y + delta.y };
   const out =
     next.x < 0 || next.y < 0 || next.x >= state.width || next.y >= state.height;
-  if (out) return { ...state, dir, pending: undefined, dead: true };
+  if (out) return { ...state, dir, pending: undefined, buffered: undefined, dead: true };
   const eat = next.x === state.food.x && next.y === state.food.y;
   const occupied = eat ? state.body : state.body.slice(0, -1);
   if (occupied.some((point) => point.x === next.x && point.y === next.y)) {
-    return { ...state, dir, pending: undefined, dead: true };
+    return { ...state, dir, pending: undefined, buffered: undefined, dead: true };
   }
   const body = [next, ...state.body];
   if (!eat) body.pop();
@@ -96,8 +116,9 @@ export function stepSnake(state: SnakeState): SnakeState {
     ...state,
     body,
     dir,
-    pending: undefined,
-    food: eat ? placeFood(state.width, state.height, body) : state.food,
+    pending: state.buffered,
+    buffered: undefined,
+    food: eat ? placeFood(state.width, state.height, body, roll) : state.food,
     score: state.score + (eat ? 1 : 0),
     tick: state.tick + 1,
   };
@@ -117,7 +138,9 @@ export function snakeRender(state: SnakeState): string {
     }
     rows.push(line);
   }
-  const status = state.dead ? "game over. esc leaves" : "arrows move. esc leaves";
+  const status = state.dead
+    ? "game over. r restarts. esc leaves"
+    : "arrows move. r restarts. esc leaves";
   return `${rows.join("\n")}\nscore ${state.score}  level ${snakeLevel(state.score)}  ${status}`;
 }
 
@@ -490,6 +513,8 @@ export function tetrisRender(state: TetrisState): string {
     }
     rows.push(`${line}|`);
   }
-  const status = state.over ? "game over. esc leaves" : "arrows, space drops, esc leaves";
+  const status = state.over
+    ? "game over. r restarts. esc leaves"
+    : "arrows, space drops. r restarts. esc leaves";
   return `${rows.join("\n")}\nscore ${state.score}  lines ${state.lines}  level ${tetrisLevel(state.lines)}  ${status}`;
 }

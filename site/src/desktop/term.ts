@@ -78,8 +78,9 @@ export class Terminal {
   private paused = false;
   private held = false;
   private timer = 0;
-  private holdWait = 0;
-  private holdPulse = 0;
+  private dasKey = "";
+  private dasTimer = 0;
+  private dasPulse = 0;
   private gone = false;
 
   constructor(
@@ -176,7 +177,7 @@ export class Terminal {
   destroy(): void {
     this.gone = true;
     this.stopLoop();
-    this.stopHold();
+    this.stopDas();
     this.clearScores();
   }
 
@@ -220,14 +221,29 @@ export class Terminal {
     }
   }
 
-  private stopHold(): void {
-    if (this.holdWait) window.clearTimeout(this.holdWait);
-    if (this.holdPulse) window.clearInterval(this.holdPulse);
-    this.holdWait = 0;
-    this.holdPulse = 0;
+  private stopDas(): void {
+    if (this.dasTimer) window.clearTimeout(this.dasTimer);
+    if (this.dasPulse) window.clearInterval(this.dasPulse);
+    this.dasTimer = 0;
+    this.dasPulse = 0;
+    this.dasKey = "";
+  }
+
+  private startDas(key: string): void {
+    if (this.mode !== "tetris") return;
+    if (key !== "ArrowLeft" && key !== "ArrowRight" && key !== "ArrowDown") return;
+    this.stopDas();
+    this.dasKey = key;
+    this.dasTimer = window.setTimeout(() => {
+      this.dasTimer = 0;
+      if (this.dasKey !== key) return;
+      this.nudge(key);
+      this.dasPulse = window.setInterval(() => this.nudge(key), 35);
+    }, 70);
   }
 
   private bindPad(pad: HTMLElement): void {
+    let held = "";
     pad.addEventListener("pointerdown", (event) => {
       if (!this.inGame()) return;
       const button = event.target instanceof Element ? event.target.closest("button") : null;
@@ -240,19 +256,16 @@ export class Terminal {
       } catch {
         /* the pointer can already be gone */
       }
+      if (held) this.onKeyUp(held);
+      held = key;
       this.onKey(key, false);
-      this.stopHold();
-      const repeat =
-        key !== "Again" &&
-        this.mode === "tetris" &&
-        (key === "ArrowLeft" || key === "ArrowRight" || key === "ArrowDown");
-      if (!repeat) return;
-      this.holdWait = window.setTimeout(() => {
-        this.holdWait = 0;
-        this.holdPulse = window.setInterval(() => this.onKey(key, true), 80);
-      }, 160);
     });
-    const end = () => this.stopHold();
+    const end = () => {
+      if (!held) return;
+      const key = held;
+      held = "";
+      this.onKeyUp(key);
+    };
     pad.addEventListener("pointerup", end);
     pad.addEventListener("pointercancel", end);
   }
@@ -269,18 +282,28 @@ export class Terminal {
       startX = event.clientX;
       startY = event.clientY;
     });
+    const flick = (dx: number, dy: number) => {
+      if (Math.abs(dx) > Math.abs(dy)) this.onKey(dx > 0 ? "ArrowRight" : "ArrowLeft", false);
+      else this.onKey(dy > 0 ? "ArrowDown" : "ArrowUp", false);
+    };
+    stage.addEventListener("pointermove", (event) => {
+      if (!tracking) return;
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 16) return;
+      tracking = false;
+      flick(dx, dy);
+    });
     stage.addEventListener("pointerup", (event) => {
       if (!tracking) return;
       tracking = false;
       const dx = event.clientX - startX;
       const dy = event.clientY - startY;
-      const reach = Math.max(Math.abs(dx), Math.abs(dy));
-      if (reach < 24) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 16) {
         if (this.mode === "tetris") this.onKey("ArrowUp", false);
         return;
       }
-      if (Math.abs(dx) > Math.abs(dy)) this.onKey(dx > 0 ? "ArrowRight" : "ArrowLeft", false);
-      else this.onKey(dy > 0 ? "ArrowDown" : "ArrowUp", false);
+      flick(dx, dy);
     });
     stage.addEventListener("pointercancel", () => {
       tracking = false;
@@ -294,7 +317,10 @@ export class Terminal {
       return true;
     }
     if (key === "Again" || key === "r" || key === "R") {
-      if (!repeat) this.begin(this.mode);
+      if (!repeat) {
+        this.stopDas();
+        this.begin(this.mode);
+      }
       return true;
     }
     if (key === "p" || key === "P") {
@@ -304,23 +330,28 @@ export class Terminal {
     }
     if (this.paused || this.held) return true;
     if (this.snake && !this.snake.dead) {
+      if (repeat) return true;
       const dir = ARROWS[key];
       if (!dir) return false;
       this.snake = snakeAim(this.snake, dir);
       return true;
     }
     if (this.tron && !this.tron.dead && !this.tron.won) {
+      if (repeat) return true;
       const dir = ARROWS[key];
       if (!dir) return false;
       this.tron = cycleAim(this.tron, dir);
       return true;
     }
     if (this.tetris && !this.tetris.over) {
-      if (repeat && (key === "ArrowUp" || key === " ")) return true;
-      if (key === "ArrowLeft") this.tetris = tetrisLeft(this.tetris);
-      else if (key === "ArrowRight") this.tetris = tetrisRight(this.tetris);
-      else if (key === "ArrowDown") this.tetris = tetrisDown(this.tetris);
-      else if (key === "ArrowUp") this.tetris = tetrisRotate(this.tetris);
+      if (key === "ArrowLeft" || key === "ArrowRight" || key === "ArrowDown") {
+        if (repeat) return true;
+        this.nudge(key);
+        this.startDas(key);
+        return true;
+      }
+      if (repeat) return true;
+      if (key === "ArrowUp") this.tetris = tetrisRotate(this.tetris);
       else if (key === " ") this.tetris = tetrisHard(this.tetris);
       else return false;
       this.paint();
@@ -328,6 +359,23 @@ export class Terminal {
       return true;
     }
     return key.startsWith("Arrow") || key === " ";
+  }
+
+  onKeyUp(key: string): void {
+    if (key === this.dasKey) this.stopDas();
+  }
+
+  private nudge(key: string): void {
+    if (!this.tetris || this.tetris.over || this.paused || this.held || this.gone) return;
+    if (key === "ArrowLeft") this.tetris = tetrisLeft(this.tetris);
+    else if (key === "ArrowRight") this.tetris = tetrisRight(this.tetris);
+    else if (key === "ArrowDown") this.tetris = tetrisDown(this.tetris);
+    else return;
+    this.paint();
+    if (this.tetris.over) {
+      this.stopLoop();
+      this.stopDas();
+    }
   }
 
   private onInputKey(event: KeyboardEvent): void {
@@ -434,6 +482,7 @@ export class Terminal {
 
   private endGame(): void {
     this.stopLoop();
+    this.stopDas();
     this.mode = "shell";
     this.snake = null;
     this.tetris = null;
@@ -555,10 +604,10 @@ export class Terminal {
       else tile.className = "play-cell";
     }
     const hint = state.dead
-      ? t("game over. esc leaves")
+      ? t("game over. r restarts. esc leaves")
       : this.touchPlay()
-        ? t("buttons move. exit leaves")
-        : t("arrows move. esc leaves");
+        ? t("buttons move. r restarts. exit leaves")
+        : t("arrows move. r restarts. esc leaves");
     const hold = this.paused ? `  ${t("paused")}` : "";
     const level = snakeLevel(state.score);
     this.status.textContent = `${t("Score")} ${state.score}  ${t("Level")} ${level}  ${hint}${hold}`;
@@ -581,10 +630,10 @@ export class Terminal {
       else tile.className = "play-cell";
     }
     const hint = state.over
-      ? t("game over. esc leaves")
+      ? t("game over. r restarts. esc leaves")
       : this.touchPlay()
-        ? t("buttons move. turn and drop. exit leaves")
-        : t("arrows, space drops, esc leaves");
+        ? t("buttons move. turn and drop. r restarts. exit leaves")
+        : t("arrows, space drops. r restarts. esc leaves");
     const hold = this.paused ? `  ${t("paused")}` : "";
     const level = tetrisLevel(state.lines);
     this.status.textContent = `${t("Score")} ${state.score}  ${t("Lines")} ${state.lines}  ${t("Level")} ${level}  ${hint}${hold}`;
@@ -615,12 +664,12 @@ export class Terminal {
     const hint = state.won
       ? t("You cleared the grid.")
       : state.dead
-        ? t("game over. esc leaves")
+        ? t("game over. r restarts. esc leaves")
         : state.fresh > 0
-          ? t("The other bike crashed. Your trail is gone.")
+          ? t("The other bike crashed. Both trails are gone.")
           : this.touchPlay()
-            ? t("buttons move. exit leaves")
-            : t("arrows move. esc leaves");
+            ? t("buttons move. r restarts. exit leaves")
+            : t("arrows move. r restarts. esc leaves");
     const hold = this.paused ? `  ${t("paused")}` : "";
     this.status.textContent = `${t("Score")} ${state.score}  ${t("Level")} ${state.level}  ${hint}${hold}`;
     this.scores?.setOffer(state.score, state.level, state.dead || state.won);

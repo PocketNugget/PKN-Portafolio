@@ -78,7 +78,7 @@ Double-click a desktop icon, or use Start. Windows drag from the title bar, resi
 
 Wallpaper files are `site/public/wallpapers/`. The default is `sky.jpg`. Display Properties (Start, then Display) switches Sky, Teal, Clouds, and Navy for the current tab. Icon positions after a drag are remembered the same way. Neither is a cookie.
 
-To change a page, edit `site/src/catalog.ts`. The desktop apps are the list at the top of `site/src/desktop/desktop.ts`. Snake and Tetris live in `site/src/desktop/games.ts`. Tron, the light cycle, lives in `site/src/desktop/cycle.ts`. The Terminal commands `snake`, `tetris`, and `tron` start them there. Those icons open a window that is already in that game. The level rises while the round lasts, Again starts the round over, and a name can be saved on the public score list. Esc leaves it. Radio stays a text page at `/radio` and a terminal command. It is not a desktop icon and it is not in Start.
+To change a page, edit `site/src/catalog.ts`. The desktop apps are the list at the top of `site/src/desktop/desktop.ts`. Snake and Tetris live in `site/src/desktop/games.ts`. Tron, the light cycle, lives in `site/src/desktop/cycle.ts`. The Terminal commands `snake`, `tetris`, and `tron` start them there. Those icons open a window that is already in that game. The level rises while the round lasts. Again, or the R key, starts the round over, and a name can be saved on the public score list. Esc leaves it. Radio stays a text page at `/radio` and a terminal command. It is not a desktop icon and it is not in Start.
 
 ### Extra apps
 

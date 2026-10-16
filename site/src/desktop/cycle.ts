@@ -1,4 +1,4 @@
-import type { Dir, Point } from "./games";
+import { queueTurn, type Dir, type Point } from "./games";
 
 const OPPOSITE: Record<Dir, Dir> = {
   up: "down",
@@ -25,6 +25,7 @@ export interface CycleState {
   you: Point;
   youDir: Dir;
   pending?: Dir;
+  buffered?: Dir;
   foe: Point;
   foeDir: Dir;
   foeAlive: boolean;
@@ -94,10 +95,9 @@ export function createCycle(): CycleState {
 
 export function cycleAim(state: CycleState, aim: Dir): CycleState {
   if (state.dead || state.won) return state;
-  if (OPPOSITE[state.youDir] === aim) return state;
-  if (state.pending && OPPOSITE[state.pending] === aim) return state;
-  if (aim === (state.pending ?? state.youDir)) return state;
-  return { ...state, pending: aim };
+  const next = queueTurn(state.youDir, state.pending, state.buffered, aim);
+  if (!next) return state;
+  return { ...state, pending: next.pending, buffered: next.buffered };
 }
 
 function room(state: CycleState, from: Point, dir: Dir, block: Point | null): number {
@@ -157,16 +157,18 @@ function respawn(state: CycleState, trail: number[], you: Point): { foe: Point; 
   return pick ? { foe: pick.foe, foeDir: pick.foeDir } : null;
 }
 
-function dropYourTrail(trail: number[], keep: number): void {
+function dropTrails(trail: number[], youKeep: number): void {
   for (let index = 0; index < trail.length; index += 1) {
-    if (trail[index] === 1) trail[index] = 0;
+    const mark = trail[index];
+    if (mark === 1 || mark === 2) trail[index] = 0;
   }
-  trail[keep] = 1;
+  trail[youKeep] = 1;
 }
 
 export function stepCycle(state: CycleState): CycleState {
   if (state.dead || state.won) return state;
   const youDir = state.pending ?? state.youDir;
+  const queued = state.buffered;
   const youNext = ahead(state.you, youDir);
   const youCrash = !open(state, youNext, null);
   const tick = state.tick + 1;
@@ -175,7 +177,8 @@ export function stepCycle(state: CycleState): CycleState {
   const base: CycleState = {
     ...state,
     youDir,
-    pending: undefined,
+    pending: queued,
+    buffered: undefined,
     tick,
     level,
     score,
@@ -195,7 +198,7 @@ export function stepCycle(state: CycleState): CycleState {
   trail[at(state, youNext)] = 1;
   if (!state.foeAlive) return { ...base, trail, you: youNext, foeDir };
   if (!open(state, foeNext, youNext)) {
-    dropYourTrail(trail, at(state, youNext));
+    dropTrails(trail, at(state, youNext));
     const spawned = respawn(state, trail, youNext);
     const bonus = score + 15 * state.level;
     if (!spawned) {

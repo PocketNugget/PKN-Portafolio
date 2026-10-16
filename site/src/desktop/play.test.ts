@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { placeFood } from "./games";
 import { mountSweep } from "./sweep";
 import { Terminal } from "./term";
 
@@ -31,9 +32,27 @@ async function flush(): Promise<void> {
   for (let i = 0; i < 6; i += 1) await Promise.resolve();
 }
 
+function rollForFood(x: number, y: number): number {
+  const body = [
+    { x: 5, y: 5 },
+    { x: 4, y: 5 },
+    { x: 3, y: 5 },
+  ];
+  const open = 20 * 12 - body.length;
+  for (let index = 0; index < open; index += 1) {
+    const roll = (index + 0.5) / open;
+    const food = placeFood(20, 12, body, () => roll);
+    if (food.x === x && food.y === y) return roll;
+  }
+  throw new Error("food roll missing");
+}
+
 describe("game windows", () => {
   it("restarts snake and saves a name after the run", async () => {
     vi.useFakeTimers();
+    const rolls = [rollForFood(8, 5), 0.01];
+    let rollAt = 0;
+    vi.spyOn(Math, "random").mockImplementation(() => rolls[Math.min(rollAt++, rolls.length - 1)] ?? 0.01);
     const fetchMock = stubScores();
     document.body.innerHTML = `<div class="term-mount"></div>`;
     const host = document.querySelector(".term-mount");
@@ -42,6 +61,7 @@ describe("game windows", () => {
     await flush();
     expect(host.querySelector("[data-role='again']")).toBeInstanceOf(HTMLButtonElement);
     expect(host.querySelector(".play-status")?.textContent).toContain("Level 1");
+    expect(host.querySelector(".play-status")?.textContent).toContain("r restarts");
     expect(host.textContent).toContain("Ada");
     const form = host.querySelector(".top-form");
     if (!(form instanceof HTMLFormElement)) throw new Error("form");
@@ -58,9 +78,25 @@ describe("game windows", () => {
     await flush();
     const posted = fetchMock.mock.calls.find((call) => call[1]?.method === "POST");
     expect(JSON.parse(String(posted?.[1]?.body))).toMatchObject({ game: "snake", name: "Ada", score: 1 });
-    term.onKey("Again", false);
+    term.onKey("r", false);
     expect(host.querySelector(".play-status")?.textContent).toContain("Score 0");
     expect(form.hidden).toBe(true);
+    term.destroy();
+  });
+
+  it("keeps a turn when the arrow key repeats", () => {
+    vi.useFakeTimers();
+    stubScores();
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    document.body.innerHTML = `<div class="term-mount"></div>`;
+    const host = document.querySelector(".term-mount");
+    if (!(host instanceof HTMLElement)) throw new Error("host");
+    const term = new Terminal(host, { openPath() {}, close() {} }, "snake");
+    term.onKey("ArrowUp", false);
+    term.onKey("ArrowRight", true);
+    vi.advanceTimersByTime(200);
+    const cells = [...host.querySelectorAll(".play-cell")];
+    expect(cells.findIndex((cell) => cell.classList.contains("head"))).toBe(4 * 20 + 5);
     term.destroy();
   });
 

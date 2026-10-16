@@ -1107,6 +1107,10 @@ export function bootDesktop(): void {
     }
     openHref(href);
   });
+  document.addEventListener("keyup", (event) => {
+    const win = windows.find((item) => item.id === activeId);
+    if (win?.term?.inGame()) win.term.onKeyUp(event.key);
+  });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && menu.classList.contains("open")) {
       menu.classList.remove("open");
