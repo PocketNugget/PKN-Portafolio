@@ -66,6 +66,8 @@ export class Terminal {
   private paused = false;
   private held = false;
   private timer = 0;
+  private holdWait = 0;
+  private holdPulse = 0;
   private gone = false;
 
   constructor(
@@ -76,7 +78,7 @@ export class Terminal {
     host.classList.add("term-mount");
     host.innerHTML = `<pre class="dos" tabindex="0"></pre>
       <div class="play-stage" hidden>
-        <div class="play-board"></div>
+        <div class="play-fit"><div class="play-board"></div></div>
         <p class="play-status"></p>
       </div>
       <form class="term-line" autocomplete="off">
@@ -84,12 +86,17 @@ export class Terminal {
         <input id="term-cmd" name="cmd" spellcheck="false" autocapitalize="off" enterkeyhint="go" aria-label="Command" />
       </form>
       <div class="pad">
-        <button type="button" data-key="ArrowLeft">Left</button>
-        <button type="button" data-key="ArrowRight">Right</button>
-        <button type="button" data-key="ArrowUp">Up</button>
-        <button type="button" data-key="ArrowDown">Down</button>
-        <button type="button" data-key=" ">Drop</button>
-        <button type="button" data-key="Escape">Exit</button>
+        <div class="pad-move">
+          <button type="button" class="pad-up" data-key="ArrowUp" data-role="up">↑</button>
+          <button type="button" class="pad-left" data-key="ArrowLeft">←</button>
+          <button type="button" class="pad-down" data-key="ArrowDown">↓</button>
+          <button type="button" class="pad-right" data-key="ArrowRight">→</button>
+        </div>
+        <div class="pad-act">
+          <button type="button" data-key=" " data-role="drop">Drop</button>
+          <button type="button" data-key="p">Pause</button>
+          <button type="button" class="pad-exit" data-key="Escape">Exit</button>
+        </div>
       </div>`;
     const pre = host.querySelector("pre");
     const input = host.querySelector("input");
@@ -123,11 +130,10 @@ export class Terminal {
     pre.addEventListener("pointerdown", () => {
       if (!this.inGame() && matchMedia("(pointer: fine)").matches) input.focus();
     });
-    host.querySelector(".pad")?.addEventListener("click", (event) => {
-      const button = event.target instanceof Element ? event.target.closest("button") : null;
-      const key = button instanceof HTMLButtonElement ? button.dataset.key : "";
-      if (key) this.onKey(key, false);
-    });
+    const pad = host.querySelector(".pad");
+    if (pad instanceof HTMLElement) this.bindPad(pad);
+    this.bindSwipe(this.stage);
+    this.labelPad();
     this.paint();
     if (start) this.begin(start);
   }
@@ -158,6 +164,110 @@ export class Terminal {
   destroy(): void {
     this.gone = true;
     this.stopLoop();
+    this.stopHold();
+  }
+
+  private touchPlay(): boolean {
+    return window.matchMedia("(pointer: coarse), (max-width: 700px)").matches;
+  }
+
+  private labelPad(): void {
+    const turn = this.mode === "tetris";
+    this.root.classList.toggle("is-snake", this.mode === "snake");
+    this.root.classList.toggle("is-tetris", turn);
+    const up = this.root.querySelector("[data-role='up']");
+    if (up instanceof HTMLButtonElement) {
+      up.textContent = turn ? "↻" : "↑";
+      up.setAttribute("aria-label", t(turn ? "Turn" : "Up"));
+    }
+    const named: Record<string, string> = {
+      ArrowLeft: "Left",
+      ArrowDown: "Down",
+      ArrowRight: "Right",
+    };
+    const glyphs: Record<string, string> = {
+      ArrowLeft: "←",
+      ArrowDown: "↓",
+      ArrowRight: "→",
+    };
+    for (const button of this.root.querySelectorAll<HTMLButtonElement>(".pad-move button")) {
+      const key = button.dataset.key ?? "";
+      const name = named[key];
+      if (!name) continue;
+      button.textContent = glyphs[key] ?? "";
+      button.setAttribute("aria-label", name ? t(name) : "");
+    }
+    const actions: Record<string, string> = { " ": "Drop", p: "Pause", Escape: "Exit" };
+    for (const button of this.root.querySelectorAll<HTMLButtonElement>(".pad-act button")) {
+      const name = actions[button.dataset.key ?? ""];
+      if (!name) continue;
+      button.textContent = t(name);
+      button.setAttribute("aria-label", t(name));
+    }
+  }
+
+  private stopHold(): void {
+    if (this.holdWait) window.clearTimeout(this.holdWait);
+    if (this.holdPulse) window.clearInterval(this.holdPulse);
+    this.holdWait = 0;
+    this.holdPulse = 0;
+  }
+
+  private bindPad(pad: HTMLElement): void {
+    pad.addEventListener("pointerdown", (event) => {
+      if (!this.inGame()) return;
+      const button = event.target instanceof Element ? event.target.closest("button") : null;
+      if (!(button instanceof HTMLButtonElement)) return;
+      const key = button.dataset.key ?? "";
+      if (!key) return;
+      event.preventDefault();
+      try {
+        button.setPointerCapture(event.pointerId);
+      } catch {
+        /* the pointer can already be gone */
+      }
+      this.onKey(key, false);
+      this.stopHold();
+      const repeat =
+        this.mode === "tetris" && (key === "ArrowLeft" || key === "ArrowRight" || key === "ArrowDown");
+      if (!repeat) return;
+      this.holdWait = window.setTimeout(() => {
+        this.holdWait = 0;
+        this.holdPulse = window.setInterval(() => this.onKey(key, true), 80);
+      }, 160);
+    });
+    const end = () => this.stopHold();
+    pad.addEventListener("pointerup", end);
+    pad.addEventListener("pointercancel", end);
+  }
+
+  private bindSwipe(stage: HTMLElement): void {
+    let startX = 0;
+    let startY = 0;
+    let tracking = false;
+    stage.addEventListener("pointerdown", (event) => {
+      if (!this.inGame() || !this.touchPlay()) return;
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      tracking = true;
+      startX = event.clientX;
+      startY = event.clientY;
+    });
+    stage.addEventListener("pointerup", (event) => {
+      if (!tracking) return;
+      tracking = false;
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+      const reach = Math.max(Math.abs(dx), Math.abs(dy));
+      if (reach < 24) {
+        if (this.mode === "tetris") this.onKey("ArrowUp", false);
+        return;
+      }
+      if (Math.abs(dx) > Math.abs(dy)) this.onKey(dx > 0 ? "ArrowRight" : "ArrowLeft", false);
+      else this.onKey(dy > 0 ? "ArrowDown" : "ArrowUp", false);
+    });
+    stage.addEventListener("pointercancel", () => {
+      tracking = false;
+    });
   }
 
   onKey(key: string, repeat: boolean): boolean {
@@ -282,6 +392,7 @@ export class Terminal {
     this.snake = mode === "snake" ? createSnake() : null;
     this.tetris = mode === "tetris" ? createTetris() : null;
     this.root.classList.add("playing");
+    this.labelPad();
     this.paint();
     this.pre.focus();
     this.startLoop(mode === "snake" ? 140 : 480);
@@ -294,6 +405,7 @@ export class Terminal {
     this.tetris = null;
     this.paused = false;
     this.root.classList.remove("playing");
+    this.labelPad();
     this.lines.push("back at the prompt.");
     this.paint();
     if (matchMedia("(pointer: fine)").matches) this.input.focus();
@@ -367,7 +479,11 @@ export class Terminal {
       else if (state.food.x === x && state.food.y === y) tile.className = "play-cell food";
       else tile.className = "play-cell";
     }
-    const hint = state.dead ? t("game over. esc leaves") : t("arrows move. esc leaves");
+    const hint = state.dead
+      ? t("game over. esc leaves")
+      : this.touchPlay()
+        ? t("buttons move. exit leaves")
+        : t("arrows move. esc leaves");
     const hold = this.paused ? `  ${t("paused")}` : "";
     this.status.textContent = `${t("Score")} ${state.score}  ${hint}${hold}`;
   }
@@ -387,7 +503,11 @@ export class Terminal {
       else if (state.grid[index]) tile.className = "play-cell locked";
       else tile.className = "play-cell";
     }
-    const hint = state.over ? t("game over. esc leaves") : t("arrows, space drops, esc leaves");
+    const hint = state.over
+      ? t("game over. esc leaves")
+      : this.touchPlay()
+        ? t("buttons move. turn and drop. exit leaves")
+        : t("arrows, space drops, esc leaves");
     const hold = this.paused ? `  ${t("paused")}` : "";
     this.status.textContent = `${t("Score")} ${state.score}  ${t("Lines")} ${state.lines}  ${hint}${hold}`;
   }

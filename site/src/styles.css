@@ -316,16 +316,26 @@ button.thumb img {
 
 .term-mount.playing .play-stage {
   display: flex;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-height: 0;
   max-height: 100%;
   width: 100%;
   overflow: hidden;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  justify-content: flex-start;
+  gap: 6px;
   background: #000;
+}
+
+.play-fit {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  container-type: size;
+  display: grid;
+  align-items: end;
+  justify-items: center;
 }
 
 .term-mount.playing pre.dos {
@@ -350,18 +360,20 @@ button.thumb img {
 .play-board.tetris {
   flex: 0 0 auto;
   box-sizing: border-box;
+  width: min(100cqw, calc(100cqh * var(--board-ratio)));
   max-width: 100%;
+  height: auto;
 }
 
 .play-board.snake {
-  width: min(100%, 376px);
+  --board-ratio: 1.6667;
   aspect-ratio: 20 / 12;
   grid-template-columns: repeat(20, minmax(0, 1fr));
   grid-template-rows: repeat(12, minmax(0, 1fr));
 }
 
 .play-board.tetris {
-  width: min(70%, 236px);
+  --board-ratio: 0.625;
   aspect-ratio: 10 / 16;
   grid-template-columns: repeat(10, minmax(0, 1fr));
   grid-template-rows: repeat(16, minmax(0, 1fr));
@@ -402,7 +414,11 @@ button.thumb img {
 .play-cell.kL { background: #c06000; box-shadow: inset -2px -2px #603000, inset 2px 2px #ffc080; }
 
 .play-status {
+  flex: 0 0 auto;
   margin: 0;
+  max-width: 100%;
+  padding: 0 8px;
+  box-sizing: border-box;
   color: #7dff3a;
   font-family: "Courier New", ui-monospace, monospace;
   font-size: 13px;
@@ -412,11 +428,45 @@ button.thumb img {
 
 .pad {
   display: none;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding: 4px;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 6px;
   background: silver;
+  flex: 0 0 auto;
+  touch-action: none;
+  user-select: none;
 }
+
+.pad-move {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  width: min(196px, 54%);
+  aspect-ratio: 196 / 160;
+  flex: 0 0 auto;
+}
+
+.pad-up { grid-area: 1 / 2; }
+.pad-left { grid-area: 2 / 1; }
+.pad-right { grid-area: 2 / 3; }
+.pad-down { grid-area: 3 / 2; }
+
+.pad-act {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  flex: 1 1 132px;
+  max-width: 176px;
+  align-content: center;
+}
+
+.pad-exit { grid-column: 1 / -1; }
+
+.term-mount.is-snake [data-role="drop"] { display: none; }
 
 .term-mount.playing .pad {
   display: flex;
@@ -432,8 +482,20 @@ button.desk-icon {
 }
 
 .pad button {
-  min-width: 52px;
-  padding: 0 8px;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  height: 100%;
+  margin: 0;
+  padding: 0 4px;
+  font-size: 15px;
+  line-height: 1.1;
+  touch-action: none;
+  user-select: none;
+}
+
+.pad-move button {
+  font-size: 22px;
 }
 
 button.desk-icon {
@@ -692,7 +754,7 @@ form.editor textarea {
   color: #fff;
 }
 
-@media (min-width: 701px) {
+@media (min-width: 701px) and (pointer: fine) {
   .term-mount.playing .pad {
     display: none;
   }
@@ -891,7 +953,8 @@ a.social-link:focus {
   #app.is-hacked #taskbar,
   #app.is-hacked .hack-tear span,
   #app.is-hacked .desk-icon .label,
-  #app.is-hacked a.social-link {
+  #app.is-hacked a.social-link,
+  .hack-log::after {
     animation: none;
   }
 }
@@ -915,6 +978,40 @@ a.social-link:focus {
   flex: 0 0 auto;
 }
 
+.desk-win:has(.hack-mount) {
+  background: #03140a;
+  box-shadow: inset -1px -1px #021008, inset 1px 1px #39ff14, inset -2px -2px #010804, inset 2px 2px #145c28;
+}
+
+.desk-win:has(.hack-mount) .title-bar {
+  background: #052010;
+}
+
+.desk-win:has(.hack-mount) .title-bar-text {
+  color: #39ff14;
+  font-family: "Courier New", ui-monospace, monospace;
+  letter-spacing: 0.04em;
+}
+
+.desk-win:has(.hack-mount) .window-body {
+  background: #010804;
+  color: #7dff9a;
+}
+
+.hack-banner,
+.hack-app > p {
+  margin: 0 0 6px;
+  color: #7dff9a;
+  font-family: "Courier New", ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.hack-banner {
+  margin-bottom: 4px;
+  color: #d6ff3c;
+}
+
 .desk-win:has(.hack-mount) .window-body {
   display: flex;
   flex-direction: column;
@@ -924,13 +1021,57 @@ a.social-link:focus {
 .hack-log {
   flex: 1 1 auto;
   min-height: 88px;
-  margin: 8px 0;
-  padding: 4px;
+  margin: 0 0 8px;
+  padding: 6px;
   overflow: auto;
   white-space: pre-wrap;
-  background: #fff;
-  color: #222;
-  box-shadow: inset -1px -1px #fff, inset 1px 1px grey, inset -2px -2px #dfdfdf, inset 2px 2px #0a0a0a;
+  background: #000;
+  color: #39ff14;
+  font-family: "Courier New", ui-monospace, monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  box-shadow: inset 0 0 0 1px #145c28;
+  text-shadow: 0 0 1px #39ff14;
+}
+
+.hack-log::after {
+  content: "█";
+  margin-left: 2px;
+  animation: hack-caret 900ms steps(1) infinite;
+}
+
+@keyframes hack-caret {
+  50% { opacity: 0; }
+}
+
+.hack-app .field-row {
+  gap: 8px;
+}
+
+.hack-app button.hack-drop,
+.hack-app button.hack-reset {
+  color: #d6ff3c;
+  text-shadow: none;
+  font-family: "Courier New", ui-monospace, monospace;
+  letter-spacing: 0.03em;
+  background: #03180c;
+  box-shadow: inset -1px -1px #021008, inset 1px 1px #7dff9a, inset -2px -2px #010804, inset 2px 2px #145c28;
+}
+
+.hack-app button.hack-drop {
+  font-weight: 700;
+  color: #d6ff3c;
+  background: #062412;
+}
+
+.hack-app button.hack-reset {
+  color: #9dffc0;
+  background: #04140c;
+}
+
+#app.is-hacked .hack-pop .title-bar-text,
+#app.is-hacked .hack-pop .window-body {
+  font-family: "Courier New", ui-monospace, monospace;
 }
 
 .player,
@@ -964,7 +1105,6 @@ a.social-link:focus {
 .gallery button,
 .convert-app button,
 .facts-app button,
-.hack-app button,
 .buddy-app button,
 .hack-pop button {
   color: #222;
@@ -1170,19 +1310,31 @@ a.about-go:active {
   a.social-link {
     width: 20%;
     min-height: 44px;
-    font-size: 10px;
+    font-size: 11px;
+  }
+
+  a.social-link img {
+    width: 36px;
+    height: 36px;
   }
 
   button.desk-icon {
     position: static;
     width: 25%;
     max-width: none;
-    min-height: 72px;
+    min-height: 84px;
     box-sizing: border-box;
+  }
+
+  button.desk-icon svg {
+    width: 40px;
+    height: 40px;
   }
 
   .desk-icon .label {
     max-width: 100%;
+    font-size: 12px;
+    line-height: 1.15;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -1283,11 +1435,10 @@ a.about-go:active {
   }
 
   .viewer .field-row button,
-  .player-controls button,
-  .pad button {
+  .player-controls button {
     flex: 1 1 30%;
     min-width: 0;
-    min-height: 40px;
+    min-height: 44px;
   }
 
   .viewer img.shot {
@@ -1734,18 +1885,18 @@ button#lang,
   button.desk-icon:active,
   button.desk-icon:hover,
   button.desk-icon:focus {
-    width: 132px;
+    width: 124px;
     padding: 6px 4px;
     gap: 6px;
   }
 
   .desk-icon svg {
-    width: 64px;
-    height: 64px;
+    width: 60px;
+    height: 60px;
   }
 
   .desk-icon .label {
-    max-width: 124px;
+    max-width: 116px;
     font-size: 16px;
     line-height: 1.2;
     display: -webkit-box;
@@ -1933,18 +2084,30 @@ button#lang,
     width: min(100%, 420px);
   }
 
-  .play-board.snake {
-    width: min(100%, calc((100svh - 230px) * 20 / 12));
+  .sweep-cell {
+    font-size: 15px;
   }
 
-  .play-board.tetris {
-    width: min(92%, 320px, calc((100svh - 230px) * 10 / 16));
+  .sweep-bar button[aria-pressed="true"] {
+    font-weight: 700;
+    outline: 1px dotted #000;
   }
 
   .die,
   .coin {
-    width: min(220px, 58vw);
-    height: min(220px, 58vw);
+    width: min(180px, 46vw);
+    height: min(180px, 46vw);
+  }
+
+  .tool-dice > button,
+  .tool-flip > button,
+  .tool-wheel > button {
+    width: min(100%, 280px);
+    font-size: 16px;
+  }
+
+  .tool-dice .field-row select {
+    min-height: 44px;
   }
 
   .coin {
@@ -1971,6 +2134,47 @@ button#lang,
 
   .term-line {
     flex-wrap: wrap;
+  }
+
+  .play-status {
+    font-size: 12px;
+    line-height: 15px;
+  }
+
+  .math-keys {
+    grid-template-rows: repeat(4, minmax(52px, 1fr)) 52px;
+  }
+
+  .math-keys button:last-child {
+    height: 52px;
+  }
+}
+
+@media (max-height: 520px) {
+  .term-mount.playing .pad {
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .pad-move,
+  .pad-act {
+    display: contents;
+  }
+
+  .pad-exit {
+    grid-column: auto;
+  }
+
+  .pad button {
+    flex: 1 1 0;
+    width: auto;
+    min-height: 46px;
+    height: 46px;
+    font-size: 14px;
+  }
+
+  .pad-move button {
+    font-size: 18px;
   }
 }
 

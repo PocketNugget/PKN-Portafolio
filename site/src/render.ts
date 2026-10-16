@@ -277,7 +277,7 @@ function legalPage(): string {
     "The words and the photos are mine, except where a credit says otherwise.",
     "The window chrome is 98.css 0.1.21, MIT, by Jordan Scales. This site is not affiliated with Microsoft. Windows is their mark.",
     "The window font is Pixelated MS Sans Serif by lou on Fontstruct, CC BY-SA 3.0, served from this site.",
-    "The music window is Webdeck Player v1.0.2 by Chris, MIT. The opening video is modest by default : Permaculture, by MTHRBORD, played in YouTube's own player. This site does not host that file. Winamp, Minesweeper, Tetris, and YouTube are other people's marks.",
+    "The music window is Webdeck Player v1.0.2 by Chris, MIT. The opening video is Magic Ways, by Tatsuro Yamashita, played in YouTube's own player. The list also has a mix that starts on that video, Floral Shoppe, by Macintosh Plus, a mix that starts on that track, and Permaculture, by MTHRBORD. This site does not host those files. Winamp, Minesweeper, Tetris, and YouTube are other people's marks.",
     "The site does not rebroadcast a radio station. SomaFM and TuneIn are not embedded here.",
     "Posts, suggestions, and session hashes live in D1. Visitor addresses are not stored. The only cookie is the editor session, and only after login.",
     "Copyright questions go to the address in security.txt: goben.ca.pkn@hotmail.com.",

@@ -69,7 +69,7 @@ export const ICONS: Record<string, string> = {
     `<circle cx="16" cy="13" r="9" fill="#ffd200" stroke="#000"/><rect x="14" y="8" width="4" height="7" fill="#000"/><rect x="14" y="17" width="4" height="2" fill="#000"/><rect x="11" y="23" width="10" height="4" fill="#c0c0c0" stroke="#000"/>`,
   ),
   hack: svg(
-    `${frame}<rect x="6" y="7" width="20" height="12" fill="#000"/><path d="M9 12 h4 M9 16 h8" stroke="#00a000"/><rect x="20" y="10" width="3" height="5" fill="#c00000"/>`,
+    `${frame}<rect x="6" y="7" width="20" height="12" fill="#041208" stroke="#39ff14"/><path d="M8 11 h5 M8 14 h8 M8 17 h3" stroke="#39ff14"/><rect x="18" y="9" width="5" height="8" fill="#c00000"/>`,
   ),
   buddy: svg(
     `<circle cx="16" cy="11" r="7" fill="#c48a3a" stroke="#000"/><circle cx="13" cy="10" r="2" fill="#fff" stroke="#000"/><circle cx="19" cy="10" r="2" fill="#fff" stroke="#000"/><rect x="10" y="17" width="12" height="8" fill="#0a5c2e" stroke="#000"/><path d="M15 17 l2 6 h-4 z" fill="#c00000"/>`,

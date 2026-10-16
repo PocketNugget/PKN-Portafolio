@@ -61,7 +61,11 @@ describe("desktop media", () => {
 
   it("loads the opening video through the vendored player", () => {
     expect(PLAYER_PAGE).toBe("/vendor/webdeck-player/index.html");
+    expect(script).toContain("srYi1mTO5kA");
+    expect(script).toContain("bAgmGZ9iQ2Y");
+    expect(script).toContain("RDbAgmGZ9iQ2Y");
     expect(script).toContain("JfCNwhWWdCs");
+    expect(script).toContain('currentPlaylist = "Magic Ways"');
     expect(script).toContain("loadVideoById");
     expect(script).toContain("controls");
   });

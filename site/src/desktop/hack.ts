@@ -2,22 +2,22 @@ import { t } from "../i18n";
 import type { DeskApp } from "./host";
 
 export const HACK_LINES = [
-  "Connecting to the mainframe...",
-  "The mainframe is a folder of HTML.",
-  "Bypassing the screensaver...",
-  "The screensaver was a cloud.",
-  "Splashing the wrong colors on the icons...",
-  "The labels came back half eaten.",
-  "Done. The desk stays messy until you hit Reset.",
-  "Nothing left this page. Files, accounts, and the network were never touched.",
+  "Arming the payload...",
+  "Channel open. No handshake. Going loud.",
+  "Overwriting the icon table with hostile glyphs...",
+  "Labels shredded. Palettes flipped.",
+  "Taskbar lost its gray. It still blinks.",
+  "nugget.exe swallowed the color map.",
+  "Payload delivered. The desk stays loud until you hit Reset.",
+  "Payload is live. Hit Reset when you want the desk back.",
 ];
 
 export const HACK_POPS: { x: number; y: number; title: string; body: string }[] = [
-  { x: 10, y: 12, title: "Error", body: "KERNEL.DLL is a nugget. This is fine." },
-  { x: 10, y: 124, title: "Warning", body: "nugget.exe asked for a raise. Denied, politely." },
-  { x: 10, y: 236, title: "System", body: "Access granted to the tie. The tie has no privileges." },
-  { x: 10, y: 408, title: "Error", body: "ICON.PAL ate its own colors." },
-  { x: 10, y: 520, title: "Warning", body: "The taskbar forgot which gray it was." },
+  { x: 10, y: 12, title: "Error", body: "KERNEL.DLL ate the nugget. Payload pushed anyway." },
+  { x: 10, y: 124, title: "Warning", body: "nugget.exe demanded root on the tie. The tie held." },
+  { x: 10, y: 236, title: "System", body: "ICON.PAL dumped its palette. Colors are hostile." },
+  { x: 10, y: 408, title: "Error", body: "Glyph storm on the labels. They will not sit still." },
+  { x: 10, y: 520, title: "Warning", body: "Drop complete. Reset is the only recall." },
 ];
 
 const GLYPHS = "█▓▒#@$%&*?/01";
@@ -26,9 +26,12 @@ export function mountHack(host: HTMLElement, layer: HTMLElement, desktop: HTMLEl
   host.replaceChildren();
   const root = document.createElement("div");
   root.className = "hack-app";
+  const banner = document.createElement("p");
+  banner.className = "hack-banner";
+  banner.textContent = t("root@desk:~# drop --loud");
   const lead = document.createElement("p");
   lead.textContent = t(
-    "A fake hack. It messes up the colors on this page until you hit Reset. It does not touch files, accounts, or the network.",
+    "Dropping an aggressive payload on this desk. Icons, labels, and colors take the hit until you hit Reset.",
   );
   const log = document.createElement("pre");
   log.className = "hack-log";
@@ -36,12 +39,14 @@ export function mountHack(host: HTMLElement, layer: HTMLElement, desktop: HTMLEl
   row.className = "field-row";
   const go = document.createElement("button");
   go.type = "button";
-  go.textContent = t("Hackear el sistema");
+  go.className = "hack-drop";
+  go.textContent = t("Drop the payload");
   const reset = document.createElement("button");
   reset.type = "button";
+  reset.className = "hack-reset";
   reset.textContent = t("Reset");
   row.append(go, reset);
-  root.append(lead, log, row);
+  root.append(banner, lead, log, row);
   host.append(root);
 
   let token = 0;
@@ -194,7 +199,7 @@ export function mountHack(host: HTMLElement, layer: HTMLElement, desktop: HTMLEl
   reset.addEventListener("click", () => {
     token += 1;
     clearFx();
-    log.textContent = t("Reset. The desktop is the same as before.");
+    log.textContent = t("Payload recalled. The desktop is clean.");
   });
 
   return {

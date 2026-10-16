@@ -23,6 +23,10 @@
  * You can also delete the lists that you don't want.
 */
 var myPlaylists = {
+    "Magic Ways": "srYi1mTO5kA",
+    "Ways Radio": "RDsrYi1mTO5kA",
+    "Floral Shoppe": "bAgmGZ9iQ2Y",
+    "Floral Radio": "RDbAgmGZ9iQ2Y",
     "Permaculture": "JfCNwhWWdCs",
 };
 
@@ -32,7 +36,7 @@ var myPlaylists = {
  * The first playlist that the player will load on startup. You may change it by
  * writing the name of the new playlist below.
 */
-var currentPlaylist = "Permaculture";
+var currentPlaylist = "Magic Ways";
 
 
 /**

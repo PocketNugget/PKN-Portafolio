@@ -36,13 +36,15 @@ function buttonNamed(host: HTMLElement, name: string): HTMLButtonElement {
   return found;
 }
 
-describe("fake hack", () => {
-  it("keeps the copy inside a joke", () => {
+describe("desk payload", () => {
+  it("keeps the drop inside the page", () => {
     const text = [...HACK_LINES, ...HACK_POPS.map((pop) => `${pop.title}\n${pop.body}`)].join("\n");
-    expect(HACK_LINES.at(-1)).toContain("never touched");
+    expect(HACK_LINES.at(-1)).toContain("Payload is live");
+    expect(text.toLowerCase()).toContain("payload");
+    expect(text).not.toMatch(/fake|falso|falscher|faux/i);
     expect(text).not.toContain("—");
     expect(text).not.toContain("40%");
-    expect(text).not.toMatch(/pickle|torch\.load|payload|exploit/i);
+    expect(text).not.toMatch(/pickle|torch\.load/i);
     expect(HACK_POPS).toHaveLength(5);
   });
 
@@ -51,8 +53,9 @@ describe("fake hack", () => {
     Math.random = () => 0;
     const { host, layer, app } = desk();
     mountHack(host, layer, app.querySelector("#desktop") as HTMLElement);
-    expect(host.textContent).toContain("does not touch files, accounts, or the network");
-    buttonNamed(host, "Hackear el sistema").click();
+    expect(host.textContent).toContain("aggressive payload");
+    expect(host.textContent).not.toMatch(/fake|falso/i);
+    buttonNamed(host, "Drop the payload").click();
     await vi.advanceTimersByTimeAsync(40);
     expect(app.classList.contains("is-hacked")).toBe(true);
     expect(document.querySelector(".hack-tear")).not.toBeNull();
@@ -63,7 +66,7 @@ describe("fake hack", () => {
     expect(label).toHaveProperty("dataset.hackClean", "About Me");
     await vi.advanceTimersByTimeAsync(30000);
     expect(app.classList.contains("is-hacked")).toBe(true);
-    expect(host.querySelector(".hack-log")?.textContent).toContain("Nothing left this page");
+    expect(host.querySelector(".hack-log")?.textContent).toContain("Payload delivered");
     expect(layer.querySelectorAll(".hack-pop")).toHaveLength(HACK_POPS.length);
     buttonNamed(host, "Reset").click();
     expect(app.classList.contains("is-hacked")).toBe(false);
@@ -72,7 +75,7 @@ describe("fake hack", () => {
     expect(layer.querySelector(".hack-pop")).toBeNull();
     expect(document.querySelector(".desk-icon .label")?.textContent).toBe("About Me");
     expect(document.querySelector(".social-link span")?.textContent).toBe("GitHub");
-    expect(host.querySelector(".hack-log")?.textContent).toBe("Reset. The desktop is the same as before.");
+    expect(host.querySelector(".hack-log")?.textContent).toBe("Payload recalled. The desktop is clean.");
   });
 
   it("restores the desk when the window closes mid hack", async () => {
@@ -82,7 +85,7 @@ describe("fake hack", () => {
     const desktop = document.getElementById("desktop");
     if (!(desktop instanceof HTMLElement)) throw new Error("desktop");
     const handle = mountHack(host, layer, desktop);
-    buttonNamed(host, "Hackear el sistema").click();
+    buttonNamed(host, "Drop the payload").click();
     await vi.advanceTimersByTimeAsync(40);
     expect(document.getElementById("app")?.classList.contains("is-hacked")).toBe(true);
     handle.destroy();
@@ -98,7 +101,8 @@ describe("fake hack", () => {
     const desktop = document.getElementById("desktop");
     if (!(desktop instanceof HTMLElement)) throw new Error("desktop");
     mountHack(host, layer, desktop);
-    expect(host.textContent).toContain("Desordena los colores de esta página");
+    expect(host.textContent).toContain("payload agresivo");
+    expect(host.textContent).not.toMatch(/falso|fake/i);
     expect(buttonNamed(host, "Reiniciar").textContent).toBe("Reiniciar");
   });
 });

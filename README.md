@@ -84,7 +84,7 @@ To change a page, edit `site/src/catalog.ts`. The desktop apps are the list at t
 
 Each of these is a normal window. Open it from the icon or from Start. The terminal names are in parentheses.
 
-- Player (`player`). Webdeck Player v1.0.2, MIT, by Chris, hosted on this site under `site/public/vendor/webdeck-player/`. Opening the window loads the video modest by default : Permaculture, by MTHRBORD, in YouTube's own player. This site does not host that file. Square-wave tones are gone from this window. The legal page says what is embedded and what is not.
+- Player (`player`). Webdeck Player v1.0.2, MIT, by Chris, hosted on this site under `site/public/vendor/webdeck-player/`. Opening the window loads Magic Ways, by Tatsuro Yamashita, in YouTube's own player. The list also has a mix that starts on that video, Floral Shoppe, by Macintosh Plus, a mix that starts on that track, and Permaculture, by MTHRBORD. This site does not host those files. Square-wave tones are gone from this window. The legal page says what is embedded and what is not.
 - My Pictures (`pictures`) and Certificates (`awards`). Thumbnails, then a larger view with previous and next. The files live in `site/public/media/`. The titles and captions are `site/src/desktop/media.ts`. The public site cannot read a folder on your computer, so copy new photos into `public/media` and add a line to that file. The first set was copied from the local Desktop folder of photos and certificate scans.
 - Converter (`encode`). Base64, hex, and URL encode and decode, text to binary, MD5, SHA-1, and SHA-256, plus KB, MB, and GB using 1024, not 1000. One MB is 1048576 bytes. It runs in the page. Nothing is uploaded.
 - Sweep (`sweep`). A 9 by 9 grid with 10 mines. Click opens a cell. Right-click, or the Flag button, marks one. The first open cell is never a mine.
@@ -93,7 +93,7 @@ Each of these is a normal window. Open it from the icon or from Start. The termi
 - Calculator (`math`). Left to right, the way the Windows 98 calculator did it. It does not use `eval`.
 - Wheel (`wheel`). One name on each line, then a spin. The winner is written under the wheel.
 - Facts (`facts`). Short lines from the same record as the catalog, plus buttons that open the other tools.
-- Hack (`hack`). A joke. Fake error windows, a short glitch, then a punchline. Reset or Close puts the desktop back. It does not change files or accounts.
+- Hack (`hack`). The window talks like a loud drop. The button throws an aggressive payload at the colors and labels on this page. Reset or Close puts the desktop back.
 - Nugget (`buddy`). A floating assistant, not a window. Tips come from the same fact list. Close the balloon and the picture stays. Start has Show Nugget and Hide Nugget for this tab. The picture is `site/public/buddy/nugget.png`. Replace that file to change the character.
 - Run and Find are in the Start menu. Find searches the profile text and opens the matching window.
 - The taskbar EN button cycles English, Spanish, German, and French for this tab. Blog posts stay in the language they were written in.

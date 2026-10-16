@@ -30,7 +30,7 @@ export const HELP: HelpLine[] = [
   { cmd: "wheel", blurb: "spin a list of names" },
   { cmd: "sweep", blurb: "a grid of mines. flag or open" },
   { cmd: "facts", blurb: "short facts and the other tools" },
-  { cmd: "hack", blurb: "a fake hack that resets" },
+  { cmd: "hack", blurb: "drops an aggressive payload on the desk" },
   { cmd: "buddy", blurb: "the nugget assistant" },
   { cmd: "run", blurb: "open a command" },
   { cmd: "find", blurb: "search the profile text" },

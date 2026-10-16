@@ -40,8 +40,8 @@ interface LayoutSave {
   spots: Record<string, Spot>;
 }
 
-const CELL_W = 160;
-const CELL_H = 164;
+const CELL_W = 152;
+const CELL_H = 156;
 const SOCIAL_W = 560;
 const SOCIAL_H = 120;
 

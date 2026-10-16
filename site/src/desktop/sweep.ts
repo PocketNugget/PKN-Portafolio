@@ -127,6 +127,7 @@ export function mountSweep(host: HTMLElement): DeskApp {
   let flagMode = false;
   let seconds = 0;
   let timer = 0;
+  let suppressUntil = 0;
   const root = document.createElement("div");
   root.className = "sweep-app";
   const bar = document.createElement("div");
@@ -168,7 +169,11 @@ export function mountSweep(host: HTMLElement): DeskApp {
     clock.textContent = String(seconds).padStart(3, "0");
     clock.setAttribute("aria-label", `${seconds}s`);
     flag.setAttribute("aria-pressed", String(flagMode));
-    status.textContent = state.won ? t("Clear.") : state.alive ? t("Open a cell. Flag marks a guess.") : t("A mine. New starts again.");
+    status.textContent = state.won
+      ? t("Clear.")
+      : state.alive
+        ? `${t("Open a cell. Flag marks a guess.")} ${t("Hold a cell to flag it.")}`
+        : t("A mine. New starts again.");
     grid.replaceChildren();
     state.cells.forEach((cell, index) => {
       const button = document.createElement("button");
@@ -178,7 +183,28 @@ export function mountSweep(host: HTMLElement): DeskApp {
       if (cell.mine && cell.open) button.classList.add("mine");
       button.textContent = cell.flag && !cell.open ? "F" : cell.open && cell.mine ? "*" : cell.open && cell.near ? String(cell.near) : "";
       button.setAttribute("aria-label", `Cell ${index + 1}`);
+      let hold = 0;
+      const clearHold = () => {
+        if (!hold) return;
+        window.clearTimeout(hold);
+        hold = 0;
+      };
+      button.addEventListener("pointerdown", (event) => {
+        if (event.pointerType === "mouse" && event.button !== 0) return;
+        clearHold();
+        hold = window.setTimeout(() => {
+          hold = 0;
+          state = sweepFlag(state, index);
+          suppressUntil = performance.now() + 400;
+          if (!state.alive || state.won) stop();
+          paint();
+        }, 380);
+      });
+      button.addEventListener("pointerup", clearHold);
+      button.addEventListener("pointercancel", clearHold);
       button.addEventListener("click", () => {
+        clearHold();
+        if (performance.now() < suppressUntil) return;
         state = flagMode ? sweepFlag(state, index) : sweepOpen(state, index);
         if (!state.alive || state.won) stop();
         else start();
