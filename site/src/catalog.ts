@@ -542,8 +542,8 @@ export const radio = {
 
 export const bio = [
   "Goben Diego Constantino Aguirre. I finished computer systems engineering at UDLAP, 2021 to 2025, with a 9.0/10.",
-  "SOC/MDR analyst at TBSeK, full-time, July 2026 to present. The junior seat was part-time from April 2025. I am looking at MDR, SOC, and SRE roles in Mexico, the United States, Austria, Ireland, and the Netherlands.",
-  "Hack The Box University CTF 2025 finished 52 of 1,014. HTB Cyber Apocalypse CTF 2025 scored 34,125 points.",
+  "SOC/MDR analyst at TBSeK, full-time, July 2026 to present. The junior seat was part-time from April 2025. I am looking for MDR, SOC, and SRE roles in Mexico, the United States, Austria, Ireland, and the Netherlands.",
+  "Hack The Box University CTF 2025 finished 52 of 1,014, top 5%, and UDLAP was the only Mexican university in the top 100. HTB Cyber Apocalypse CTF 2025 scored 34,125 points, rank 293, 3rd in Mexico.",
 ];
 
 const GH = "https://github.com/PocketNugget";

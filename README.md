@@ -8,7 +8,7 @@
 [![UI: 98.css](https://img.shields.io/badge/UI-98.css-000080?style=for-the-badge)](https://jdan.github.io/98.css/)
 [![Live](https://img.shields.io/badge/Live-pocketnugget.xyz-111111?style=for-the-badge)](https://pocketnugget.xyz)
 
-> Escritorio al estilo Windows 98 para el portafolio de Goben Diego Constantino Aguirre. TypeScript y Vite, servido por un Cloudflare Worker. Los posts y las sugerencias viven en D1. El sitio público está en inglés.
+> Escritorio al estilo Windows 98 para el portafolio de Goben Diego Constantino Aguirre. TypeScript y Vite, servido por un Cloudflare Worker. D1 guarda los posts, las sugerencias, los nombres de los puntajes y el estado del login. El sitio público está en inglés.
 
 ---
 
@@ -48,7 +48,7 @@ Otras capturas pueden ir en `docs/screenshots/`. Basta el archivo y una línea e
 
 Portfolio for Goben Diego Constantino Aguirre (PocketNugget). English, static, and meant to run on Cloudflare Workers.
 
-The page is a Windows 98 style desktop. Icons and the Start menu open the same pages. The Terminal window still runs the real commands, plus ASCII Snake and Tetris. Content lives in `site/src/catalog.ts` and `site/content/notes/`.
+The page is a Windows 98 style desktop. Icons and the Start menu open the same pages. The Terminal window still runs the real commands. Snake, Tetris, and Tron are their own windows, with a public best score. Content lives in `site/src/catalog.ts` and `site/content/notes/`.
 
 ## Run
 
