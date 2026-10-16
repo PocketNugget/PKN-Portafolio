@@ -616,9 +616,11 @@ export class Terminal {
       ? t("You cleared the grid.")
       : state.dead
         ? t("game over. esc leaves")
-        : this.touchPlay()
-          ? t("buttons move. exit leaves")
-          : t("arrows move. esc leaves");
+        : state.fresh > 0
+          ? t("The other bike crashed. Your trail is gone.")
+          : this.touchPlay()
+            ? t("buttons move. exit leaves")
+            : t("arrows move. esc leaves");
     const hold = this.paused ? `  ${t("paused")}` : "";
     this.status.textContent = `${t("Score")} ${state.score}  ${t("Level")} ${state.level}  ${hint}${hold}`;
     this.scores?.setOffer(state.score, state.level, state.dead || state.won);

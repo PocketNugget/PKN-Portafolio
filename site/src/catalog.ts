@@ -26,6 +26,7 @@ export interface Project {
   people: string;
   aliases: string[];
   image?: string;
+  points?: string[];
 }
 
 export interface NoteMeta {
@@ -132,11 +133,26 @@ export const projects: Project[] = [
     title: "Homelab and this site",
     date: "2024 to 2026",
     summary:
-      "This is the site you are reading. TypeScript and Vite are served by one Cloudflare Worker. D1 holds the posts, the suggestions, the game score names, and the login state. There is one admin and no public signup. The password is a hash in a Worker secret. The authenticator secret is sealed in D1. Eight recovery codes are stored as hashes, and each code works once. The session cookie is HttpOnly, SameSite=Strict, and Secure on https. D1 stores a hash of that cookie, not the cookie. Visitor addresses are not stored. A wrong username and a wrong password get the same answer. The compare does not return on the first mismatch. Eight failures in fifteen minutes lock login, including a bad code. Writes require the browser Origin. Each response sends a Content-Security-Policy locked to this origin, nosniff, a strict referrer policy, a permissions policy with the sensors off, and Cross-Origin-Opener-Policy same-origin. Frames are denied, except the music player, which may load YouTube. security.txt names the contact address. There is no contact form and no analytics table. pocketnugget.xyz publishes only from the prod branch. The old app in legacy/ was React, Deno, SQLite, and JWT, and it is not this deploy. Docker and Cloudflare Tunnels stay on the homelab.",
+      "This is the site you are reading. TypeScript and Vite run in the browser. One Cloudflare Worker serves them, and D1 holds the posts, the suggestions, the game score names, and the login state.",
     body: [
       "Workers Builds is the deploy. A push to the prod branch builds site/ and publishes the Worker. main and the other branches run the tests and do not publish. The Worker runs before the files, sets the headers, and serves security.txt plus build.json. Document routes return the app. Unknown paths return 404. D1 migrations are applied on the remote database. www and hackztecs are Cloudflare Tunnels, not routes on this Worker.",
       "Login is a password plus a 6-digit authenticator code. It is not a Google or Microsoft login. The first successful password shows a QR once. A later password has to be at least 16 characters, and that hash is what D1 keeps. scripts/check.sh typechecks, runs the tests, and greps the build before a ship.",
       "The homelab is where Docker and Cloudflare Tunnels live, on a Raspberry Pi and on the STEM Mac Mini while that apprenticeship ran. I did not put Kubernetes in front of these pages. Naming a cluster here would not make the site safer. Terraform for the DNS zone can come later, against the real zone, not as a diagram.",
+    ],
+    points: [
+      "One admin. No public signup.",
+      "The password hash sits in a Worker secret. The authenticator secret is sealed in D1.",
+      "Eight recovery codes, stored as hashes. Each one works a single time.",
+      "Session cookie: HttpOnly, SameSite=Strict, Secure on https. D1 keeps a hash of the cookie, not the cookie.",
+      "Visitor addresses are not stored.",
+      "A wrong username and a wrong password get the same answer. The compare does not return on the first mismatch.",
+      "Eight failures in fifteen minutes lock login. A bad code counts.",
+      "Writes require the browser Origin.",
+      "Each response sends a Content-Security-Policy locked to this origin, nosniff, a strict referrer policy, a permissions policy with the sensors off, and Cross-Origin-Opener-Policy same-origin.",
+      "Frames are denied. The music player is the exception, and it may load YouTube.",
+      "security.txt has the contact address. No contact form. No analytics table.",
+      "pocketnugget.xyz publishes only from the prod branch. The old app in legacy/ was React, Deno, SQLite, and JWT, and it is not this deploy.",
+      "Docker and Cloudflare Tunnels stay on the homelab.",
     ],
     tools: ["TypeScript", "Vite", "Cloudflare Workers", "D1", "Docker", "Cloudflare Tunnels"],
     links: [
@@ -227,7 +243,12 @@ export const projects: Project[] = [
     summary:
       "Android app for skateparks and street spots. Kotlin, Jetpack Compose, Firebase Auth, Cloud Firestore, and Google Maps.",
     body: [
-      "Find a park, rate it, or drop a street spot. Firebase Auth is email and password. Cloud Firestore stores the spots and the five-star ratings. Google Maps draws the markers. Anyone can read a park. Creating or editing one requires a signed-in user. A rating can be changed only by the person who wrote it.",
+      "Find a park, rate it, or drop a street spot. Firebase Auth is email and password. Cloud Firestore stores the spots and the five-star ratings. Google Maps draws the markers.",
+    ],
+    points: [
+      "Anyone can read a park.",
+      "Creating or editing one requires a signed-in user.",
+      "A rating can be changed only by the person who wrote it.",
     ],
     tools: ["Kotlin", "Jetpack Compose", "Firebase", "Google Maps"],
     links: [

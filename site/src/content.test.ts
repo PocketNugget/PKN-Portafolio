@@ -165,11 +165,11 @@ describe("pages", () => {
     expect(work).toContain("https://github.com/PocketNugget/Where2Skate");
     expect(work).toContain("https://github.com/PocketNugget/Hacking-Writeups");
     expect(work).toContain("https://github.com/PocketNugget/Wifi2Go");
-    expect(work).toContain("Content-Security-Policy");
-    expect(work).toContain("prod branch");
     expect(work).not.toContain("admin123");
     expect(work).not.toContain("otpauth");
     const portfolio = render("/work/homelab");
+    expect(portfolio).toContain("Content-Security-Policy");
+    expect(portfolio).toContain("prod branch");
     expect(portfolio).toContain("SameSite=Strict");
     expect(portfolio).toContain("Workers Builds");
     expect(portfolio).toContain("legacy/");

@@ -34,6 +34,7 @@ export interface CycleState {
   tick: number;
   dead: boolean;
   won: boolean;
+  fresh: number;
 }
 
 export function cycleLevel(tick: number): number {
@@ -87,6 +88,7 @@ export function createCycle(): CycleState {
     tick: 0,
     dead: false,
     won: false,
+    fresh: 0,
   };
 }
 
@@ -155,6 +157,13 @@ function respawn(state: CycleState, trail: number[], you: Point): { foe: Point; 
   return pick ? { foe: pick.foe, foeDir: pick.foeDir } : null;
 }
 
+function dropYourTrail(trail: number[], keep: number): void {
+  for (let index = 0; index < trail.length; index += 1) {
+    if (trail[index] === 1) trail[index] = 0;
+  }
+  trail[keep] = 1;
+}
+
 export function stepCycle(state: CycleState): CycleState {
   if (state.dead || state.won) return state;
   const youDir = state.pending ?? state.youDir;
@@ -170,6 +179,7 @@ export function stepCycle(state: CycleState): CycleState {
     tick,
     level,
     score,
+    fresh: Math.max(0, state.fresh - 1),
   };
   let foeDir = state.foeDir;
   let foeNext = state.foe;
@@ -185,10 +195,11 @@ export function stepCycle(state: CycleState): CycleState {
   trail[at(state, youNext)] = 1;
   if (!state.foeAlive) return { ...base, trail, you: youNext, foeDir };
   if (!open(state, foeNext, youNext)) {
+    dropYourTrail(trail, at(state, youNext));
     const spawned = respawn(state, trail, youNext);
     const bonus = score + 15 * state.level;
     if (!spawned) {
-      return { ...base, trail, you: youNext, foeDir, foeAlive: false, score: bonus, won: true };
+      return { ...base, trail, you: youNext, foeDir, foeAlive: false, score: bonus, won: true, fresh: 12 };
     }
     trail[at(state, spawned.foe)] = 2;
     return {
@@ -199,6 +210,7 @@ export function stepCycle(state: CycleState): CycleState {
       foeDir: spawned.foeDir,
       foeAlive: true,
       score: bonus,
+      fresh: 12,
     };
   }
   trail[at(state, foeNext)] = 2;

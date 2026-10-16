@@ -52,7 +52,7 @@ describe("i18n", () => {
     ];
     for (const job of jobs) lines.push(job.role, job.place, job.date, job.summary, ...job.body);
     for (const project of projects) {
-      lines.push(project.summary, project.date, ...project.body);
+      lines.push(project.summary, project.date, ...project.body, ...(project.points ?? []));
       if (project.people) lines.push(project.people);
     }
     const skip = new Set(["Remote", "2024", "2025", "2026", "Goben Diego Constantino Aguirre."]);

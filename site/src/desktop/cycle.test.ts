@@ -14,6 +14,8 @@ describe("tron", () => {
     expect(moved.score).toBe(1);
     expect(moved.level).toBe(1);
     expect(moved.trail[moved.you.y * moved.width + moved.you.x]).toBe(1);
+    expect(moved.trail[8 * moved.width + 4]).toBe(1);
+    expect(moved.fresh).toBe(0);
   });
 
   it("dies on a wall or a trail", () => {
@@ -39,6 +41,10 @@ describe("tron", () => {
     const next = stepCycle({ ...start, foe, foeDir: "up", trail });
     expect(next.dead).toBe(false);
     expect(next.score).toBe(16);
+    expect(next.fresh).toBe(12);
+    expect(next.trail.filter((cell) => cell === 1)).toEqual([1]);
+    expect(next.trail[next.you.y * next.width + next.you.x]).toBe(1);
+    expect(next.trail[1]).toBe(2);
     expect(cycleLevel(0)).toBe(1);
     expect(cycleLevel(20)).toBe(2);
     expect(cyclePace(1)).toBeGreaterThan(cyclePace(6));

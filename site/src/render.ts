@@ -36,7 +36,12 @@ function echo(command: string): string {
 
 function tools(list: string[]): string {
   if (list.length === 0) return "";
-  return `<p class="tools">${list.map(escapeHtml).join(", ")}</p>`;
+  return `<p class="tools">${list.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</p>`;
+}
+
+function points(list: string[] | undefined): string {
+  if (!list || list.length === 0) return "";
+  return `<ul class="points">${list.map((item) => `<li>${tx(item)}</li>`).join("")}</ul>`;
 }
 
 function anchor(href: string, label: string): string {
@@ -49,9 +54,7 @@ function links(list: { label: string; href: string }[]): string {
   if (list.length === 0) return "";
   const bits = list.map((link) => {
     if (!safeUrl(link.href)) return tx(link.label);
-    const name = anchor(link.href, link.label);
-    if (link.href.startsWith("/")) return name;
-    return `${name} <span class="meta">${escapeHtml(link.href)}</span>`;
+    return anchor(link.href, link.label);
   });
   return `<p class="links">${bits.join(" ")}</p>`;
 }
@@ -92,6 +95,7 @@ function projectBlock(project: Project, full: boolean): string {
     ${links(project.links)}
     ${shot(project.image)}
     ${body}
+    ${points(full ? project.points : undefined)}
     ${people}
     ${tools(project.tools)}
   </article>`;

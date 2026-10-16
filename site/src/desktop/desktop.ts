@@ -121,18 +121,18 @@ const SIZES: Record<string, [number, number]> = {
   "/pictures": [640, 480],
   "/awards": [640, 480],
   "/convert": [480, 480],
-  "/sweep": [420, 560],
-  "/dice": [230, 250],
-  "/flip": [220, 260],
-  "/math": [260, 340],
-  "/wheel": [340, 470],
-  "/snake": [520, 500],
-  "/tetris": [440, 600],
-  "/tron": [620, 480],
+  "/sweep": [560, 640],
+  "/dice": [320, 420],
+  "/flip": [300, 400],
+  "/math": [320, 460],
+  "/wheel": [420, 560],
+  "/snake": [760, 620],
+  "/tetris": [480, 700],
+  "/tron": [860, 600],
   "/legal": [560, 520],
   "/": [720, 700],
-  "/jobs": [640, 560],
-  "/work": [680, 560],
+  "/jobs": [720, 640],
+  "/work": [760, 680],
   "/skills": [560, 480],
   "/certs": [560, 460],
   "/contact": [440, 340],
@@ -645,7 +645,7 @@ export function bootDesktop(): void {
     const areaW = desktop.clientWidth || window.innerWidth;
     const areaH = desktop.clientHeight || window.innerHeight - 30;
     const cascade = windows.length;
-    const preset = SIZES[path];
+    const preset = SIZES[path] ?? (path.startsWith("/work/") ? SIZES["/work"] : undefined);
     const wantW = preset?.[0] ?? 560;
     const wantH = preset?.[1] ?? 420;
     const fittedW = Math.min(wantW, Math.max(240, areaW - 36));
