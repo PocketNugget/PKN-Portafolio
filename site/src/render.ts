@@ -283,9 +283,9 @@ function legalPage(): string {
     "The words and the photos are mine, except where a credit says otherwise.",
     "The window chrome is 98.css 0.1.21, MIT, by Jordan Scales. This site is not affiliated with Microsoft. Windows is their mark.",
     "The window font is Pixelated MS Sans Serif by lou on Fontstruct, CC BY-SA 3.0, served from this site.",
-    "The music window is Webdeck Player v1.0.2 by Chris, MIT. The opening video is Permaculture, by MTHRBORD, played in YouTube's own player. The list also has Magic Ways, by Tatsuro Yamashita, a mix that starts on that video, Floral Shoppe, by Macintosh Plus, and a mix that starts on that track. This site does not host those files. Winamp, Minesweeper, Tetris, and YouTube are other people's marks.",
+    "The music window is Webdeck Player v1.0.2 by Chris, MIT. The opening video is Permaculture, by MTHRBORD, played in YouTube's own player. The list also has Magic Ways, by Tatsuro Yamashita, a mix that starts on that video, Floral Shoppe, by Macintosh Plus, and a mix that starts on that track. This site does not host those files. Winamp, Minesweeper, Tetris, Tron, and YouTube are other people's marks.",
     "The site does not rebroadcast a radio station. SomaFM and TuneIn are not embedded here.",
-    "Posts, suggestions, and session hashes live in D1. Visitor addresses are not stored. The only cookie is the editor session, and only after login.",
+    "Posts, suggestions, game score names, and session hashes live in D1. Visitor addresses are not stored. The only cookie is the editor session, and only after login.",
     "Copyright questions go to the address in security.txt: goben.ca.pkn@hotmail.com.",
   ];
   return `${lines.map((line) => `<p>${tx(line)}</p>`).join("")}
@@ -295,7 +295,7 @@ function legalPage(): string {
 function colophonPage(): string {
   const lines = [
     "This site is a Vite build served by a Cloudflare Worker. The Worker adds the headers, security.txt, and build.json. Most pages are files. There is no contact form.",
-    "The blog and the suggestions page are the exception. Posts, suggestions, and session hashes live in D1. The password hash is a Worker secret. Sessions are HttpOnly cookies. Visitor addresses are not stored.",
+    "The blog, the suggestions page, and the game scores are the exception. Posts, suggestions, game score names, and session hashes live in D1. The password hash is a Worker secret. Sessions are HttpOnly cookies. Visitor addresses are not stored.",
     "Licenses, marks, and the music player are on the legal page.",
     "The homelab is where Docker and Cloudflare Tunnels live, on a Raspberry Pi and on the STEM Mac Mini while that apprenticeship ran. I did not put Kubernetes in front of these pages. Naming a cluster here would not make the site safer. Terraform for the DNS zone can come later, against the real zone, not as a diagram.",
     "Scripts and styles are same-origin. The window font is Pixelated MS Sans Serif by lou on Fontstruct, shipped under CC BY-SA 3.0 with 98.css. It is not loaded from a third party. The only cookie is the editor session, and only after login. scripts/check.sh typechecks, runs the tests, and greps the build for the defaults I do not want shipped.",
@@ -370,7 +370,7 @@ export function documentBody(pathname: string): string {
   if (path === "/flip") return `<div class="flip-mount"></div>`;
   if (path === "/math") return `<div class="math-mount"></div>`;
   if (path === "/wheel") return `<div class="wheel-mount"></div>`;
-  if (path === "/snake" || path === "/tetris") return `<div class="term-mount"></div>`;
+  if (path === "/snake" || path === "/tetris" || path === "/tron") return `<div class="term-mount"></div>`;
   return notFound();
 }
 
@@ -411,6 +411,7 @@ export function commandFor(pathname: string): string {
   if (path === "/wheel") return "wheel";
   if (path === "/snake") return "snake";
   if (path === "/tetris") return "tetris";
+  if (path === "/tron") return "tron";
   return "help";
 }
 

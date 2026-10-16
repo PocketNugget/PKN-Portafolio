@@ -37,6 +37,7 @@ export const HELP: HelpLine[] = [
   { cmd: "pad", blurb: "a public page for suggestions. they show in the editor" },
   { cmd: "snake", blurb: "dark board, arrows, esc to leave" },
   { cmd: "tetris", blurb: "dark board, arrows, space drops, esc to leave" },
+  { cmd: "tron", blurb: "light cycle. arrows, trails, esc leaves" },
   { cmd: "clear", blurb: "clear the terminal" },
   { cmd: "exit", blurb: "leave a game, or close the terminal" },
 ];

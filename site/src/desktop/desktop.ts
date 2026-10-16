@@ -81,6 +81,7 @@ const APPS: App[] = [
   { id: "snake", label: "Snake", path: "/snake", icon: "snake", desk: true },
   { id: "tetris", label: "Tetris", path: "/tetris", icon: "tetris", desk: true },
   { id: "sweep", label: "Sweep", path: "/sweep", icon: "sweep", desk: true },
+  { id: "tron", label: "Tron", path: "/tron", icon: "tron", desk: true },
   { id: "pictures", label: "My Pictures", path: "/pictures", icon: "pictures", desk: true },
   { id: "awards", label: "Certificates", path: "/awards", icon: "awards", desk: true },
   { id: "player", label: "Player", path: "/player", icon: "player", desk: true },
@@ -104,7 +105,7 @@ const APPS: App[] = [
 const MENU_GROUPS = [
   ["about", "jobs", "projects", "skills"],
   ["notes", "certs", "blog", "pad", "links", "contact"],
-  ["terminal", "snake", "tetris", "sweep", "help", "display", "run", "find", "colophon", "legal"],
+  ["terminal", "snake", "tetris", "sweep", "tron", "help", "display", "run", "find", "colophon", "legal"],
   ["pictures", "awards", "player", "convert", "dice", "flip", "math", "wheel", "facts", "hack", "buddy"],
 ];
 
@@ -120,13 +121,14 @@ const SIZES: Record<string, [number, number]> = {
   "/pictures": [640, 480],
   "/awards": [640, 480],
   "/convert": [480, 480],
-  "/sweep": [360, 470],
+  "/sweep": [420, 560],
   "/dice": [230, 250],
   "/flip": [220, 260],
   "/math": [260, 340],
   "/wheel": [340, 470],
-  "/snake": [520, 380],
-  "/tetris": [420, 520],
+  "/snake": [520, 500],
+  "/tetris": [440, 600],
+  "/tron": [620, 480],
   "/legal": [560, 520],
   "/": [720, 700],
   "/jobs": [640, 560],
@@ -495,7 +497,8 @@ export function bootDesktop(): void {
     }
     const termHost = body.querySelector(".term-mount");
     if (termHost instanceof HTMLElement) {
-      const start = win.path === "/snake" ? "snake" : win.path === "/tetris" ? "tetris" : undefined;
+      const start =
+        win.path === "/snake" ? "snake" : win.path === "/tetris" ? "tetris" : win.path === "/tron" ? "tron" : undefined;
       win.term = new Terminal(
         termHost,
         {
@@ -1112,7 +1115,7 @@ export function bootDesktop(): void {
     }
     const win = windows.find((item) => item.id === activeId);
     if (win?.term?.inGame()) {
-      if (event.target instanceof HTMLElement && event.target.closest("textarea")) return;
+      if (event.target instanceof HTMLElement && event.target.closest("input, textarea")) return;
       if (win.term.onKey(event.key, event.repeat)) event.preventDefault();
       return;
     }

@@ -21,6 +21,18 @@ export interface Note {
   created: number;
 }
 
+export interface ScoreRow {
+  game: string;
+  name: string;
+  score: number;
+  level: number;
+  created: number;
+}
+
+export interface SavedScore extends ScoreRow {
+  best: boolean;
+}
+
 export interface Store {
   ensure(): Promise<void>;
   listPosts(): Promise<Post[]>;
@@ -45,6 +57,11 @@ export interface Store {
   countNoteAttempts(since: number): Promise<number>;
   addNoteAttempt(at: number): Promise<void>;
   clearNoteAttempts(before: number): Promise<void>;
+  listScores(game: string, limit: number): Promise<ScoreRow[]>;
+  saveScore(row: ScoreRow): Promise<SavedScore>;
+  countScoreAttempts(since: number): Promise<number>;
+  addScoreAttempt(at: number): Promise<void>;
+  clearScoreAttempts(before: number): Promise<void>;
 }
 
 interface D1Statement {
@@ -66,6 +83,8 @@ const SCHEMA = [
   "CREATE TABLE IF NOT EXISTS auth (id INTEGER PRIMARY KEY CHECK (id = 1), password_hash TEXT NOT NULL DEFAULT '', totp_cipher TEXT NOT NULL DEFAULT '', totp_ready INTEGER NOT NULL DEFAULT 0, recovery TEXT NOT NULL DEFAULT '[]')",
   "CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, body TEXT NOT NULL, created INTEGER NOT NULL)",
   "CREATE TABLE IF NOT EXISTS comment_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL)",
+  "CREATE TABLE IF NOT EXISTS scores (game TEXT NOT NULL, name TEXT NOT NULL, score INTEGER NOT NULL, level INTEGER NOT NULL, created INTEGER NOT NULL, PRIMARY KEY (game, name))",
+  "CREATE TABLE IF NOT EXISTS score_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL)",
 ];
 
 export class D1Store implements Store {
@@ -230,6 +249,62 @@ export class D1Store implements Store {
   async clearNoteAttempts(before: number): Promise<void> {
     await this.db.prepare("DELETE FROM comment_attempts WHERE at < ?").bind(before).run();
   }
+
+  async listScores(game: string, limit: number): Promise<ScoreRow[]> {
+    const cap = Math.max(0, Math.min(8, limit));
+    const rows = await this.db
+      .prepare(
+        "SELECT game, name, score, level, created FROM scores WHERE game = ? ORDER BY score DESC, created ASC LIMIT ?",
+      )
+      .bind(game, cap)
+      .all<ScoreRow>();
+    return rows.results ?? [];
+  }
+
+  async saveScore(row: ScoreRow): Promise<SavedScore> {
+    const existing = await this.db
+      .prepare("SELECT game, name, score, level, created FROM scores WHERE game = ? AND name = ?")
+      .bind(row.game, row.name)
+      .first<ScoreRow>();
+    if (existing && existing.score >= row.score) return { ...existing, best: false };
+    if (!existing) {
+      const countRow = await this.db
+        .prepare("SELECT COUNT(*) AS n FROM scores WHERE game = ?")
+        .bind(row.game)
+        .first<{ n: number }>();
+      if ((countRow?.n ?? 0) >= 80) {
+        const low = await this.db
+          .prepare("SELECT name, score FROM scores WHERE game = ? ORDER BY score ASC, created DESC LIMIT 1")
+          .bind(row.game)
+          .first<{ name: string; score: number }>();
+        if (!low || row.score <= low.score) return { ...row, best: false };
+        await this.db.prepare("DELETE FROM scores WHERE game = ? AND name = ?").bind(row.game, low.name).run();
+      }
+    }
+    await this.db
+      .prepare(
+        "INSERT INTO scores (game, name, score, level, created) VALUES (?, ?, ?, ?, ?) ON CONFLICT(game, name) DO UPDATE SET score = excluded.score, level = excluded.level, created = excluded.created",
+      )
+      .bind(row.game, row.name, row.score, row.level, row.created)
+      .run();
+    return { ...row, best: true };
+  }
+
+  async countScoreAttempts(since: number): Promise<number> {
+    const row = await this.db
+      .prepare("SELECT COUNT(*) AS n FROM score_attempts WHERE at >= ?")
+      .bind(since)
+      .first<{ n: number }>();
+    return row?.n ?? 0;
+  }
+
+  async addScoreAttempt(at: number): Promise<void> {
+    await this.db.prepare("INSERT INTO score_attempts (at) VALUES (?)").bind(at).run();
+  }
+
+  async clearScoreAttempts(before: number): Promise<void> {
+    await this.db.prepare("DELETE FROM score_attempts WHERE at < ?").bind(before).run();
+  }
 }
 
 function decodeAuth(passwordHash: string, totpCipher: string, totpReady: number, recovery: string): AuthRow {
@@ -250,6 +325,8 @@ export class MemoryStore implements Store {
   auth: AuthRow | null = null;
   notes: Note[] = [];
   noteAttempts: number[] = [];
+  scores: ScoreRow[] = [];
+  scoreAttempts: number[] = [];
   private noteSeq = 1;
 
   async ensure(): Promise<void> {}
@@ -359,5 +436,43 @@ export class MemoryStore implements Store {
 
   async clearNoteAttempts(before: number): Promise<void> {
     this.noteAttempts = this.noteAttempts.filter((at) => at >= before);
+  }
+
+  async listScores(game: string, limit: number): Promise<ScoreRow[]> {
+    const cap = Math.max(0, Math.min(8, limit));
+    return this.scores
+      .filter((row) => row.game === game)
+      .sort((a, b) => b.score - a.score || a.created - b.created)
+      .slice(0, cap)
+      .map((row) => ({ ...row }));
+  }
+
+  async saveScore(row: ScoreRow): Promise<SavedScore> {
+    const existing = this.scores.find((item) => item.game === row.game && item.name === row.name);
+    if (existing && existing.score >= row.score) return { ...existing, best: false };
+    if (!existing) {
+      const mine = this.scores.filter((item) => item.game === row.game);
+      if (mine.length >= 80) {
+        const low = [...mine].sort((a, b) => a.score - b.score || b.created - a.created)[0];
+        if (!low || row.score <= low.score) return { ...row, best: false };
+        this.scores = this.scores.filter((item) => item !== low);
+      }
+    }
+    this.scores = this.scores.filter((item) => !(item.game === row.game && item.name === row.name));
+    const saved = { ...row };
+    this.scores.push(saved);
+    return { ...saved, best: true };
+  }
+
+  async countScoreAttempts(since: number): Promise<number> {
+    return this.scoreAttempts.filter((at) => at >= since).length;
+  }
+
+  async addScoreAttempt(at: number): Promise<void> {
+    this.scoreAttempts.push(at);
+  }
+
+  async clearScoreAttempts(before: number): Promise<void> {
+    this.scoreAttempts = this.scoreAttempts.filter((at) => at >= before);
   }
 }

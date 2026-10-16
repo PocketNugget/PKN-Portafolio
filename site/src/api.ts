@@ -1,6 +1,7 @@
 import { renderNote } from "./markup";
 import { randomToken, safeEqual, sha256Hex, verifyPassword } from "./password";
 import { cleanBlock, cleanLine, cleanTags, NOTE_BODY_MAX, NOTE_LINES, NOTE_NAME_MAX, scrubInvisible } from "./plain";
+import { parseGame, parseLevel, parseScore, parseScoreName, SCORE_LIMIT, TOP_N } from "./scores";
 import type { Note, Store } from "./store";
 import { openSecret, otpauthUri, totpMatches } from "./totp";
 
@@ -110,6 +111,28 @@ function publicNote(note: Note) {
     body,
     created: new Date(note.created).toISOString(),
   };
+}
+
+async function saveScore(request: Request, store: Store, now: number): Promise<Response> {
+  if (!originOk(request)) return text(403, "bad origin\n");
+  const body = await readJson(request);
+  if (body instanceof Response) return body;
+  const record = body as { game?: unknown; name?: unknown; score?: unknown; level?: unknown };
+  const game = parseGame(record.game);
+  const name = parseScoreName(record.name);
+  const level = parseLevel(record.level);
+  const score = game ? parseScore(game, record.score) : null;
+  if (!game || !name || level === null || score === null) return text(400, "bad score\n");
+  await store.clearScoreAttempts(now - WINDOW_MS);
+  if ((await store.countScoreAttempts(now - WINDOW_MS)) >= SCORE_LIMIT) return text(429, "too many scores\n");
+  await store.addScoreAttempt(now);
+  const saved = await store.saveScore({ game, name, score, level, created: now });
+  return json(saved.best ? 201 : 200, {
+    best: saved.best,
+    name: saved.name,
+    score: saved.score,
+    level: saved.level,
+  });
 }
 
 async function createNote(request: Request, store: Store, now: number): Promise<Response> {
@@ -329,6 +352,21 @@ export async function handleApi(
     return json(200, { notes });
   }
   if (path === "/api/comments" && method === "POST") return createNote(request, store, now);
+  if (path === "/api/scores" && method === "GET") {
+    const game = parseGame(url.searchParams.get("game"));
+    if (!game) return text(400, "bad game\n");
+    const scores = await store.listScores(game, TOP_N);
+    return json(200, {
+      scores: scores
+        .map((row) => {
+          const name = parseScoreName(row.name);
+          if (!name || !Number.isInteger(row.score) || !Number.isInteger(row.level)) return null;
+          return { name, score: row.score, level: row.level };
+        })
+        .filter((row) => row !== null),
+    });
+  }
+  if (path === "/api/scores" && method === "POST") return saveScore(request, store, now);
 
   const comment = /^\/api\/comments\/([1-9]\d*)$/.exec(path);
   if (comment) {

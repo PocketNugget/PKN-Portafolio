@@ -45,7 +45,8 @@ export function isDocumentPath(pathname: string): boolean {
     path === "/math" ||
     path === "/wheel" ||
     path === "/snake" ||
-    path === "/tetris"
+    path === "/tetris" ||
+    path === "/tron"
   ) {
     return true;
   }

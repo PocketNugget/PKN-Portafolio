@@ -226,6 +226,7 @@ describe("pages", () => {
       "/wheel",
       "/snake",
       "/tetris",
+      "/tron",
     ]) {
       expect(isDocumentPath(path)).toBe(true);
       expect(xml).not.toContain(`https://pocketnugget.xyz${path}</loc>`);

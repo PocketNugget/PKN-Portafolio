@@ -78,7 +78,7 @@ Double-click a desktop icon, or use Start. Windows drag from the title bar, resi
 
 Wallpaper files are `site/public/wallpapers/`. The default is `sky.jpg`. Display Properties (Start, then Display) switches Sky, Teal, Clouds, and Navy for the current tab. Icon positions after a drag are remembered the same way. Neither is a cookie.
 
-To change a page, edit `site/src/catalog.ts`. The desktop apps are the list at the top of `site/src/desktop/desktop.ts`. Snake and Tetris live in `site/src/desktop/games.ts`. The Terminal commands `snake` and `tetris` still start them there. The Snake and Tetris icons open a terminal that is already in that game. Esc leaves it. Radio stays a text page at `/radio` and a terminal command. It is not a desktop icon and it is not in Start.
+To change a page, edit `site/src/catalog.ts`. The desktop apps are the list at the top of `site/src/desktop/desktop.ts`. Snake and Tetris live in `site/src/desktop/games.ts`. Tron, the light cycle, lives in `site/src/desktop/cycle.ts`. The Terminal commands `snake`, `tetris`, and `tron` start them there. Those icons open a window that is already in that game. The level rises while the round lasts, Again starts the round over, and a name can be saved on the public score list. Esc leaves it. Radio stays a text page at `/radio` and a terminal command. It is not a desktop icon and it is not in Start.
 
 ### Extra apps
 
@@ -87,7 +87,7 @@ Each of these is a normal window. Open it from the icon or from Start. The termi
 - Player (`player`). Webdeck Player v1.0.2, MIT, by Chris, hosted on this site under `site/public/vendor/webdeck-player/`. Opening the window loads Permaculture, by MTHRBORD, in YouTube's own player. The list also has Magic Ways, by Tatsuro Yamashita, a mix that starts on that video, Floral Shoppe, by Macintosh Plus, and a mix that starts on that track. This site does not host those files. Square-wave tones are gone from this window. The legal page says what is embedded and what is not.
 - My Pictures (`pictures`) and Certificates (`awards`). Thumbnails, then a larger view with previous and next. The files live in `site/public/media/`. The titles and captions are `site/src/desktop/media.ts`. The public site cannot read a folder on your computer, so copy new photos into `public/media` and add a line to that file. The first set was copied from the local Desktop folder of photos and certificate scans.
 - Converter (`encode`). Base64, hex, and URL encode and decode, text to binary, MD5, SHA-1, and SHA-256, plus KB, MB, and GB using 1024, not 1000. One MB is 1048576 bytes. It runs in the page. Nothing is uploaded.
-- Sweep (`sweep`). A 9 by 9 grid with 10 mines. Click opens a cell. Right-click, or the Flag button, marks one. The first open cell is never a mine.
+- Sweep (`sweep`). It starts as a 9 by 9 grid with 10 mines. A clear opens a tighter grid and keeps the score. Click opens a cell. Right-click, or the Flag button, marks one. The first open cell is never a mine. Again starts over. A name can be saved on the public score list.
 - Dice (`dice`). A die with 4, 6, 8, 10, 12, or 20 sides. Six is the default.
 - Flip (`flip`). Heads or tails, with a short flip.
 - Calculator (`math`). Left to right, the way the Windows 98 calculator did it. It does not use `eval`.

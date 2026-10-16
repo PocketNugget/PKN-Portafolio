@@ -41,6 +41,15 @@ function placeFood(width: number, height: number, body: Point[]): Point {
   return { x: 0, y: 0 };
 }
 
+export function snakeLevel(score: number): number {
+  return 1 + Math.floor(Math.max(0, score) / 3);
+}
+
+export function snakePace(level: number): number {
+  const step = Math.max(0, Math.floor(level) - 1);
+  return Math.max(60, 140 - step * 12);
+}
+
 export function createSnake(): SnakeState {
   return {
     width: 20,
@@ -109,7 +118,7 @@ export function snakeRender(state: SnakeState): string {
     rows.push(line);
   }
   const status = state.dead ? "game over. esc leaves" : "arrows move. esc leaves";
-  return `${rows.join("\n")}\nscore ${state.score}  ${status}`;
+  return `${rows.join("\n")}\nscore ${state.score}  level ${snakeLevel(state.score)}  ${status}`;
 }
 
 export type Kind = "I" | "O" | "T" | "S" | "Z" | "J" | "L";
@@ -358,6 +367,15 @@ function spawn(state: TetrisState): TetrisState {
   return next;
 }
 
+export function tetrisLevel(lines: number): number {
+  return 1 + Math.floor(Math.max(0, lines) / 2);
+}
+
+export function tetrisPace(level: number): number {
+  const step = Math.max(0, Math.floor(level) - 1);
+  return Math.max(80, 480 - step * 36);
+}
+
 export function createTetris(opts?: {
   width?: number;
   height?: number;
@@ -473,5 +491,5 @@ export function tetrisRender(state: TetrisState): string {
     rows.push(`${line}|`);
   }
   const status = state.over ? "game over. esc leaves" : "arrows, space drops, esc leaves";
-  return `${rows.join("\n")}\nscore ${state.score}  lines ${state.lines}  ${status}`;
+  return `${rows.join("\n")}\nscore ${state.score}  lines ${state.lines}  level ${tetrisLevel(state.lines)}  ${status}`;
 }

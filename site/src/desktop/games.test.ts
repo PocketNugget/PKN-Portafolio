@@ -4,11 +4,15 @@ import {
   createSnake,
   createTetris,
   snakeAim,
+  snakeLevel,
+  snakePace,
   snakeRender,
   stepSnake,
   tetrisDown,
   tetrisHard,
   tetrisLeft,
+  tetrisLevel,
+  tetrisPace,
   tetrisRender,
   tetrisRotate,
   tetrisTick,
@@ -65,6 +69,15 @@ describe("snake", () => {
     expect(snakeRender(wall)).toContain("game over. esc leaves");
     expect(snakeRender(start)).toContain("@");
     expect(snakeRender(start)).toContain("*");
+    expect(snakeRender(start)).toContain("level 1");
+  });
+
+  it("speeds up as the score rises", () => {
+    expect(snakeLevel(0)).toBe(1);
+    expect(snakeLevel(3)).toBe(2);
+    expect(snakePace(1)).toBeGreaterThan(snakePace(2));
+    expect(snakePace(2)).toBeGreaterThan(snakePace(8));
+    expect(snakePace(40)).toBe(60);
   });
 });
 
@@ -112,5 +125,9 @@ describe("tetris", () => {
     expect(blocked.over).toBe(true);
     expect(tetrisLeft(blocked)).toBe(blocked);
     expect(tetrisRender(blocked)).toContain("game over. esc leaves");
+    expect(tetrisLevel(0)).toBe(1);
+    expect(tetrisLevel(2)).toBe(2);
+    expect(tetrisPace(1)).toBeGreaterThan(tetrisPace(4));
+    expect(tetrisPace(30)).toBe(80);
   });
 });

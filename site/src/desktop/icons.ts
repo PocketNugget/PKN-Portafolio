@@ -80,6 +80,9 @@ export const ICONS: Record<string, string> = {
   tetris: svg(
     `<rect x="8" y="4" width="6" height="6" fill="#000080" stroke="#000"/><rect x="8" y="10" width="6" height="6" fill="#000080" stroke="#000"/><rect x="8" y="16" width="6" height="6" fill="#000080" stroke="#000"/><rect x="14" y="16" width="6" height="6" fill="#008080" stroke="#000"/><rect x="6" y="24" width="20" height="3" fill="#808080" stroke="#000"/>`,
   ),
+  tron: svg(
+    `<rect x="3" y="3" width="26" height="26" fill="#041018" stroke="#000"/><path d="M7 23 H14 V9 H24" fill="none" stroke="#00e5ff" stroke-width="2"/><path d="M25 8 H16 V22 H8" fill="none" stroke="#ff3355" stroke-width="2"/>`,
+  ),
   sweep: svg(
     `<rect x="4" y="4" width="24" height="24" fill="#c0c0c0" stroke="#000"/><rect x="7" y="7" width="5" height="5" fill="#000080"/><rect x="14" y="7" width="5" height="5" fill="#c0c0c0" stroke="#000"/><rect x="21" y="7" width="5" height="5" fill="#800000"/><rect x="7" y="14" width="5" height="5" fill="#c0c0c0" stroke="#000"/><rect x="14" y="14" width="5" height="5" fill="#008080"/><rect x="21" y="14" width="5" height="5" fill="#c0c0c0" stroke="#000"/>`,
   ),

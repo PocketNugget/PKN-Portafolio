@@ -9,16 +9,22 @@ import {
   pushHist,
 } from "../shell";
 import { t } from "../i18n";
+import { mountBoard, type BoardHandle } from "./board";
+import { createCycle, cycleAim, cyclePace, stepCycle, type CycleState } from "./cycle";
 import {
   createSnake,
   createTetris,
   snakeAim,
+  snakeLevel,
+  snakePace,
   snakeRender,
   stepSnake,
   tetrisActive,
   tetrisDown,
   tetrisHard,
   tetrisLeft,
+  tetrisLevel,
+  tetrisPace,
   tetrisRender,
   tetrisRight,
   tetrisRotate,
@@ -27,6 +33,7 @@ import {
   type SnakeState,
   type TetrisState,
 } from "./games";
+import type { GameId } from "../scores";
 
 const opens = openTable();
 const openNames = Object.keys(opens);
@@ -43,7 +50,8 @@ export interface TermHost {
   close: () => void;
 }
 
-type Mode = "shell" | "snake" | "tetris";
+type PlayMode = "snake" | "tetris" | "tron";
+type Mode = "shell" | PlayMode;
 
 export class Terminal {
   private readonly pre: HTMLElement;
@@ -63,6 +71,10 @@ export class Terminal {
   private mode: Mode = "shell";
   private snake: SnakeState | null = null;
   private tetris: TetrisState | null = null;
+  private tron: CycleState | null = null;
+  private scores: BoardHandle | null = null;
+  private scoreGame: GameId | null = null;
+  private pace = 0;
   private paused = false;
   private held = false;
   private timer = 0;
@@ -73,7 +85,7 @@ export class Terminal {
   constructor(
     host: HTMLElement,
     private readonly hooks: TermHost,
-    start?: "snake" | "tetris",
+    start?: PlayMode,
   ) {
     host.classList.add("term-mount");
     host.innerHTML = `<pre class="dos" tabindex="0"></pre>
@@ -95,6 +107,7 @@ export class Terminal {
         <div class="pad-act">
           <button type="button" data-key=" " data-role="drop">Drop</button>
           <button type="button" data-key="p">Pause</button>
+          <button type="button" class="pad-again" data-key="Again" data-role="again">Again</button>
           <button type="button" class="pad-exit" data-key="Escape">Exit</button>
         </div>
       </div>`;
@@ -157,14 +170,14 @@ export class Terminal {
 
   resume(): void {
     this.held = false;
-    if (this.mode === "snake") this.startLoop(140);
-    if (this.mode === "tetris") this.startLoop(480);
+    this.syncPace();
   }
 
   destroy(): void {
     this.gone = true;
     this.stopLoop();
     this.stopHold();
+    this.clearScores();
   }
 
   private touchPlay(): boolean {
@@ -175,6 +188,7 @@ export class Terminal {
     const turn = this.mode === "tetris";
     this.root.classList.toggle("is-snake", this.mode === "snake");
     this.root.classList.toggle("is-tetris", turn);
+    this.root.classList.toggle("is-cycle", this.mode === "tron");
     const up = this.root.querySelector("[data-role='up']");
     if (up instanceof HTMLButtonElement) {
       up.textContent = turn ? "↻" : "↑";
@@ -197,7 +211,7 @@ export class Terminal {
       button.textContent = glyphs[key] ?? "";
       button.setAttribute("aria-label", name ? t(name) : "");
     }
-    const actions: Record<string, string> = { " ": "Drop", p: "Pause", Escape: "Exit" };
+    const actions: Record<string, string> = { " ": "Drop", p: "Pause", Again: "Again", Escape: "Exit" };
     for (const button of this.root.querySelectorAll<HTMLButtonElement>(".pad-act button")) {
       const name = actions[button.dataset.key ?? ""];
       if (!name) continue;
@@ -229,7 +243,9 @@ export class Terminal {
       this.onKey(key, false);
       this.stopHold();
       const repeat =
-        this.mode === "tetris" && (key === "ArrowLeft" || key === "ArrowRight" || key === "ArrowDown");
+        key !== "Again" &&
+        this.mode === "tetris" &&
+        (key === "ArrowLeft" || key === "ArrowRight" || key === "ArrowDown");
       if (!repeat) return;
       this.holdWait = window.setTimeout(() => {
         this.holdWait = 0;
@@ -247,6 +263,7 @@ export class Terminal {
     let tracking = false;
     stage.addEventListener("pointerdown", (event) => {
       if (!this.inGame() || !this.touchPlay()) return;
+      if (event.target instanceof Element && event.target.closest("input, button, a, form")) return;
       if (event.pointerType === "mouse" && event.button !== 0) return;
       tracking = true;
       startX = event.clientX;
@@ -276,6 +293,10 @@ export class Terminal {
       this.endGame();
       return true;
     }
+    if (key === "Again" || key === "r" || key === "R") {
+      if (!repeat) this.begin(this.mode);
+      return true;
+    }
     if (key === "p" || key === "P") {
       this.paused = !this.paused;
       this.paint();
@@ -286,6 +307,12 @@ export class Terminal {
       const dir = ARROWS[key];
       if (!dir) return false;
       this.snake = snakeAim(this.snake, dir);
+      return true;
+    }
+    if (this.tron && !this.tron.dead && !this.tron.won) {
+      const dir = ARROWS[key];
+      if (!dir) return false;
+      this.tron = cycleAim(this.tron, dir);
       return true;
     }
     if (this.tetris && !this.tetris.over) {
@@ -362,6 +389,10 @@ export class Terminal {
       this.begin("tetris");
       return;
     }
+    if (cmd === "tron") {
+      this.begin("tron");
+      return;
+    }
     if (cmd === "help") {
       for (const item of HELP) this.lines.push(`${item.cmd.padEnd(18)}${item.blurb}`);
       this.paint();
@@ -386,16 +417,19 @@ export class Terminal {
     }
   }
 
-  private begin(mode: "snake" | "tetris"): void {
+  private begin(mode: PlayMode): void {
     this.mode = mode;
     this.paused = false;
+    this.pace = 0;
     this.snake = mode === "snake" ? createSnake() : null;
     this.tetris = mode === "tetris" ? createTetris() : null;
+    this.tron = mode === "tron" ? createCycle() : null;
     this.root.classList.add("playing");
+    this.ensureScores(mode);
     this.labelPad();
     this.paint();
     this.pre.focus();
-    this.startLoop(mode === "snake" ? 140 : 480);
+    this.syncPace();
   }
 
   private endGame(): void {
@@ -403,12 +437,41 @@ export class Terminal {
     this.mode = "shell";
     this.snake = null;
     this.tetris = null;
+    this.tron = null;
+    this.pace = 0;
     this.paused = false;
+    this.clearScores();
     this.root.classList.remove("playing");
     this.labelPad();
     this.lines.push("back at the prompt.");
     this.paint();
     if (matchMedia("(pointer: fine)").matches) this.input.focus();
+  }
+
+  private paceFor(): number {
+    if (this.mode === "snake" && this.snake) return snakePace(snakeLevel(this.snake.score));
+    if (this.mode === "tetris" && this.tetris) return tetrisPace(tetrisLevel(this.tetris.lines));
+    if (this.mode === "tron" && this.tron) return cyclePace(this.tron.level);
+    return 0;
+  }
+
+  private syncPace(): void {
+    if (this.paused || this.held || this.gone || this.mode === "shell") return;
+    const next = this.paceFor();
+    if (next > 0 && (next !== this.pace || !this.timer)) this.startLoop(next);
+  }
+
+  private ensureScores(game: GameId): void {
+    if (this.scoreGame === game && this.scores) return;
+    this.clearScores();
+    this.scoreGame = game;
+    this.scores = mountBoard(this.stage, game);
+  }
+
+  private clearScores(): void {
+    this.scores?.destroy();
+    this.scores = null;
+    this.scoreGame = null;
   }
 
   private tick(): void {
@@ -417,16 +480,25 @@ export class Terminal {
       this.snake = stepSnake(this.snake);
       this.paint();
       if (this.snake.dead) this.stopLoop();
+      else this.syncPace();
     }
     if (this.tetris && !this.tetris.over) {
       this.tetris = tetrisTick(this.tetris);
       this.paint();
       if (this.tetris.over) this.stopLoop();
+      else this.syncPace();
+    }
+    if (this.tron && !this.tron.dead && !this.tron.won) {
+      this.tron = stepCycle(this.tron);
+      this.paint();
+      if (this.tron.dead || this.tron.won) this.stopLoop();
+      else this.syncPace();
     }
   }
 
   private startLoop(ms: number): void {
     this.stopLoop();
+    this.pace = ms;
     this.timer = window.setInterval(() => this.tick(), ms);
   }
 
@@ -447,6 +519,9 @@ export class Terminal {
       const extra = this.paused ? "\npaused" : "";
       this.pre.textContent = tetrisRender(this.tetris) + extra;
       this.drawTetris(this.tetris);
+    } else if (this.mode === "tron" && this.tron) {
+      this.pre.textContent = this.tron.won ? "clear" : this.tron.dead ? "game over" : "tron";
+      this.drawCycle(this.tron);
     } else {
       this.pre.textContent = this.lines.join("\n");
     }
@@ -485,7 +560,9 @@ export class Terminal {
         ? t("buttons move. exit leaves")
         : t("arrows move. esc leaves");
     const hold = this.paused ? `  ${t("paused")}` : "";
-    this.status.textContent = `${t("Score")} ${state.score}  ${hint}${hold}`;
+    const level = snakeLevel(state.score);
+    this.status.textContent = `${t("Score")} ${state.score}  ${t("Level")} ${level}  ${hint}${hold}`;
+    this.scores?.setOffer(state.score, level, state.dead);
   }
 
   private drawTetris(state: TetrisState): void {
@@ -509,6 +586,41 @@ export class Terminal {
         ? t("buttons move. turn and drop. exit leaves")
         : t("arrows, space drops, esc leaves");
     const hold = this.paused ? `  ${t("paused")}` : "";
-    this.status.textContent = `${t("Score")} ${state.score}  ${t("Lines")} ${state.lines}  ${hint}${hold}`;
+    const level = tetrisLevel(state.lines);
+    this.status.textContent = `${t("Score")} ${state.score}  ${t("Lines")} ${state.lines}  ${t("Level")} ${level}  ${hint}${hold}`;
+    this.scores?.setOffer(state.score, level, state.over);
+  }
+
+  private drawCycle(state: CycleState): void {
+    this.board.className = "play-board cycle";
+    this.board.style.aspectRatio = `${state.width} / ${state.height}`;
+    this.board.style.gridTemplateColumns = `repeat(${state.width}, minmax(0, 1fr))`;
+    this.board.style.gridTemplateRows = `repeat(${state.height}, minmax(0, 1fr))`;
+    const tiles = this.cells(state.width * state.height);
+    const youKey = `${state.you.x},${state.you.y}`;
+    const foeKey = state.foeAlive ? `${state.foe.x},${state.foe.y}` : "";
+    for (let index = 0; index < tiles.length; index += 1) {
+      const x = index % state.width;
+      const y = Math.floor(index / state.width);
+      const tile = tiles[index];
+      if (!tile) continue;
+      const key = `${x},${y}`;
+      const mark = state.trail[index] ?? 0;
+      if (key === youKey && !state.dead) tile.className = "play-cell you";
+      else if (key === foeKey) tile.className = "play-cell foe";
+      else if (mark === 1) tile.className = "play-cell ribbon";
+      else if (mark === 2) tile.className = "play-cell ribbon-foe";
+      else tile.className = "play-cell";
+    }
+    const hint = state.won
+      ? t("You cleared the grid.")
+      : state.dead
+        ? t("game over. esc leaves")
+        : this.touchPlay()
+          ? t("buttons move. exit leaves")
+          : t("arrows move. esc leaves");
+    const hold = this.paused ? `  ${t("paused")}` : "";
+    this.status.textContent = `${t("Score")} ${state.score}  ${t("Level")} ${state.level}  ${hint}${hold}`;
+    this.scores?.setOffer(state.score, state.level, state.dead || state.won);
   }
 }

@@ -60,7 +60,7 @@ describe("parseCommand", () => {
     expect(parseCommand("open bad", { bad: "javascript:alert(1)" }).type).toBe("nav");
     for (const href of Object.values(opens)) expect(safeUrl(href)).toBe(true);
     for (const cmd of COMMANDS) {
-      if (cmd === "open" || cmd === "snake" || cmd === "tetris" || cmd === "exit") continue;
+      if (cmd === "open" || cmd === "snake" || cmd === "tetris" || cmd === "tron" || cmd === "exit") continue;
       expect(parseCommand(cmd, opens).type).toBe("nav");
     }
   });

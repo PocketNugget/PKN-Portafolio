@@ -244,10 +244,12 @@ describe("d1 store", () => {
     const db = new FakeDb();
     const store = new D1Store(db as unknown as D1Like);
     await store.ensure();
-    expect(db.execs).toHaveLength(6);
+    expect(db.execs).toHaveLength(8);
     expect(db.execs).toContain(
       "CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, body TEXT NOT NULL, created INTEGER NOT NULL)",
     );
+    expect(db.execs.join("\n").toLowerCase()).toContain("create table if not exists scores");
+    expect(db.execs.join("\n").toLowerCase()).not.toContain("address");
 
     await store.insertPost({
       slug: "shift-note",

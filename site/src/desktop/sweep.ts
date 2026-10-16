@@ -1,4 +1,5 @@
 import { t } from "../i18n";
+import { mountBoard, type BoardHandle } from "./board";
 import type { DeskApp } from "./host";
 
 export interface SweepCell {
@@ -121,9 +122,44 @@ export function sweepFlagsLeft(state: SweepState): number {
   return state.mines - flags;
 }
 
+export const SWEEP_MAX = 8;
+
+const SWEEP_TIERS: { width: number; height: number; mines: number }[] = [
+  { width: 9, height: 9, mines: 10 },
+  { width: 9, height: 9, mines: 15 },
+  { width: 10, height: 10, mines: 20 },
+  { width: 12, height: 12, mines: 28 },
+  { width: 12, height: 12, mines: 34 },
+  { width: 14, height: 14, mines: 42 },
+  { width: 14, height: 14, mines: 48 },
+  { width: 16, height: 16, mines: 55 },
+];
+
+export function sweepTier(level: number): { width: number; height: number; mines: number } {
+  const index = Math.max(0, Math.min(SWEEP_TIERS.length - 1, Math.floor(level) - 1));
+  return SWEEP_TIERS[index] ?? SWEEP_TIERS[0]!;
+}
+
+export function sweepSafeOpen(state: SweepState): number {
+  return state.cells.filter((cell) => cell.open && !cell.mine).length;
+}
+
+export function sweepPoints(opened: number, level: number, won: boolean): number {
+  const lv = Math.max(1, Math.floor(level));
+  return Math.max(0, opened) * lv + (won ? 25 * lv : 0);
+}
+
+function sweepBoard(level: number): SweepState {
+  const tier = sweepTier(level);
+  return createSweep(tier.width, tier.height, tier.mines);
+}
+
 export function mountSweep(host: HTMLElement): DeskApp {
   host.replaceChildren();
-  let state = createSweep();
+  let level = 1;
+  let bank = 0;
+  let rose = false;
+  let state = sweepBoard(level);
   let flagMode = false;
   let seconds = 0;
   let timer = 0;
@@ -141,7 +177,8 @@ export function mountSweep(host: HTMLElement): DeskApp {
   flag.textContent = t("Flag");
   const again = document.createElement("button");
   again.type = "button";
-  again.textContent = t("New");
+  again.dataset.role = "again";
+  again.textContent = t("Again");
   const status = document.createElement("p");
   status.className = "meta";
   const grid = document.createElement("div");
@@ -149,6 +186,12 @@ export function mountSweep(host: HTMLElement): DeskApp {
   bar.append(mines, clock, flag, again);
   root.append(bar, status, grid);
   host.append(root);
+  const board: BoardHandle = mountBoard(root, "sweep");
+  const total = () => {
+    const last = state.won && level >= SWEEP_MAX;
+    if (!state.armed && state.alive && !state.won) return bank;
+    return bank + sweepPoints(sweepSafeOpen(state), level, last);
+  };
 
   const stop = () => {
     if (!timer) return;
@@ -169,11 +212,17 @@ export function mountSweep(host: HTMLElement): DeskApp {
     clock.textContent = String(seconds).padStart(3, "0");
     clock.setAttribute("aria-label", `${seconds}s`);
     flag.setAttribute("aria-pressed", String(flagMode));
-    status.textContent = state.won
-      ? t("Clear.")
-      : state.alive
-        ? `${t("Open a cell. Flag marks a guess.")} ${t("Hold a cell to flag it.")}`
-        : t("A mine. New starts again.");
+    const done = !state.alive || (state.won && level >= SWEEP_MAX);
+    const message = rose
+      ? t("Clear. The next grid is tighter.")
+      : state.won
+        ? t("You cleared the last grid.")
+        : state.alive
+          ? `${t("Open a cell. Flag marks a guess.")} ${t("Hold a cell to flag it.")}`
+          : t("A mine. Again starts over.");
+    status.textContent = `${t("Score")} ${total()}  ${t("Level")} ${level}  ${message}`;
+    board.setOffer(total(), level, done);
+    grid.style.gridTemplateColumns = `repeat(${state.width}, minmax(0, 1fr))`;
     grid.replaceChildren();
     state.cells.forEach((cell, index) => {
       const button = document.createElement("button");
@@ -205,8 +254,16 @@ export function mountSweep(host: HTMLElement): DeskApp {
       button.addEventListener("click", () => {
         clearHold();
         if (performance.now() < suppressUntil) return;
+        rose = false;
         state = flagMode ? sweepFlag(state, index) : sweepOpen(state, index);
-        if (!state.alive || state.won) stop();
+        if (state.won && level < SWEEP_MAX) {
+          bank += sweepPoints(sweepSafeOpen(state), level, true);
+          level += 1;
+          state = sweepBoard(level);
+          seconds = 0;
+          stop();
+          rose = true;
+        } else if (!state.alive || state.won) stop();
         else start();
         paint();
       });
@@ -224,7 +281,10 @@ export function mountSweep(host: HTMLElement): DeskApp {
   });
   again.addEventListener("click", () => {
     stop();
-    state = createSweep();
+    level = 1;
+    bank = 0;
+    rose = false;
+    state = sweepBoard(level);
     seconds = 0;
     flagMode = false;
     paint();
@@ -239,6 +299,7 @@ export function mountSweep(host: HTMLElement): DeskApp {
     },
     destroy() {
       stop();
+      board.destroy();
     },
   };
 }
