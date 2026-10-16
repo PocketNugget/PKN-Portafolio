@@ -1,4 +1,5 @@
 import { t } from "../i18n";
+import { scareClippy, calmClippy } from "./buddy";
 import type { DeskApp } from "./host";
 
 export const HACK_LINES = [
@@ -102,6 +103,7 @@ export function mountHack(host: HTMLElement, layer: HTMLElement, desktop: HTMLEl
   function clearFx(): void {
     window.clearInterval(timer);
     timer = 0;
+    calmClippy();
     shell().classList.remove("is-hacked");
     desktop.classList.remove("is-glitch");
     tear?.remove();
@@ -123,6 +125,7 @@ export function mountHack(host: HTMLElement, layer: HTMLElement, desktop: HTMLEl
   }
 
   function engage(): void {
+    scareClippy();
     shell().classList.add("is-hacked");
     desktop.classList.add("is-glitch");
     showTear();

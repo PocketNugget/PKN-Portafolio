@@ -734,6 +734,10 @@ export function bootDesktop(): void {
 
   function maybeTip(path: string): void {
     if (!clippy || tipped.has(path)) return;
+    if (path === "/hack") {
+      clippy.scare();
+      return;
+    }
     const line = NUGGET_TIPS[path];
     if (!line) return;
     tipped.add(path);

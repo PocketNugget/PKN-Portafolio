@@ -128,19 +128,154 @@ export const jobs: Job[] = [
 
 export const projects: Project[] = [
   {
-    slug: "tbsek-reports",
-    title: "Shift reports at TBSeK",
-    date: "April 2025 to July 2026",
+    slug: "homelab",
+    title: "Homelab and this site",
+    date: "2024 to 2026",
     summary:
-      "Python and Node.js for the part of MDR triage that was the same every time: collect, format, file.",
+      "This is the site you are reading. TypeScript and Vite are served by one Cloudflare Worker. D1 holds the posts, the suggestions, and the login state. There is one admin and no public signup. The password is a hash in a Worker secret. The authenticator secret is sealed in D1. Eight recovery codes are stored as hashes, and each code works once. The session cookie is HttpOnly, SameSite=Strict, and Secure on https. D1 stores a hash of that cookie, not the cookie. Visitor addresses are not stored. A wrong username and a wrong password get the same answer. The compare does not return on the first mismatch. Eight failures in fifteen minutes lock login, including a bad code. Writes require the browser Origin. Each response sends a Content-Security-Policy locked to this origin, nosniff, a strict referrer policy, a permissions policy with the sensors off, and Cross-Origin-Opener-Policy same-origin. Frames are denied, except the music player, which may load YouTube. security.txt names the contact address. There is no contact form and no analytics table. pocketnugget.xyz publishes only from the prod branch. The old app in legacy/ was React, Deno, SQLite, and JWT, and it is not this deploy. Docker and Cloudflare Tunnels stay on the homelab.",
     body: [
-      "The alerts were not the slow part. The writeup after the alert was. I scripted the collection and the report shape in Python, with Node.js where the existing tools already spoke it, plus Streamlit for the bits an analyst had to see and Selenium where a console had no export.",
-      "Report time dropped by about 70%. No client names on this page, and no alert contents.",
+      "Workers Builds is the deploy. A push to the prod branch builds site/ and publishes the Worker. main and the other branches run the tests and do not publish. The Worker runs before the files, sets the headers, and serves security.txt plus build.json. Document routes return the app. Unknown paths return 404. D1 migrations are applied on the remote database. www and hackztecs are Cloudflare Tunnels, not routes on this Worker.",
+      "Login is a password plus a 6-digit authenticator code. It is not a Google or Microsoft login. The first successful password shows a QR once. A later password has to be at least 16 characters, and that hash is what D1 keeps. scripts/check.sh typechecks, runs the tests, and greps the build before a ship.",
+      "The homelab is where Docker and Cloudflare Tunnels live, on a Raspberry Pi and on the STEM Mac Mini while that apprenticeship ran. I did not put Kubernetes in front of these pages. Naming a cluster here would not make the site safer. Terraform for the DNS zone can come later, against the real zone, not as a diagram.",
     ],
-    tools: ["Python", "Node.js", "Streamlit", "Selenium", "Splunk"],
-    links: [],
+    tools: ["TypeScript", "Vite", "Cloudflare Workers", "D1", "Docker", "Cloudflare Tunnels"],
+    links: [
+      {
+        label: "Repository",
+        href: "https://github.com/PocketNugget/PKN-Portafolio",
+      },
+      { label: "Colophon", href: "/colophon" },
+      { label: "security.txt", href: "/.well-known/security.txt" },
+    ],
     people: "",
-    aliases: ["tbsek", "reports", "soc"],
+    aliases: ["homelab", "lab", "pi", "site"],
+  },
+  {
+    slug: "maia",
+    title: "MAIA",
+    date: "November 2024",
+    summary:
+      "First of 22 teams at the AI and Mobility Hackathon. Mobility incidents in, three budgeted options out.",
+    body: [
+      "Team Los Zepedas won the ÖBB challenge at the AI and Mobility Hackathon in Mexico City, run by ABA and Advantage Austria. First of 22 teams. The prize was a trip to Austria.",
+      "MAIA takes mobility incidents from social posts and from reports staff already file. The repo is Next.js and TypeScript, Supabase holds the records, and Groq plus local embeddings cluster the incidents. For each pattern it drafts three options at different budgets, with a rough impact and a feasibility note, on a dashboard and a REST API. It was a hackathon prototype on Vercel, built fast, not a transit system.",
+    ],
+    tools: ["TypeScript", "Next.js", "Supabase", "Groq"],
+    links: [
+      {
+        label: "Repository",
+        href: "https://github.com/PocketNugget/MAIA_Mobility-AI-Analytics",
+      },
+    ],
+    people:
+      "With Jorge Venegas, Nina Maeva Mazadiego Cortes, Humberto Zepeda González, and Hector Zepeda González. Mentors: Florian Bauer, J. Adolfo Carril Paniagua, and Alejandro Najera.",
+    image: "/media/austria-hackathon.jpg",
+    aliases: ["maia", "obb", "zepedas"],
+  },
+  {
+    slug: "coherence-paper",
+    title: "Easy for Us, Complex for AI",
+    date: "October 2024",
+    summary:
+      "Springer LNCS paper from MICAI 2024. People spot broken generated images that the metrics still score as fine.",
+    body: [
+      "Co-authored with Zobeida Guzmán. We presented it at MICAI 2024, with UDLAP, INAOE, and SMIA, and Springer published it in LNCS 15246, pages 198 to 209.",
+      "The survey covers realism metrics for VAEs, GANs, and diffusion models. The gap is Moravec's paradox in miniature: a person sees that a scene does not hold together, and the number does not. The public dataset is 4,368 PNGs built from COCO, MIT licensed, for scoring coherence and realism.",
+    ],
+    tools: ["Research"],
+    links: [
+      {
+        label: "Paper",
+        href: "https://dl.acm.org/doi/10.1007/978-3-031-75540-8_15",
+      },
+      {
+        label: "Dataset",
+        href: "https://github.com/PocketNugget/Coherence-assessment-of-generated-realistic-images",
+      },
+      {
+        label: "ORCID",
+        href: "https://orcid.org/0009-0002-4819-7773",
+      },
+    ],
+    people: "With Zobeida Guzmán.",
+    image: "/media/paper-talk.jpg",
+    aliases: ["paper", "springer", "micai", "dataset"],
+  },
+  {
+    slug: "wayzt",
+    title: "WayZT",
+    date: "February 2024 to March 2024",
+    summary:
+      "First place at a SwiftUI hackathon. The phone classifies plastic, glass, and cardboard on device, and MapKit points at a recycling center.",
+    body: [
+      "An iOS app from a SwiftUI hackathon. Core ML runs the waste model on the phone. The camera names plastic, glass, or cardboard, and MapKit filters recycling centers by that material. The repo is public.",
+    ],
+    tools: ["Swift", "SwiftUI", "MapKit", "Core ML"],
+    links: [
+      {
+        label: "Repository",
+        href: "https://github.com/PocketNugget/WayZT",
+      },
+    ],
+    people: "",
+    aliases: ["wayzt"],
+  },
+  {
+    slug: "where2skate",
+    title: "Where2Skate",
+    date: "January 2025 to May 2025",
+    summary:
+      "Android app for skateparks and street spots. Kotlin, Jetpack Compose, Firebase Auth, Cloud Firestore, and Google Maps.",
+    body: [
+      "Find a park, rate it, or drop a street spot. Firebase Auth is email and password. Cloud Firestore stores the spots and the five-star ratings. Google Maps draws the markers. Anyone can read a park. Creating or editing one requires a signed-in user. A rating can be changed only by the person who wrote it.",
+    ],
+    tools: ["Kotlin", "Jetpack Compose", "Firebase", "Google Maps"],
+    links: [
+      {
+        label: "Repository",
+        href: "https://github.com/PocketNugget/Where2Skate",
+      },
+    ],
+    people: "",
+    aliases: ["skate", "where2skate"],
+  },
+  {
+    slug: "hacking-writeups",
+    title: "Hacking writeups",
+    date: "2025",
+    summary:
+      "Compiled solutions for hacking challenges. The public repo is the archive.",
+    body: [
+      "The repo holds the writeups. I link it instead of pasting solve chains on this site.",
+    ],
+    tools: ["Writeups"],
+    links: [
+      {
+        label: "Repository",
+        href: "https://github.com/PocketNugget/Hacking-Writeups",
+      },
+    ],
+    people: "",
+    aliases: ["writeups", "writeup"],
+  },
+  {
+    slug: "wifi2go",
+    title: "Wifi2Go",
+    date: "2026",
+    summary:
+      "NetConnect, a class captive portal. React, Deno, SQLite, and Docker Compose. It simulates the gateway. It does not run on a campus network.",
+    body: [
+      "A UDLAP computer science course project from 2026. Docker Compose starts the public portal, a simulated internet, and an admin API on separate ports, including an ARM64 image aimed at a Raspberry Pi 5. Stripe and PayPal notify the app through verified webhooks. ARP resolves the client address. A simulated firewall stands in for iptables. Sessions use JWT, and demo mode skips live charges.",
+    ],
+    tools: ["React", "Deno", "SQLite", "Docker"],
+    links: [
+      {
+        label: "Repository",
+        href: "https://github.com/PocketNugget/Wifi2Go",
+      },
+    ],
+    people: "",
+    aliases: ["wifi", "captive"],
   },
   {
     slug: "htb-university-2025",
@@ -153,7 +288,12 @@ export const projects: Project[] = [
       "I was president of Hackztecs for it. The work we sat down to was web, network, and forensics, with Burp Suite and Ghidra open. The solves stay off this site.",
     ],
     tools: ["Burp Suite", "Ghidra", "web", "network", "forensics"],
-    links: [],
+    links: [
+      {
+        label: "LinkedIn",
+        href: "https://lnkd.in/p/ew9RXUKh",
+      },
+    ],
     people:
       "With Georgina Zerón, Natalia María Caballero Garza, Daniel Martínez Maimone, Juan Francisco Cruz Baquedano, and Juan Pablo Morales Durante.",
     aliases: ["htb", "jingle", "university"],
@@ -209,25 +349,6 @@ export const projects: Project[] = [
     aliases: ["crypto", "ciphers"],
   },
   {
-    slug: "hacking-writeups",
-    title: "Hacking writeups",
-    date: "2025",
-    summary:
-      "Finished challenges, written up after the fact. The public repo is the archive.",
-    body: [
-      "Writeups for challenges I have already finished: web, Android, and some binary work. I link the repo instead of pasting solve chains here.",
-    ],
-    tools: ["Writeups"],
-    links: [
-      {
-        label: "Repository",
-        href: "https://github.com/PocketNugget/Hacking-Writeups",
-      },
-    ],
-    people: "",
-    aliases: ["writeups", "writeup"],
-  },
-  {
     slug: "iot-edr",
     title: "IOT-EDR",
     date: "2025",
@@ -244,96 +365,6 @@ export const projects: Project[] = [
     ],
     people: "",
     aliases: ["edr", "iot"],
-  },
-  {
-    slug: "wifi2go",
-    title: "Wifi2Go",
-    date: "2026",
-    summary: "A captive portal you pay to join. TypeScript.",
-    body: [
-      "Pay-to-join captive portal. The interesting part is the boundary between the open network and the session that has paid, not a marketing site in front of it.",
-    ],
-    tools: ["TypeScript"],
-    links: [
-      {
-        label: "Repository",
-        href: "https://github.com/PocketNugget/Wifi2Go",
-      },
-    ],
-    people: "",
-    aliases: ["wifi", "captive"],
-  },
-  {
-    slug: "homelab",
-    title: "Homelab and this site",
-    date: "2024 to 2026",
-    summary:
-      "Raspberry Pi, Docker, Cloudflare Tunnels at home. This site is a Worker on purpose.",
-    body: [
-      "At home the machines are a Raspberry Pi and Docker, with Cloudflare Tunnels when something has to be reachable. The previous version of this portfolio was that stack: React, a Deno API, and a SQLite file.",
-      "This version is a Worker. The pages are files. Login and the blog use D1. The colophon lists what is stored. A cluster in front of these pages would only be there so I could name it.",
-    ],
-    tools: ["Docker", "Raspberry Pi", "Cloudflare Tunnels", "Workers"],
-    links: [
-      {
-        label: "Previous repo",
-        href: "https://github.com/PocketNugget/PKN-Portafolio",
-      },
-      { label: "Colophon", href: "/colophon" },
-    ],
-    people: "",
-    aliases: ["homelab", "lab", "pi", "site"],
-  },
-  {
-    slug: "maia",
-    title: "MAIA",
-    date: "November 2024",
-    summary:
-      "First of 22 teams at the AI and Mobility Hackathon. Mobility incidents in, three budgeted options out.",
-    body: [
-      "Team Los Zepedas won the ÖBB challenge at the AI and Mobility Hackathon in Mexico City, run by ABA and Advantage Austria. First of 22 teams. The prize was a trip to Austria.",
-      "MAIA takes mobility incidents from social posts and from reports staff already file, classifies them, and looks for causes that keep showing up. For each problem it drafts three options at different budgets, with a rough impact and a feasibility note. It was a hackathon prototype, built fast, not a transit system.",
-    ],
-    tools: ["Python", "prototyping"],
-    links: [
-      {
-        label: "Fork",
-        href: "https://github.com/PocketNugget/MAIA_Mobility-AI-Analytics",
-      },
-    ],
-    people:
-      "With Jorge Venegas, Nina Maeva Mazadiego Cortes, Humberto Zepeda González, and Hector Zepeda González. Mentors: Florian Bauer, J. Adolfo Carril Paniagua, and Alejandro Najera.",
-    image: "/media/austria-hackathon.jpg",
-    aliases: ["maia", "obb", "zepedas"],
-  },
-  {
-    slug: "coherence-paper",
-    title: "Easy for Us, Complex for AI",
-    date: "October 2024",
-    summary:
-      "Springer LNCS paper from MICAI 2024. People spot broken generated images that the metrics still score as fine.",
-    body: [
-      "Co-authored with Zobeida Guzmán. We presented it at MICAI 2024, with UDLAP, INAOE, and SMIA, and Springer published it in LNCS 15246, pages 198 to 209.",
-      "The survey covers realism metrics for VAEs, GANs, and diffusion models. The gap is Moravec's paradox in miniature: a person sees that a scene does not hold together, and the number does not. The image set that went with the work is 4,368 PNGs built from COCO.",
-    ],
-    tools: ["Research"],
-    links: [
-      {
-        label: "DOI",
-        href: "https://doi.org/10.1007/978-3-031-75540-8_15",
-      },
-      {
-        label: "Dataset",
-        href: "https://github.com/PocketNugget/Coherence-assessment-of-generated-realistic-images",
-      },
-      {
-        label: "ORCID",
-        href: "https://orcid.org/0009-0002-4819-7773",
-      },
-    ],
-    people: "With Zobeida Guzmán.",
-    image: "/media/paper-talk.jpg",
-    aliases: ["paper", "springer", "micai", "dataset"],
   },
   {
     slug: "conisoft-2025",
@@ -368,44 +399,6 @@ export const projects: Project[] = [
     aliases: ["colorscore", "enactus", "xcookers"],
   },
   {
-    slug: "wayzt",
-    title: "WayZT",
-    date: "February 2024 to March 2024",
-    summary:
-      "First place at a SwiftUI hackathon. The app names the waste and points at a recycling site.",
-    body: [
-      "An iOS app from a SwiftUI hackathon. A model classifies the waste. MapKit shows where to take it. Older than the 2026 resumes, and the repo is still public.",
-    ],
-    tools: ["Swift", "SwiftUI", "MapKit"],
-    links: [
-      {
-        label: "Repository",
-        href: "https://github.com/PocketNugget/WayZT",
-      },
-    ],
-    people: "",
-    aliases: ["wayzt"],
-  },
-  {
-    slug: "where2skate",
-    title: "Where2Skate",
-    date: "January 2025 to May 2025",
-    summary:
-      "Android app for skateparks and street spots. Kotlin, Compose, Firebase, Maps.",
-    body: [
-      "Find a park, rate it, drop a street spot. Firebase auth, Cloud Firestore, Google Maps, Jetpack Compose.",
-    ],
-    tools: ["Kotlin", "Jetpack Compose", "Firebase", "Google Maps"],
-    links: [
-      {
-        label: "Repository",
-        href: "https://github.com/PocketNugget/Where2Skate",
-      },
-    ],
-    people: "",
-    aliases: ["skate", "where2skate"],
-  },
-  {
     slug: "hackztecs",
     title: "Hackztecs",
     date: "February 2024 to present",
@@ -431,7 +424,6 @@ export const projects: Project[] = [
 export type ProjectKind = "detection" | "research" | "hackathon" | "apps";
 
 export const projectKind: Record<string, ProjectKind> = {
-  "tbsek-reports": "detection",
   "iot-edr": "detection",
   sdr: "detection",
   "coherence-paper": "research",

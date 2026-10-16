@@ -1,4 +1,4 @@
-import { NUGGET_LINES } from "./facts";
+import { NUGGET_LINES, NUGGET_SCARE } from "./facts";
 import { t } from "../i18n";
 import { phoneLayout } from "./phone";
 
@@ -6,8 +6,21 @@ export interface Clippy {
   show(): void;
   hide(): void;
   tip(text?: string): void;
+  scare(): void;
+  calm(): void;
   nudge(): void;
   labels(): void;
+}
+
+let scareNow: (() => void) | null = null;
+let calmNow: (() => void) | null = null;
+
+export function scareClippy(): void {
+  scareNow?.();
+}
+
+export function calmClippy(): void {
+  calmNow?.();
 }
 
 export function mountClippy(desktop: HTMLElement): Clippy {
@@ -40,11 +53,27 @@ export function mountClippy(desktop: HTMLElement): Clippy {
   let dragged = false;
   let drag: { x: number; y: number; left: number; top: number } | null = null;
 
+  function boxHeight(): number {
+    return root.offsetHeight || (phoneLayout() ? 160 : 240);
+  }
+
+  // The picture sits at the bottom of the box. Anchoring that edge keeps the
+  // nugget still while the balloon above it opens, grows, or closes.
   function moveTo(left: number, top: number): void {
+    const hostH = desktop.clientHeight;
     root.style.right = "auto";
-    root.style.bottom = "auto";
     root.style.left = `${left}px`;
-    root.style.top = `${top}px`;
+    root.style.top = "auto";
+    root.style.bottom = `${hostH - top - boxHeight()}px`;
+  }
+
+  function origin(): { left: number; top: number } {
+    const left = Number.parseFloat(root.style.left) || 0;
+    const bottom = Number.parseFloat(root.style.bottom);
+    if (root.style.top === "auto" && Number.isFinite(bottom)) {
+      return { left, top: desktop.clientHeight - bottom - boxHeight() };
+    }
+    return { left, top: Number.parseFloat(root.style.top) || 0 };
   }
 
   function bottomReserve(): number {
@@ -58,7 +87,7 @@ export function mountClippy(desktop: HTMLElement): Clippy {
 
   function rightSpot(): { left: number; top: number } {
     const narrow = phoneLayout();
-    const height = root.offsetHeight || (narrow ? 160 : 240);
+    const height = boxHeight();
     const width = root.offsetWidth || (narrow ? 168 : 200);
     const left = Math.max(8, desktop.clientWidth - width - 8);
     const areaH = Math.max(desktop.clientHeight, window.innerHeight - 40);
@@ -109,9 +138,8 @@ export function mountClippy(desktop: HTMLElement): Clippy {
   });
   pic.addEventListener("pointerdown", (event) => {
     if (event.button !== 0) return;
-    const rect = root.getBoundingClientRect();
-    const host = desktop.getBoundingClientRect();
-    drag = { x: event.clientX, y: event.clientY, left: rect.left - host.left, top: rect.top - host.top };
+    const here = origin();
+    drag = { x: event.clientX, y: event.clientY, left: here.left, top: here.top };
     pic.setPointerCapture(event.pointerId);
   });
   pic.addEventListener("pointermove", (event) => {
@@ -120,8 +148,7 @@ export function mountClippy(desktop: HTMLElement): Clippy {
     const dy = event.clientY - drag.y;
     if (dx * dx + dy * dy < 9) return;
     dragged = true;
-    root.style.left = `${Math.max(0, drag.left + dx)}px`;
-    root.style.top = `${Math.max(0, drag.top + dy)}px`;
+    moveTo(Math.max(0, drag.left + dx), Math.max(0, drag.top + dy));
   });
   pic.addEventListener("pointerup", () => {
     drag = null;
@@ -141,8 +168,7 @@ export function mountClippy(desktop: HTMLElement): Clippy {
         return mine.right > other.left && mine.left < other.right && mine.bottom > other.top && mine.top < other.bottom;
       });
     };
-    const left = Number.parseFloat(root.style.left) || 0;
-    const top = Number.parseFloat(root.style.top) || 0;
+    const { left, top } = origin();
     if (!hits(left, top)) return;
     const parked = rightSpot();
     const spots = [
@@ -171,6 +197,19 @@ export function mountClippy(desktop: HTMLElement): Clippy {
   window.visualViewport?.addEventListener("resize", refit);
   if (!root.hidden) talk(NUGGET_LINES[0] ?? "");
 
+  function scare(): void {
+    if (root.hidden) return;
+    root.classList.add("is-scared");
+    talk(NUGGET_SCARE);
+  }
+
+  function calm(): void {
+    root.classList.remove("is-scared");
+  }
+
+  scareNow = scare;
+  calmNow = calm;
+
   return {
     show() {
       root.hidden = false;
@@ -188,6 +227,8 @@ export function mountClippy(desktop: HTMLElement): Clippy {
       if (root.hidden) return;
       talk(text ?? NUGGET_LINES[index] ?? "");
     },
+    scare,
+    calm,
     nudge,
     labels() {
       next.textContent = t("Next");

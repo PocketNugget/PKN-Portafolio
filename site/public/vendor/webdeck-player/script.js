@@ -36,7 +36,7 @@ var myPlaylists = {
  * The first playlist that the player will load on startup. You may change it by
  * writing the name of the new playlist below.
 */
-var currentPlaylist = "Magic Ways";
+var currentPlaylist = "Permaculture";
 
 
 /**
@@ -61,7 +61,7 @@ var myThemes = {
  * [4. CURRENT THEME]
  * Set the theme of your player writing its name below.
  */
-var currentTheme = "SILVER";
+var currentTheme = "DEFAULT";
 
 
 // ===== END OF CONFIGURATION =====
@@ -115,6 +115,7 @@ for(var key in myPlaylists){
     option.innerHTML = key;
     playlistSelector.appendChild(option);
 }
+playlistSelector.value = currentPlaylist;
 
 var themeSelector = document.getElementById("themeSelector");
 for(var key in myThemes){

@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { setLang } from "../i18n";
+import { mountClippy } from "./buddy";
 import { HACK_LINES, HACK_POPS, mountHack } from "./hack";
 
 const random = Math.random;
@@ -9,6 +10,7 @@ afterEach(() => {
   vi.useRealTimers();
   Math.random = random;
   document.body.replaceChildren();
+  sessionStorage.clear();
   setLang("en");
 });
 
@@ -16,7 +18,6 @@ function desk(): { host: HTMLElement; layer: HTMLElement; app: HTMLElement } {
   document.body.innerHTML = `<div id="app"><div id="desktop">
       <button class="desk-icon" data-app="about"><span class="label">About Me</span></button>
       <a class="social-link" href="https://github.com/PocketNugget"><span>GitHub</span></a>
-      <div id="clippy"><img class="buddy-pic" alt="" /></div>
       <div id="windows"></div>
     </div></div>`;
   const app = document.getElementById("app");
@@ -26,6 +27,7 @@ function desk(): { host: HTMLElement; layer: HTMLElement; app: HTMLElement } {
   if (!(app instanceof HTMLElement) || !(desktop instanceof HTMLElement) || !(layer instanceof HTMLElement)) {
     throw new Error("desk fixture");
   }
+  mountClippy(desktop);
   document.body.append(host);
   return { host, layer, app };
 }
@@ -57,6 +59,8 @@ describe("desk payload", () => {
     expect(host.textContent).not.toMatch(/fake|falso/i);
     buttonNamed(host, "Drop the payload").click();
     await vi.advanceTimersByTimeAsync(40);
+    expect(document.getElementById("clippy")?.classList.contains("is-scared")).toBe(true);
+    expect(document.querySelector("#clippy .balloon p")?.textContent).toBe("I hope you do not hack me.");
     expect(app.classList.contains("is-hacked")).toBe(true);
     expect(document.querySelector(".hack-tear")).not.toBeNull();
     expect(document.querySelector(".desk-icon.is-corrupt")).not.toBeNull();
@@ -69,6 +73,7 @@ describe("desk payload", () => {
     expect(host.querySelector(".hack-log")?.textContent).toContain("Payload delivered");
     expect(layer.querySelectorAll(".hack-pop")).toHaveLength(HACK_POPS.length);
     buttonNamed(host, "Reset").click();
+    expect(document.getElementById("clippy")?.classList.contains("is-scared")).toBe(false);
     expect(app.classList.contains("is-hacked")).toBe(false);
     expect(document.querySelector(".hack-tear")).toBeNull();
     expect(document.querySelector(".is-corrupt")).toBeNull();

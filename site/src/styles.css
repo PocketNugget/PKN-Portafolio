@@ -172,6 +172,10 @@ body {
   color: #222;
 }
 
+p.links {
+  overflow-wrap: anywhere;
+}
+
 .window-body .err {
   color: #800000;
 }
@@ -306,12 +310,16 @@ button.thumb img {
 }
 
 .term-mount.playing {
-  justify-content: center;
-  background: #000;
+  position: relative;
+  justify-content: flex-start;
+  background: silver;
 }
 
+.term-mount.is-snake { --board-ratio: 1.6667; }
+.term-mount.is-tetris { --board-ratio: 0.625; }
+
 .window-body:has(.term-mount.playing) {
-  background: #000;
+  background: silver;
 }
 
 .term-mount.playing .play-stage {
@@ -325,17 +333,18 @@ button.thumb img {
   align-items: center;
   justify-content: flex-start;
   gap: 6px;
-  background: #000;
+  background: transparent;
+  container-type: size;
 }
 
 .play-fit {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
-  width: 100%;
-  container-type: size;
+  width: min(100cqw, calc((100cqh - 52px) * var(--board-ratio, 1.6667)));
+  height: min(calc(100cqh - 52px), calc(100cqw / var(--board-ratio, 1.6667)));
+  max-width: 100%;
   display: grid;
-  align-items: end;
-  justify-items: center;
+  background: transparent;
 }
 
 .term-mount.playing pre.dos {
@@ -360,9 +369,9 @@ button.thumb img {
 .play-board.tetris {
   flex: 0 0 auto;
   box-sizing: border-box;
-  width: min(100cqw, calc(100cqh * var(--board-ratio)));
+  width: 100%;
   max-width: 100%;
-  height: auto;
+  height: 100%;
 }
 
 .play-board.snake {
@@ -417,8 +426,9 @@ button.thumb img {
   flex: 0 0 auto;
   margin: 0;
   max-width: 100%;
-  padding: 0 8px;
+  padding: 3px 8px;
   box-sizing: border-box;
+  background: #050805;
   color: #7dff3a;
   font-family: "Courier New", ui-monospace, monospace;
   font-size: 13px;
@@ -1420,6 +1430,11 @@ a.about-go:active {
     pointer-events: none;
   }
 
+  #windows:has(.desk-win:not(.is-min)) ~ #clippy.is-scared {
+    visibility: visible;
+    pointer-events: auto;
+  }
+
   .window-body table.help,
   .window-body table.help tbody,
   .window-body table.help tr,
@@ -1503,6 +1518,11 @@ button#lang,
   animation: nugget-talk 160ms steps(2) infinite;
 }
 
+#clippy.is-scared .buddy-pic,
+#clippy.is-scared .buddy-pic.talk {
+  animation: nugget-scare 140ms steps(2) infinite;
+}
+
 #clippy .balloon {
   position: relative;
   margin: 0 0 8px;
@@ -1558,7 +1578,7 @@ button#lang,
 .window-body:has(.player-mount) {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: clip;
   margin: 3px;
   padding: 0;
   background: #000;
@@ -1578,12 +1598,13 @@ button#lang,
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: clip;
   background: #000;
 }
 
 .deck-fit {
-  overflow: hidden;
+  overflow: clip;
+  min-width: 0;
   flex: 0 0 auto;
   background: #000;
 }
@@ -1870,6 +1891,11 @@ button#lang,
 @keyframes nugget-talk {
   0%, 100% { transform: scaleX(-1); }
   50% { transform: scaleX(-1) translateY(2px); }
+}
+
+@keyframes nugget-scare {
+  0%, 100% { transform: scaleX(-1) translateX(0); }
+  50% { transform: scaleX(-1) translateX(7px); }
 }
 
 @keyframes coin-flip {

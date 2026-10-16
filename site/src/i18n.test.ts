@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { bio, earlier, jobs, projects, radio } from "./catalog";
-import { FACTS, NUGGET_LINES, NUGGET_TIPS } from "./desktop/facts";
+import { FACTS, NUGGET_LINES, NUGGET_SCARE, NUGGET_TIPS } from "./desktop/facts";
 import { HACK_LINES, HACK_POPS } from "./desktop/hack";
 import { AWARDS, PICTURES } from "./desktop/media";
 import { getLang, setLang, t } from "./i18n";
@@ -38,6 +38,7 @@ describe("i18n", () => {
       ...earlier.map((item) => item.text),
       ...FACTS,
       ...NUGGET_LINES,
+      NUGGET_SCARE,
       ...Object.values(NUGGET_TIPS),
       ...HELP.map((line) => line.blurb),
       ...HACK_LINES,

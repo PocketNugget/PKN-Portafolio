@@ -31,7 +31,13 @@ export function mountPlayer(host: HTMLElement): DeskApp {
     box.style.width = `${Math.floor(DECK_W * scale)}px`;
     box.style.height = `${Math.floor(DECK_H * scale)}px`;
     iframe.style.transform = `scale(${scale})`;
+    box.scrollLeft = 0;
+    box.scrollTop = 0;
   };
+  box.addEventListener("scroll", () => {
+    if (box.scrollLeft !== 0) box.scrollLeft = 0;
+    if (box.scrollTop !== 0) box.scrollTop = 0;
+  });
   const observer = new ResizeObserver(fit);
   observer.observe(frame);
   fit();

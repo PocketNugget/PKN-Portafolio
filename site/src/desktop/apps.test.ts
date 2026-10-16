@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import script from "../../public/vendor/webdeck-player/script.js?raw";
-import { FACTS, NUGGET_LINES, NUGGET_TIPS } from "./facts";
+import { FACTS, NUGGET_LINES, NUGGET_SCARE, NUGGET_TIPS } from "./facts";
 import { ICONS } from "./icons";
 import { AWARDS, PICTURES } from "./media";
 import { PLAYER_PAGE } from "./player";
@@ -53,6 +53,13 @@ describe("desktop media", () => {
     expect(spoken).not.toContain("Cultural Vistas");
     expect(spoken).not.toContain("Azuany");
     for (const line of NUGGET_LINES) expect(line.toLowerCase()).toContain("you");
+    expect(NUGGET_LINES[0]).toContain("You are looking at Goben's desk.");
+    expect(NUGGET_LINES[0].toLowerCase()).toContain("guide you");
+    expect(NUGGET_LINES[0].toLowerCase()).toContain("fun facts");
+    expect(NUGGET_LINES[0].toLowerCase()).toContain("tips");
+    expect(NUGGET_SCARE.toLowerCase()).toContain("you");
+    expect(NUGGET_SCARE.toLowerCase()).toContain("hack");
+    expect(NUGGET_SCARE).not.toMatch(/fake|falso/i);
     expect(NUGGET_TIPS["/"]).toMatch(/Jobs/);
     expect(NUGGET_TIPS["/jobs"]?.toLowerCase()).toContain("you");
     expect(NUGGET_TIPS["/jobs"]).not.toContain("Mexico City");
@@ -65,7 +72,9 @@ describe("desktop media", () => {
     expect(script).toContain("bAgmGZ9iQ2Y");
     expect(script).toContain("RDbAgmGZ9iQ2Y");
     expect(script).toContain("JfCNwhWWdCs");
-    expect(script).toContain('currentPlaylist = "Magic Ways"');
+    expect(script).toContain('currentTheme = "DEFAULT"');
+    expect(script).toContain('currentPlaylist = "Permaculture"');
+    expect(script).toContain("playlistSelector.value = currentPlaylist");
     expect(script).toContain("loadVideoById");
     expect(script).toContain("controls");
   });
