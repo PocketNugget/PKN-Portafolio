@@ -8,31 +8,31 @@
 [![UI: 98.css](https://img.shields.io/badge/UI-98.css-000080?style=for-the-badge)](https://jdan.github.io/98.css/)
 [![Live](https://img.shields.io/badge/Live-pocketnugget.xyz-111111?style=for-the-badge)](https://pocketnugget.xyz)
 
-> Escritorio al estilo Windows 98 para el portafolio de Goben Diego Constantino Aguirre. TypeScript y Vite, servido por un Cloudflare Worker. D1 guarda los posts, las sugerencias, los nombres de los puntajes y el estado del login. El sitio público está en inglés.
+> Windows 98 style desktop for the portfolio of Goben Diego Constantino Aguirre. TypeScript and Vite, served by one Cloudflare Worker. D1 holds the posts, the suggestions, the score names, and the login state. The taskbar switches the public pages among English, Spanish, German, and French.
 
 ---
 
-## 📋 Estado
+## 📋 Status
 
-El sitio que se publica es `site/`. El escritorio, el menú Start y la terminal no ofrecen el login. La entrada del editor es [`/login`](https://pocketnugget.xyz/login). El enlace viejo `/admin/login` abre esa misma página. El bloc público se llama Suggestions. Las writeups siguen en el icono Notes.
+The published app is `site/`. The desktop, the Start menu, and the terminal do not offer login. The editor is [`/login`](https://pocketnugget.xyz/login). The old `/admin/login` link opens that same page. The public pad is called Suggestions. Writeups stay on the Notes icon.
 
-Hay un admin, usuario `goben`, con contraseña y un código de autenticador. La contraseña no está en el repo. Las direcciones de los visitantes no se guardan.
+There is one admin, username `goben`, with a password and an authenticator code. The password is not in the repo. Visitor addresses are not stored.
 
 ---
 
-## 📸 Capturas
+## 📸 Screenshots
 
-### Escritorio
+### Desktop
 
-![Escritorio en el wallpaper Sky, sin icono de login](docs/screenshots/desktop.png)
+![Desktop on the Sky wallpaper, with no login icon](docs/screenshots/desktop.png)
 
-### Teléfono
+### Phone
 
-![El mismo escritorio en una pantalla de teléfono](docs/screenshots/phone.png)
+![The same desktop on a phone](docs/screenshots/phone.png)
 
 ### Suggestions
 
-![Ventana Suggestions, con el pad vacío](docs/screenshots/suggestions.png)
+![Suggestions window, with an empty pad](docs/screenshots/suggestions.png)
 
 ### Player
 
@@ -42,11 +42,11 @@ Hay un admin, usuario `goben`, con contraseña y un código de autenticador. La 
 
 ![Sweep, the grid game](docs/screenshots/sweep.png)
 
-Otras capturas pueden ir en `docs/screenshots/`. Basta el archivo y una línea en esta sección.
+Other shots can go in `docs/screenshots/`. Add the file and one line in this section.
 
 ---
 
-Portfolio for Goben Diego Constantino Aguirre (PocketNugget). English, static, and meant to run on Cloudflare Workers.
+Portfolio for Goben Diego Constantino Aguirre (PocketNugget). It runs on Cloudflare Workers. The public pages are English, Spanish, German, and French.
 
 The page is a Windows 98 style desktop. Icons and the Start menu open the same pages. The Terminal window still runs the real commands. Snake, Tetris, and Tron are their own windows, with a public best score. Content lives in `site/src/catalog.ts` and `site/content/notes/`.
 
