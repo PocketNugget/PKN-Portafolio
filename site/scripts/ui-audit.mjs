@@ -97,7 +97,7 @@ const arrivalCheck = () => {
     max: about.classList.contains("max"),
     name: seen(".hero-name"),
     role: seen(".hero-role"),
-    open: seen(".hero-open"),
+    title: seen(".hero-title"),
     mail: seen(".hero-mail"),
   };
 };
@@ -215,7 +215,7 @@ for (const engine of engines) {
     else {
       if (arrival.count !== 1) fail(where, "arrival", `${arrival.count} windows open instead of 1`);
       if (!arrival.max && (Math.abs(arrival.dx) > 2 || Math.abs(arrival.dy) > 2)) fail(where, "arrival", `About is off center by ${arrival.dx}, ${arrival.dy}`);
-      for (const key of ["name", "role", "open", "mail"]) if (arrival[key] !== "ok") fail(where, "5-second test", `${key} ${arrival[key]}`);
+      for (const key of ["name", "title", "role", "mail"]) if (arrival[key] !== "ok") fail(where, "5-second test", `${key} ${arrival[key]}`);
     }
     if (shots) await page.screenshot({ path: join(shots, `${engine}-${view.name}-0-arrival.png`) });
     const work = await page.evaluate(() => [...new Set([...document.querySelectorAll("#print-pack a[href^='/work/']")].map((a) => a.getAttribute("href")))]);

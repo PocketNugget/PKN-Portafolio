@@ -4098,9 +4098,9 @@ p.hero-focus {
   }
 
   #clippy .balloon {
-    max-height: 16svh;
+    max-height: 18svh;
     padding: 4px 6px;
-    font-size: 12px;
+    font-size: 14px;
     line-height: 1.3;
   }
 
@@ -4110,7 +4110,7 @@ p.hero-focus {
 
   #clippy .balloon button {
     min-height: 26px;
-    font-size: 12px;
+    font-size: 13px;
   }
 }
 
