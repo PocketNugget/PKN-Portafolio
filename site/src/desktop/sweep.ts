@@ -188,7 +188,7 @@ function sweepBoard(level: number): SweepState {
   return createSweep(tier.width, tier.height, tier.mines);
 }
 
-export function mountSweep(host: HTMLElement): DeskApp {
+export function mountSweep(host: HTMLElement, onExit: () => void = () => {}): DeskApp {
   host.replaceChildren();
   let level = 1;
   let bank = 0;
@@ -217,10 +217,32 @@ export function mountSweep(host: HTMLElement): DeskApp {
   status.className = "meta";
   const grid = document.createElement("div");
   grid.className = "sweep-grid";
-  bar.append(mines, clock, flag, again);
-  root.append(bar, status, grid);
+  const scoresBtn = document.createElement("button");
+  scoresBtn.type = "button";
+  scoresBtn.textContent = t("Scores");
+  const over = document.createElement("div");
+  over.className = "play-over window";
+  over.hidden = true;
+  const overTitle = document.createElement("p");
+  overTitle.className = "play-over-title";
+  const overText = document.createElement("p");
+  overText.className = "play-over-text";
+  const overAct = document.createElement("div");
+  overAct.className = "play-over-act";
+  const overGo = document.createElement("button");
+  overGo.type = "button";
+  overGo.className = "play-over-go";
+  const overExit = document.createElement("button");
+  overExit.type = "button";
+  overExit.className = "play-over-exit";
+  overExit.textContent = t("Exit");
+  overAct.append(overGo, overExit);
+  over.append(overTitle, overText, overAct);
+  bar.append(mines, clock, flag, again, scoresBtn);
+  root.append(bar, status, grid, over);
   host.append(root);
-  const board: BoardHandle = mountBoard(root, "sweep");
+  const board: BoardHandle = mountBoard(over, "sweep", overAct);
+  let panel = false;
   const total = () => {
     const last = state.won && level >= SWEEP_MAX;
     if (!state.armed && state.alive && !state.won) return bank;
@@ -341,6 +363,11 @@ export function mountSweep(host: HTMLElement): DeskApp {
           : t("A mine. Again starts over.");
     status.textContent = `${t("Score")} ${total()}  ${t("Level")} ${level}  ${message}`;
     board.setOffer(total(), level, done);
+    scoresBtn.setAttribute("aria-pressed", String(panel));
+    over.hidden = !(done || panel);
+    overTitle.textContent = done ? (state.won ? t("You cleared the last grid.") : t("Game over")) : "Sweep";
+    overText.textContent = `${t("Score")} ${total()}`;
+    overGo.textContent = done ? t("Play again") : t("Back to game");
     if (built !== `${state.width}x${state.height}` || grid.childElementCount !== state.cells.length) build();
     const buttons = grid.querySelectorAll<HTMLButtonElement>(".sweep-cell");
     state.cells.forEach((cell, index) => {
@@ -362,7 +389,19 @@ export function mountSweep(host: HTMLElement): DeskApp {
     flagMode = !flagMode;
     paint();
   });
+  scoresBtn.addEventListener("click", () => {
+    panel = !panel;
+    paint();
+  });
+  overGo.addEventListener("click", () => {
+    if (state.alive && !(state.won && level >= SWEEP_MAX)) {
+      panel = false;
+      paint();
+    } else again.click();
+  });
+  overExit.addEventListener("click", onExit);
   again.addEventListener("click", () => {
+    panel = false;
     stop();
     level = 1;
     bank = 0;

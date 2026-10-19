@@ -8,7 +8,7 @@ export interface BoardHandle {
 
 const NAME_KEY = "pkn-player-name";
 
-export function mountBoard(parent: HTMLElement, game: GameId): BoardHandle {
+export function mountBoard(parent: HTMLElement, game: GameId, before: Node | null = null): BoardHandle {
   const box = document.createElement("aside");
   box.className = "top-scores";
   box.tabIndex = 0;
@@ -35,7 +35,7 @@ export function mountBoard(parent: HTMLElement, game: GameId): BoardHandle {
   note.className = "top-note";
   form.append(input, save, note);
   box.append(title, list, form);
-  parent.append(box);
+  parent.insertBefore(box, before);
   try {
     const saved = sessionStorage.getItem(NAME_KEY);
     if (saved) input.value = saved;

@@ -578,7 +578,7 @@ export class Terminal {
     if (this.scoreGame === game && this.scores) return;
     this.clearScores();
     this.scoreGame = game;
-    this.scores = mountBoard(this.stage, game);
+    this.scores = mountBoard(this.over, game, this.over.querySelector(".play-over-act"));
   }
 
   private clearScores(): void {

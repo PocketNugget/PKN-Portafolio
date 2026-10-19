@@ -100,6 +100,8 @@ const rows: readonly (readonly [string, string, string, string])[] = [
   ["Play", "Jugar", "Spielen", "Jouer"],
   ["Resume", "Seguir", "Weiter", "Reprendre"],
   ["Play again", "Jugar otra vez", "Nochmal spielen", "Rejouer"],
+  ["Scores", "Puntajes", "Bestenliste", "Scores"],
+  ["Back to game", "Volver al juego", "Zurück zum Spiel", "Retour au jeu"],
   ["Game over", "Fin del juego", "Spiel vorbei", "Partie terminée"],
   ["Paused", "En pausa", "Pausiert", "En pause"],
   [
