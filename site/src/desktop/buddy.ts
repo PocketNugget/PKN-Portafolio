@@ -12,6 +12,8 @@ export interface Clippy {
   labels(): void;
 }
 
+const PHONE_BALLOON_MS = 9000;
+
 let scareNow: ((text?: string) => void) | null = null;
 let speakNow: ((text: string) => void) | null = null;
 let calmNow: (() => void) | null = null;
@@ -114,10 +116,20 @@ export function mountClippy(desktop: HTMLElement): Clippy {
     moveTo(spot.left, spot.top);
   }
 
-  function talk(text: string): void {
+  let fadeTimer = 0;
+
+  // On a phone the balloon would sit over the icons. It closes by itself after a few seconds,
+  // and a tap on the picture brings it back. A scare stays until the visitor closes it.
+  function talk(text: string, keep = false): void {
     lastRaw = text;
     say.textContent = t(text);
     balloon.hidden = false;
+    window.clearTimeout(fadeTimer);
+    if (phoneLayout() && !keep) {
+      fadeTimer = window.setTimeout(() => {
+        balloon.hidden = true;
+      }, PHONE_BALLOON_MS);
+    }
     pic.classList.add("talk");
     window.clearTimeout(talkTimer);
     talkTimer = window.setTimeout(() => pic.classList.remove("talk"), 1400);
@@ -205,7 +217,7 @@ export function mountClippy(desktop: HTMLElement): Clippy {
   function scare(text?: string): void {
     if (root.hidden) return;
     root.classList.add("is-scared");
-    talk(text ?? NUGGET_SCARE);
+    talk(text ?? NUGGET_SCARE, true);
   }
 
   function calm(): void {

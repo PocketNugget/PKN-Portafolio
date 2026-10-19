@@ -167,7 +167,7 @@ const SIZES: Record<string, [number, number]> = {
   "/tetris": [480, 700],
   "/tron": [1000, 780],
   "/legal": [560, 520],
-  "/games": [520, 260],
+  "/games": [520, 190],
   "/accessories": [520, 380],
   "/": [780, 720],
   "/jobs": [720, 640],
