@@ -1191,97 +1191,6 @@ a.social-link:focus {
   flex: 0 0 auto;
 }
 
-.desk-win:has(.hack-mount) {
-  background: #03140a;
-  box-shadow: inset -1px -1px #021008, inset 1px 1px #39ff14, inset -2px -2px #010804, inset 2px 2px #145c28;
-}
-
-.desk-win:has(.hack-mount) .title-bar {
-  background: #052010;
-}
-
-.desk-win:has(.hack-mount) .title-bar-text {
-  color: #39ff14;
-  font-family: "Courier New", ui-monospace, monospace;
-  letter-spacing: 0.04em;
-}
-
-.desk-win:has(.hack-mount) .window-body {
-  background: #010804;
-  color: #7dff9a;
-}
-
-.hack-banner,
-.hack-app > p {
-  margin: 0 0 6px;
-  color: #7dff9a;
-  font-family: "Courier New", ui-monospace, monospace;
-  font-size: 13px;
-  line-height: 1.35;
-}
-
-.hack-banner {
-  margin-bottom: 4px;
-  color: #d6ff3c;
-}
-
-.desk-win:has(.hack-mount) .window-body {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.hack-log {
-  flex: 1 1 auto;
-  min-height: 88px;
-  margin: 0 0 8px;
-  padding: 6px;
-  overflow: auto;
-  white-space: pre-wrap;
-  background: #000;
-  color: #39ff14;
-  font-family: "Courier New", ui-monospace, monospace;
-  font-size: 13px;
-  line-height: 1.45;
-  box-shadow: inset 0 0 0 1px #145c28;
-  text-shadow: 0 0 1px #39ff14;
-}
-
-.hack-log::after {
-  content: "█";
-  margin-left: 2px;
-  animation: hack-caret 900ms steps(1) infinite;
-}
-
-@keyframes hack-caret {
-  50% { opacity: 0; }
-}
-
-.hack-app .field-row {
-  gap: 8px;
-}
-
-.hack-app button.hack-drop,
-.hack-app button.hack-reset {
-  color: #d6ff3c;
-  text-shadow: none;
-  font-family: "Courier New", ui-monospace, monospace;
-  letter-spacing: 0.03em;
-  background: #03180c;
-  box-shadow: inset -1px -1px #021008, inset 1px 1px #7dff9a, inset -2px -2px #010804, inset 2px 2px #145c28;
-}
-
-.hack-app button.hack-drop {
-  font-weight: 700;
-  color: #d6ff3c;
-  background: #062412;
-}
-
-.hack-app button.hack-reset {
-  color: #9dffc0;
-  background: #04140c;
-}
-
 #app.is-hacked .hack-pop .title-bar-text,
 #app.is-hacked .hack-pop .window-body {
   font-family: "Courier New", ui-monospace, monospace;
@@ -4095,54 +4004,6 @@ p.hero-focus {
   }
 }
 
-/* Hack: more menace. A red and green glitch edge, a caution stripe, and a button that pulses. */
-.desk-win:has(.hack-mount) {
-  box-shadow: 0 0 0 1px #39ff14, 0 0 22px rgba(57, 255, 20, 0.45), 0 0 46px rgba(255, 30, 60, 0.25);
-}
-
-.desk-win:has(.hack-mount) .window-body {
-  background: #010804;
-}
-
-.hack-banner {
-  padding: 4px 6px;
-  border-left: 4px solid #ff1e3c;
-  background: rgba(255, 30, 60, 0.12);
-  font-size: 15px;
-  letter-spacing: 0.06em;
-  text-shadow: 0 0 8px #d6ff3c;
-}
-
-.hack-app > p.hack-warning {
-  color: #ffe9a0;
-  background: #241800;
-  border: 2px solid #ffb020;
-  box-shadow: 0 0 14px rgba(255, 176, 32, 0.4);
-}
-
-.hack-app button.hack-drop {
-  color: #fff;
-  background: #b5122a;
-  border: 1px solid #ff8a98;
-  box-shadow: 0 0 16px rgba(255, 30, 60, 0.7), 0 3px 0 #3a0610;
-  text-shadow: 0 0 8px #ff1e3c;
-  animation: hack-pulse 1.4s ease-in-out infinite;
-}
-
-.hack-app button.hack-reset {
-  border: 1px solid #39ff14;
-  box-shadow: 0 0 10px rgba(57, 255, 20, 0.45);
-}
-
-@keyframes hack-pulse {
-  50% { box-shadow: 0 0 28px rgba(255, 30, 60, 0.95), 0 3px 0 #3a0610; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hack-app button.hack-drop {
-    animation: none;
-  }
-}
 
 /* Contact form: 98 fields, one per row, filling the window. */
 .contact-form {
@@ -4267,39 +4128,6 @@ p.hero-focus {
   .term-line label {
     font-size: 16px;
   }
-}
-
-/* Hack: the body scrolls and the buttons stay pinned at the bottom, so nothing hides behind the window edge. */
-.desk-win:has(.hack-mount) .window-body {
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
-.hack-app {
-  min-height: 100%;
-  box-sizing: border-box;
-}
-
-.hack-log {
-  flex: 1 1 96px;
-  min-height: 64px;
-  overflow-wrap: anywhere;
-}
-
-.hack-app .field-row {
-  position: sticky;
-  bottom: 0;
-  z-index: 1;
-  flex-wrap: wrap;
-  margin: 0;
-  padding: 6px 0 2px;
-  background: #010804;
-}
-
-.hack-app .field-row button {
-  flex: 1 1 140px;
-  min-width: 0;
-  min-height: 32px;
 }
 
 /* My Pictures and Certificates: a 98 folder. Sunken thumbnail wells, a stage for the big photo, and a status bar. */
@@ -4508,13 +4336,6 @@ p.hero-focus {
   }
 }
 
-.hack-mount {
-  flex: 1 0 auto;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
 .gallery button.thumb .thumb-name {
   max-width: none;
   white-space: normal;
@@ -4539,4 +4360,106 @@ p.hero-focus {
     scrollbar-width: auto;
     scrollbar-color: #dfdfdf #c0c0c0;
   }
+}
+
+/* Hack: a 98 window like the rest. The hacker part lives inside it: a black screen in a sunken frame with green
+   phosphor text, the way the Terminal looks. No glow, no pulse, no colored window chrome. The body scrolls and the
+   buttons stay pinned at the bottom. */
+.desk-win:has(.hack-mount) .window-body {
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.hack-mount {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.hack-app {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.hack-app > p {
+  margin: 0;
+  color: #000;
+  font-family: Tahoma, Verdana, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.hack-app > p.hack-banner {
+  padding: 3px 6px;
+  color: #00c000;
+  background: #000;
+  font-family: "Lucida Console", "Courier New", ui-monospace, monospace;
+  font-weight: 700;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #808080, inset -2px -2px #dfdfdf, inset 2px 2px #0a0a0a;
+}
+
+.hack-app > p.hack-warning {
+  margin: 0;
+  padding: 6px 8px;
+  color: #000;
+  background: #ffff80;
+  border: 2px solid #800000;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.hack-log {
+  flex: 1 1 96px;
+  min-height: 64px;
+  margin: 0;
+  padding: 6px 8px;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  color: #00c000;
+  background: #000;
+  font: 14px/1.4 "Lucida Console", "Courier New", ui-monospace, monospace;
+  text-shadow: none;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #808080, inset -2px -2px #dfdfdf, inset 2px 2px #0a0a0a;
+}
+
+.hack-log::after {
+  content: "█";
+  margin-left: 2px;
+  animation: hack-caret 900ms steps(1) infinite;
+}
+
+@keyframes hack-caret {
+  50% { opacity: 0; }
+}
+
+.hack-app .field-row {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 0 2px;
+  background: silver;
+}
+
+.hack-app .field-row button {
+  flex: 1 1 140px;
+  min-width: 0;
+  min-height: 32px;
+  color: #222;
+  text-shadow: none;
+}
+
+.hack-app button.hack-drop {
+  color: #800000;
+  font-weight: 700;
 }
