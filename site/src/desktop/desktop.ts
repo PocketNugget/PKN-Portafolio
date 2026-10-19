@@ -14,6 +14,7 @@ import { mountHack } from "./hack";
 import { mountHero } from "./hero";
 import type { DeskApp } from "./host";
 import { ICONS } from "./icons";
+import { newPostCount } from "../blog";
 import { NUGGET_TIPS } from "./facts";
 import { AWARDS, PICTURES } from "./media";
 import { phoneLayout } from "./phone";
@@ -172,6 +173,7 @@ const SIZES: Record<string, [number, number]> = {
   "/jobs": [720, 640],
   "/work": [760, 680],
   "/skills": [560, 480],
+  "/blog": [680, 640],
   "/certs": [560, 460],
   "/contact": [440, 340],
   "/facts": [500, 440],
@@ -962,6 +964,43 @@ export function bootDesktop(): void {
       icons.append(button);
     }
     layoutIcons();
+    void blogBadge();
+  }
+
+  /** A bubble on Blog while a post from the last four months exists. It stays until that changes. */
+  let newPosts = 0;
+
+  function paintBadge(): void {
+    const button = icons.querySelector<HTMLButtonElement>('.desk-icon[data-app="blog"]');
+    if (!button) return;
+    button.querySelector(".icon-badge")?.remove();
+    const name = t("Blog");
+    if (newPosts < 1) {
+      button.removeAttribute("aria-label");
+      return;
+    }
+    const badge = document.createElement("span");
+    badge.className = "icon-badge";
+    badge.textContent = String(Math.min(newPosts, 9));
+    badge.setAttribute("aria-hidden", "true");
+    button.append(badge);
+    button.setAttribute("aria-label", `${name}, ${newPosts} ${t("new posts")}`);
+  }
+
+  async function blogBadge(): Promise<void> {
+    try {
+      const res = await fetch("/api/blog", { cache: "no-store" });
+      if (!res.ok) return;
+      const body = (await res.json()) as { posts?: { created?: unknown }[] };
+      const posts = Array.isArray(body.posts) ? body.posts : [];
+      newPosts = newPostCount(
+        posts.filter((post): post is { created: string } => typeof post.created === "string"),
+        Date.now(),
+      );
+      paintBadge();
+    } catch {
+      /* no badge when the store is quiet */
+    }
   }
 
   function loadSocial(): void {
@@ -1089,6 +1128,7 @@ export function bootDesktop(): void {
       const label = button.querySelector(".label");
       if (item && label) label.textContent = t(item.label);
     }
+    paintBadge();
     renderTasks();
     clippy?.labels();
     paintPrint();

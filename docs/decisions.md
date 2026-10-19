@@ -15,3 +15,11 @@
 4. **Sitemap con `/skills`, `/certs`, `/awards`.** Una prueba exige que `/skills` no esté en el sitemap. Si quieres que Google las indexe como páginas, hay que cambiar esa prueba. No la toqué.
 5. **Globo de bienvenida del nugget.** Agrega un elemento más en el primer vistazo; proponer mostrarlo solo tras 15 s de inactividad. No lo cambié.
 6. **Sección "Detección" con un lab propio** (Wazuh/Splunk, MITRE ATT&CK) en la ruta de proyectos. Hoy el orden de proyectos lo exige una prueba y no hay lab que mostrar; esto es para después del plan 30/60/90.
+
+## Cambios pedidos por Diego después de la auditoría (2026-10-19)
+- Foto del About y nugget más grandes; el nugget da la bienvenida, guía por página, reacciona al hack (y se calma al Reset) y el hack lleva un aviso de epilepsia fotosensible antes del botón.
+- Games queda penúltimo en el escritorio, antes de Hack; las herramientas (Player, Converter, Calculator, Dice, Flip, Wheel) están sueltas y la carpeta Accessories ya no está en el escritorio.
+- Reproductor: abre en Floral Radio con el tema Silver. Esto cambió dos pruebas que protegían Permaculture y el tema por defecto.
+- Tron: arena de 64x48, dos enemigos, estelas de luz como líneas, motos dibujadas y estética synth.
+- Blog: Markdown ampliado (encabezados, negritas, cursivas, listas numeradas, citas, código en bloque, reglas e imágenes locales), tarjetas con extracto y etiquetas, editor con barra de formato y vista previa en vivo, y una burbuja en el icono mientras haya un artículo de los últimos 4 meses.
+- Safari: probado en WebKit real con Playwright (iPhone 13, iPad Pro 11 y escritorio). Sin errores de página; la única advertencia es `interactive-widget` del viewport, que Safari ignora. Se agregaron prefijos `-webkit-user-select`, `-webkit-touch-callout` y `-webkit-tap-highlight-color`.

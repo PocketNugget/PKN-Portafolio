@@ -1,3 +1,5 @@
+import { isNew } from "./blog";
+import { t } from "./i18n";
 import { readNotes } from "./desktop/pad";
 import { assertSafeHtml, renderNote } from "./notes";
 import { normalizePath } from "./paths";
@@ -19,6 +21,7 @@ interface PostSummary {
   title: string;
   tags: string;
   created: string;
+  excerpt?: string;
 }
 
 interface PostFull extends PostSummary {
@@ -55,8 +58,24 @@ function dateLabel(iso: string): string {
   return /^\d{4}-\d{2}-\d{2}/.test(iso) ? iso.slice(0, 10) : "";
 }
 
+function tagChips(tags: string): HTMLElement | null {
+  const names = tags
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter((tag) => tag !== "");
+  if (names.length === 0) return null;
+  const row = document.createElement("span");
+  row.className = "blog-tags";
+  for (const name of names) row.append(el("span", name));
+  return row;
+}
+
 async function renderBlogList(root: HTMLElement): Promise<void> {
   root.replaceChildren();
+  const head = document.createElement("header");
+  head.className = "blog-head";
+  head.append(el("h2", t("Blog")), el("p", t("Posts by Goben. The newest is on top.")));
+  root.append(head);
   const response = await api("/api/blog");
   if (!response.ok) {
     line(root, "the blog store did not answer.");
@@ -68,22 +87,36 @@ async function renderBlogList(root: HTMLElement): Promise<void> {
     return;
   }
   if (data.posts.length === 0) {
-    line(root, "No posts yet.", "meta");
+    const empty = el("p", t("No posts yet. Check back soon."));
+    empty.className = "blog-empty";
+    root.append(empty);
     return;
   }
   const list = document.createElement("ul");
-  list.className = "ls";
+  list.className = "blog-list";
+  const now = Date.now();
   for (const post of data.posts) {
     if (!/^[a-z0-9-]+$/.test(post.slug)) continue;
     const title = cleanLine(post.title, 160);
     const tags = cleanTags(post.tags);
     if (!title || tags === null) continue;
     const item = document.createElement("li");
-    const anchor = document.createElement("a");
-    anchor.href = `/blog/${post.slug}`;
-    anchor.textContent = title;
-    item.append(anchor, document.createTextNode(` ${dateLabel(post.created)}`));
-    if (tags) item.append(document.createTextNode(` · ${tags}`));
+    const card = document.createElement("a");
+    card.className = "blog-card";
+    card.href = `/blog/${post.slug}`;
+    const top = document.createElement("span");
+    top.className = "blog-top";
+    if (isNew(post.created, now)) top.append(el("span", t("New")));
+    top.lastElementChild?.classList.add("blog-new");
+    top.append(el("time", dateLabel(post.created)));
+    card.append(top, el("strong", title));
+    const excerpt = cleanLine(post.excerpt ?? "", 160);
+    if (excerpt) card.append(el("span", excerpt));
+    const chips = tagChips(tags);
+    if (chips) card.append(chips);
+    card.append(el("span", `${t("Read")} >`));
+    card.lastElementChild?.classList.add("blog-read");
+    item.append(card);
     list.append(item);
   }
   root.append(list);
@@ -107,12 +140,18 @@ async function renderBlogPost(root: HTMLElement, slug: string): Promise<void> {
   }
   const title = cleanLine(post.title, 160) ?? "post";
   const article = document.createElement("article");
-  article.className = "note";
-  article.append(el("p", `~/blog/${post.slug}`));
+  article.className = "note blog-post";
+  const back = document.createElement("a");
+  back.href = "/blog";
+  back.className = "blog-back";
+  back.textContent = `< ${t("Back to the blog")}`;
+  article.append(back);
   article.append(el("h2", title));
   const meta = el("p", dateLabel(post.created));
   meta.className = "meta";
   article.append(meta);
+  const chips = tagChips(cleanTags(post.tags) ?? "");
+  if (chips) article.append(chips);
   const body = document.createElement("div");
   try {
     const html = renderNote(post.content);
@@ -261,8 +300,8 @@ async function renderAdmin(root: HTMLElement): Promise<void> {
   previewBtn.type = "button";
   previewBtn.textContent = "preview";
   const preview = document.createElement("div");
-  preview.className = "note";
-  previewBtn.addEventListener("click", () => {
+  preview.className = "note blog-post";
+  const paint = () => {
     preview.replaceChildren();
     try {
       const html = renderNote(content.value);
@@ -271,8 +310,46 @@ async function renderAdmin(root: HTMLElement): Promise<void> {
     } catch {
       preview.textContent = "This post failed the HTML check.";
     }
-  });
-  form.append(field("title", title), field("tags", tags), field("markdown", content), save, previewBtn, status, preview);
+  };
+  previewBtn.addEventListener("click", paint);
+  content.addEventListener("input", paint);
+  const wrap = (before: string, after: string, sample: string) => {
+    const from = content.selectionStart;
+    const to = content.selectionEnd;
+    const picked = content.value.slice(from, to) || sample;
+    content.setRangeText(`${before}${picked}${after}`, from, to, "select");
+    content.focus();
+    paint();
+  };
+  const tools = document.createElement("div");
+  tools.className = "editor-tools";
+  const buttons: [string, () => void][] = [
+    ["bold", () => wrap("**", "**", "bold")],
+    ["italic", () => wrap("*", "*", "italic")],
+    ["heading", () => wrap("## ", "", "Heading")],
+    ["subheading", () => wrap("### ", "", "Subheading")],
+    ["list", () => wrap("- ", "", "item")],
+    ["numbered", () => wrap("1. ", "", "item")],
+    ["quote", () => wrap("> ", "", "quote")],
+    ["code", () => wrap("`", "`", "code")],
+    ["code block", () => wrap("```\n", "\n```", "code")],
+    ["link", () => wrap("[", "](https://)", "text")],
+    ["image", () => wrap("![", "](/media/)", "description")],
+    ["rule", () => wrap("\n---\n", "", "")],
+  ];
+  for (const [label, run] of buttons) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = label;
+    button.addEventListener("click", run);
+    tools.append(button);
+  }
+  const help = el(
+    "p",
+    "Markdown: # heading, ### subheading, **bold**, *italic*, - list, 1. numbered, > quote, `code`, ``` code block, [text](url), ![alt](/media/file.jpg) for a local image, --- rule.",
+  );
+  help.className = "meta";
+  form.append(field("title", title), field("tags", tags), tools, field("markdown", content), help, save, previewBtn, status, preview);
 
   const params = new URLSearchParams(location.search);
   const editing = params.get("slug");

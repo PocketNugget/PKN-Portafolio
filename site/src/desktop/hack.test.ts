@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { setLang } from "../i18n";
 import { mountClippy } from "./buddy";
-import { NUGGET_HACKED } from "./facts";
+import { NUGGET_HACKED, NUGGET_RELIEF } from "./facts";
 import { HACK_LINES, HACK_POPS, mountHack } from "./hack";
 
 const random = Math.random;
@@ -51,12 +51,29 @@ describe("desk payload", () => {
     expect(HACK_POPS).toHaveLength(5);
   });
 
+  it("has the nugget react when the payload drops and relax at Reset", async () => {
+    vi.useFakeTimers();
+    Math.random = () => 0;
+    const { host, layer, app } = desk();
+    mountHack(host, layer, app.querySelector("#desktop") as HTMLElement);
+    buttonNamed(host, "Drop the payload").click();
+    await vi.advanceTimersByTimeAsync(40);
+    expect(document.querySelector("#clippy .balloon p")?.textContent).toBe(NUGGET_HACKED[0]);
+    buttonNamed(host, "Reset").click();
+    expect(document.querySelector("#clippy .balloon p")?.textContent).toBe(NUGGET_RELIEF);
+    expect(document.getElementById("clippy")?.classList.contains("is-scared")).toBe(false);
+  });
+
   it("dirties the desk until reset, then puts the labels back", async () => {
     vi.useFakeTimers();
     Math.random = () => 0;
     const { host, layer, app } = desk();
     mountHack(host, layer, app.querySelector("#desktop") as HTMLElement);
     expect(host.textContent).toContain("aggressive payload");
+    const warning = host.querySelector(".hack-warning");
+    expect(warning?.textContent).toContain("photosensitive epilepsy");
+    const drop = host.querySelector(".hack-drop");
+    expect(warning && drop && (warning.compareDocumentPosition(drop) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0).toBe(true);
     expect(host.textContent).not.toMatch(/fake|falso/i);
     buttonNamed(host, "Drop the payload").click();
     await vi.advanceTimersByTimeAsync(40);

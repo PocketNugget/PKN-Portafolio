@@ -39,6 +39,21 @@ describe("markup", () => {
     expect(renderNote("")).toBe("<p></p>");
   });
 
+  it("renders headings, emphasis, ordered lists, quotes, rules, fenced code, and local images", () => {
+    expect(renderNote("# Big\n### Small")).toBe("<h2>Big</h2><h3>Small</h3>");
+    expect(renderNote("a **bold** and *slanted* word")).toBe("<p>a <strong>bold</strong> and <em>slanted</em> word</p>");
+    expect(renderNote("1. one\n2. two")).toBe("<ol><li>one</li><li>two</li></ol>");
+    expect(renderNote("* a\n* b")).toBe("<ul><li>a</li><li>b</li></ul>");
+    expect(renderNote("> a quote\n> goes on")).toBe("<blockquote><p>a quote goes on</p></blockquote>");
+    expect(renderNote("one\n\n---\n\ntwo")).toBe("<p>one</p><hr><p>two</p>");
+    expect(renderNote("```\nlet a = <b>;\n\nnext\n```")).toBe("<pre><code>let a = &lt;b&gt;;\n\nnext</code></pre>");
+    expect(renderNote("![me](/media/me.png)")).toBe('<img src="/media/me.png" alt="me" loading="lazy">');
+    expect(renderNote("![x](https://evil.example/a.png)")).not.toContain("<img");
+    expect(renderNote("text\n- a")).toBe("<p>text</p><ul><li>a</li></ul>");
+    expect(() => assertSafeHtml('<img src="https://evil.example/a.png" alt="" loading="lazy">')).toThrow(/rejected html/);
+    expect(() => assertSafeHtml('<img src="/a.png" alt="" onerror="x">')).toThrow(/rejected html/);
+  });
+
   it("rejects html the renderer did not emit", () => {
     expect(() => assertSafeHtml("<p>5 < 10</p>")).toThrow(/rejected html/);
     expect(assertSafeHtml("<p>5 &lt; 10</p>")).toBe("<p>5 &lt; 10</p>");

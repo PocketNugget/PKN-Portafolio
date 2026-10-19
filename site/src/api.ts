@@ -1,3 +1,4 @@
+import { excerptOf } from "./blog";
 import { renderNote } from "./markup";
 import { randomToken, safeEqual, sha256Hex, verifyPassword } from "./password";
 import { cleanBlock, cleanLine, cleanTags, NOTE_BODY_MAX, NOTE_LINES, NOTE_NAME_MAX, scrubInvisible } from "./plain";
@@ -280,8 +281,9 @@ async function logout(request: Request, store: Store): Promise<Response> {
   return text(204, "", headers);
 }
 
-function publicPost(post: { slug: string; title: string; tags: string; created: number }) {
+function publicPost(post: { slug: string; title: string; tags: string; created: number; content?: string }) {
   return {
+    excerpt: post.content && markdown(post.content) !== null ? excerptOf(post.content) : "",
     slug: post.slug,
     title: cleanLine(post.title, 160) ?? "post",
     tags: cleanTags(post.tags) ?? "",

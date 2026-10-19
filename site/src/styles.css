@@ -3712,3 +3712,160 @@ a,
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Blog: cards a visitor wants to open, and the bubble on the desktop icon. */
+.blog-head h2 {
+  margin: 0 0 4px;
+}
+
+.blog-head p {
+  margin: 0 0 12px;
+}
+
+.blog-empty {
+  padding: 14px;
+  background: #fff;
+  box-shadow: inset 1px 1px #808080, inset -1px -1px #fff;
+}
+
+.blog-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.blog-card {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  color: #000;
+  text-decoration: none;
+  background: #fff;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+}
+
+.blog-card:hover,
+.blog-card:focus-visible {
+  background: #fffbd0;
+  outline: 2px solid #000080;
+  outline-offset: -2px;
+}
+
+.blog-card strong {
+  color: #000080;
+  font-size: 1.15em;
+}
+
+.blog-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85em;
+}
+
+.blog-new {
+  padding: 0 6px;
+  color: #fff;
+  background: #c00000;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.blog-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.blog-tags span {
+  padding: 0 6px;
+  color: #000080;
+  background: #dfe3ff;
+  border: 1px solid #000080;
+  font-size: 0.85em;
+}
+
+.blog-read {
+  justify-self: end;
+  color: #000080;
+  font-weight: 700;
+}
+
+.blog-back {
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.blog-post blockquote {
+  margin: 8px 0;
+  padding: 4px 12px;
+  border-left: 4px solid #000080;
+  background: #eef0ff;
+}
+
+.blog-post pre {
+  overflow: auto;
+  padding: 8px;
+  color: #c8ffc8;
+  background: #050805;
+}
+
+.blog-post img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 8px 0;
+}
+
+.blog-post hr {
+  margin: 12px 0;
+}
+
+.editor-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0;
+}
+
+.icon-badge {
+  position: absolute;
+  top: 0;
+  left: calc(50% + var(--bd, 26px));
+  min-width: 24px;
+  height: 24px;
+  box-sizing: border-box;
+  padding: 0 5px;
+  border: 2px solid #fff;
+  border-radius: 12px;
+  color: #fff;
+  background: #d40000;
+  font: 700 14px/20px Tahoma, Verdana, "Segoe UI", sans-serif;
+  text-align: center;
+  text-shadow: none;
+  box-shadow: 1px 1px 0 #000;
+  animation: badge-pop 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes badge-pop {
+  50% { transform: scale(1.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon-badge {
+    animation: none;
+  }
+}
+
+@media (max-width: 700px), (pointer: coarse) and (max-height: 500px) {
+  button.desk-icon[data-app="blog"] {
+    position: relative;
+  }
+
+  .icon-badge {
+    --bd: 8px;
+  }
+}

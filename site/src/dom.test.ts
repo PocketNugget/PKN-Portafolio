@@ -78,6 +78,8 @@ describe("notepad", () => {
     const body = host.querySelector<HTMLTextAreaElement>("textarea");
     const button = host.querySelector<HTMLButtonElement>('button[type="submit"]');
     expect(name && body && button).toBeTruthy();
+    expect(button?.textContent).toBe("Leave a comment!");
+    expect(host.textContent).toContain("Comment box for this site");
     name!.value = "Ada";
     body!.value = "hello <script>alert(1)</script>";
     host.querySelector("form")!.requestSubmit(button!);
@@ -147,10 +149,13 @@ describe("blog client", () => {
     scope.append(root);
     hydrate("/blog", scope);
     await flush();
-    const titles = [...root.querySelectorAll("a")].map((anchor) => anchor.textContent);
+    const titles = [...root.querySelectorAll(".blog-card strong")].map((node) => node.textContent);
     expect(titles).toEqual(["Shift note", "Dated", "Blank"]);
     expect(root.textContent).toContain("2026-10-14");
     expect(root.textContent).not.toContain("not-a-date");
+    expect(root.querySelectorAll(".blog-card")).toHaveLength(3);
+    expect(root.querySelector(".blog-new")?.textContent).toBe("New");
+    expect(root.querySelector(".blog-head h2")?.textContent).toBe("Blog");
     expect(root.textContent).not.toContain("<script>");
     expect(root.querySelectorAll("script")).toHaveLength(0);
 
@@ -165,7 +170,7 @@ describe("blog client", () => {
     await flush();
     expect(root.querySelector("h2")?.textContent).toBe("post");
     expect(root.querySelectorAll("script")).toHaveLength(0);
-    expect(root.querySelectorAll("a")).toHaveLength(0);
+    expect(root.querySelectorAll("a:not(.blog-back)")).toHaveLength(0);
     expect(root.querySelector("ul")).not.toBeNull();
     expect(root.innerHTML).toContain("&lt;script&gt;");
     expect(root.innerHTML).not.toContain("javascript:");

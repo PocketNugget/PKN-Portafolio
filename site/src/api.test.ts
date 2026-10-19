@@ -351,6 +351,15 @@ describe("blog api", () => {
     expect(await map.text()).toContain("https://pocketnugget.com/links");
   });
 
+  it("gives the list a plain excerpt of a post", async () => {
+    const store = new MemoryStore();
+    const auth = { user: "goben", hash: await authHash() };
+    await store.insertPost({ slug: "plain", title: "Plain", content: "# Head\n\nSome **words** here.", tags: "", created: NOW, updated: NOW });
+    const list = await handleApi(new Request("https://pocketnugget.com/api/blog"), store, auth, NOW);
+    const posts = (await list.json()) as { posts: { slug: string; excerpt: string }[] };
+    expect(posts.posts.find((item) => item.slug === "plain")?.excerpt).toBe("Some words here.");
+  });
+
   it("slugifies titles and keeps a poisoned row from becoming html", async () => {
     expect(slugify("Señor!!!")).toBe("senor");
     expect(slugify("!!!")).toBe("post");
@@ -394,7 +403,7 @@ describe("blog api", () => {
     const list = await handleApi(new Request("https://pocketnugget.com/api/blog"), store, auth, NOW);
     const posts = (await list.json()) as { posts: { slug: string; title: string; tags: string }[] };
     const marked = posts.posts.find((item) => item.slug === "marked");
-    expect(marked).toEqual({ slug: "marked", title: "post", tags: "", created: "2026-10-14T12:00:00.000Z" });
+    expect(marked).toEqual({ slug: "marked", title: "post", tags: "", created: "2026-10-14T12:00:00.000Z", excerpt: "" });
     const one = await handleApi(new Request("https://pocketnugget.com/api/blog/marked"), store, auth, NOW);
     expect(((await one.json()) as { content: string }).content).toBe("This post failed the HTML check.");
     const notes = await handleApi(new Request("https://pocketnugget.com/api/comments"), store, auth, NOW);
