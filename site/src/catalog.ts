@@ -546,6 +546,95 @@ export const bio = [
   "Hack The Box University CTF 2025 finished 52 of 1,014, top 5%, and UDLAP was the only Mexican university in the top 100. HTB Cyber Apocalypse CTF 2025 scored 34,125 points, rank 293, 3rd in Mexico.",
 ];
 
+export interface HeroStat {
+  big: string;
+  count?: number;
+  unit: string;
+  label: string;
+  href: string;
+  cmd: string;
+}
+
+export const hero = {
+  roles: [
+    "SOC/MDR analyst at TBSeK",
+    "Top 5% at HTB University CTF 2025",
+    "Springer LNCS co-author",
+    "President of Hackztecs since 2024",
+    "First of 22 teams at the AI and Mobility Hackathon",
+  ],
+  open: "Open to MDR, SOC, and SRE roles in Mexico, the United States, Austria, Ireland, and the Netherlands.",
+  stats: [
+    {
+      big: "52",
+      count: 52,
+      unit: "of 1,014",
+      label: "HTB University CTF 2025. Top 5%, and the only Mexican university in the top 100.",
+      href: "/work/htb-university-2025",
+      cmd: "open htb-university-2025",
+    },
+    {
+      big: "34,125",
+      count: 34125,
+      unit: "points",
+      label: "HTB Cyber Apocalypse CTF 2025. Rank 293, top 3.5% worldwide, 3rd in Mexico.",
+      href: "/work/cyber-apocalypse-2025",
+      cmd: "open cyber-apocalypse-2025",
+    },
+    {
+      big: "1st",
+      unit: "of 22",
+      label: "AI and Mobility Hackathon in Mexico City. The prize was a trip to Austria.",
+      href: "/work/maia",
+      cmd: "open maia",
+    },
+    {
+      big: "70%",
+      count: 70,
+      unit: "less report time",
+      label: "Python and Node.js automation on the junior SOC seat at TBSeK.",
+      href: "/jobs",
+      cmd: "jobs",
+    },
+    {
+      big: "LNCS",
+      unit: "Springer",
+      label: "MICAI 2024 paper on image realism, with a public dataset of 4,368 images.",
+      href: "/work/coherence-paper",
+      cmd: "open coherence-paper",
+    },
+    {
+      big: "8+",
+      count: 8,
+      unit: "CTFs",
+      label: "With Hackztecs, the UDLAP security group I have chaired since February 2024.",
+      href: "/work/hackztecs",
+      cmd: "open hackztecs",
+    },
+  ] as HeroStat[],
+  ticker: [
+    "Splunk",
+    "CrowdStrike",
+    "Darktrace",
+    "Cisco AMP",
+    "Cisco Umbrella",
+    "GroupIB",
+    "Wireshark",
+    "Burp Suite",
+    "Nmap",
+    "Ghidra",
+    "Python",
+    "Node.js",
+    "TypeScript",
+    "Docker",
+    "Cloudflare Workers",
+    "Cloudflare Tunnels",
+    "Linux",
+    "Next.js",
+    "Swift",
+  ],
+};
+
 const GH = "https://github.com/PocketNugget";
 
 export function openTable(): Record<string, string> {

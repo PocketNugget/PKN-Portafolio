@@ -2,6 +2,7 @@ import {
   archive,
   bio,
   earlier,
+  hero,
   jobs,
   linkPage,
   notes,
@@ -150,6 +151,37 @@ function pathLink(href: string, cmd: string, label: string): string {
   return `<a class="about-go" href="${href}" data-cmd="${cmd}">${tx(label)}</a>`;
 }
 
+function heroBlock(): string {
+  const out = (href: string, label: string) =>
+    `<a class="hero-go" href="${escapeHtml(href)}" target="_blank" rel="noreferrer noopener">${tx(label)}</a>`;
+  const stats = hero.stats
+    .map(
+      (stat) =>
+        `<a class="hero-stat" href="${escapeHtml(stat.href)}" data-cmd="${escapeHtml(stat.cmd)}"><b${stat.count ? ` data-count="${stat.count}"` : ""}>${escapeHtml(stat.big)}</b><span class="hero-unit">${tx(stat.unit)}</span><span class="hero-label">${tx(stat.label)}</span></a>`,
+    )
+    .join("");
+  const tape = hero.ticker.map((item) => `<span>${escapeHtml(item)}</span>`).join("");
+  return `<section class="hero">
+      <div class="hero-top">
+        <img class="hero-pic" src="/media/me.png" alt="Goben Diego Constantino Aguirre" />
+        <div class="hero-id">
+          <p class="hero-prompt"><span class="user">goben</span>@<span class="host">pkn</span>:~$ whoami</p>
+          <p class="hero-name">Goben Diego Constantino Aguirre</p>
+          <p class="hero-role"><span class="hero-type">${tx(hero.roles[0] ?? "")}</span><span class="hero-caret" aria-hidden="true"></span></p>
+          <p class="hero-open"><span class="hero-dot" aria-hidden="true"></span><b>${tx("Open to work")}</b> ${tx(hero.open)}</p>
+        </div>
+      </div>
+      <nav class="hero-cta">
+        <a class="hero-go hero-mail" href="${escapeHtml(profiles.email.href)}">${tx("Email me")}</a>
+        ${out(profiles.linkedin.href, "LinkedIn")}
+        ${out(profiles.github.href, "GitHub")}
+        <a class="hero-go hero-jobs" href="/jobs" data-cmd="jobs">${tx("See the jobs")}</a>
+      </nav>
+      <div class="hero-stats">${stats}</div>
+      <div class="hero-ticker" aria-hidden="true"><div class="hero-tape">${tape}${tape}</div></div>
+    </section>`;
+}
+
 function home(): string {
   const next = [
     ["/jobs", "jobs", "Jobs"],
@@ -166,7 +198,7 @@ function home(): string {
   ] as const;
   const row = (items: readonly (readonly [string, string, string])[], extra = "") =>
     `<nav class="about-path${extra ? ` ${extra}` : ""}">${items.map(([href, cmd, label]) => pathLink(href, cmd, label)).join("")}</nav>`;
-  return `<p><img class="shot portrait" src="/media/me.png" alt="Goben Diego Constantino Aguirre" /></p>
+  return `${heroBlock()}
     <h2>${tx("Profile")}</h2>
     ${bio.map((paragraph) => `<p>${tx(paragraph)}</p>`).join("")}
     <h2>${tx("Read next")}</h2>

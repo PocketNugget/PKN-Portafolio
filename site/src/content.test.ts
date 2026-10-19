@@ -115,6 +115,15 @@ describe("pages", () => {
     expect(html).not.toContain("J-1");
     expect(html).toContain("52 of 1,014");
     expect(html).toContain("34,125");
+    expect(html).toContain('class="hero"');
+    expect(html).toContain("Open to work");
+    expect(html).toContain("Springer");
+    expect(html).toContain('href="mailto:goben.ca.pkn@hotmail.com"');
+    expect(html).toContain('href="https://www.linkedin.com/in/goben-diego/" target="_blank" rel="noreferrer noopener"');
+    expect(html).toContain('href="https://github.com/PocketNugget" target="_blank" rel="noreferrer noopener"');
+    expect(html).toContain('href="/work/htb-university-2025" data-cmd="open htb-university-2025"');
+    expect(html).toContain('data-count="34125"');
+    expect(html.indexOf('class="hero"')).toBeLessThan(html.indexOf("Profile"));
     expect(html).not.toContain("40%");
     expect(html).not.toContain("May to July 2026");
     expect(html).not.toContain("expected May 2026");

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { bio, earlier, jobs, projects, radio } from "./catalog";
+import { bio, earlier, hero, jobs, projects, radio } from "./catalog";
 import { FACTS, NUGGET_LINES, NUGGET_SCARE, NUGGET_TIPS } from "./desktop/facts";
 import { HACK_LINES, HACK_POPS } from "./desktop/hack";
 import { AWARDS, PICTURES } from "./desktop/media";
@@ -34,6 +34,9 @@ describe("i18n", () => {
   it("translates the record and the nugget in every language", () => {
     const lines = [
       ...bio,
+      ...hero.roles,
+      hero.open,
+      ...hero.stats.map((stat) => stat.label),
       ...radio.paragraphs,
       ...earlier.map((item) => item.text),
       ...FACTS,

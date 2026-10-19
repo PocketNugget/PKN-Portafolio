@@ -11,6 +11,7 @@ import { mountPad } from "./pad";
 import { mountFacts } from "./facts";
 import { mountGallery } from "./gallery";
 import { mountHack } from "./hack";
+import { mountHero } from "./hero";
 import type { DeskApp } from "./host";
 import { ICONS } from "./icons";
 import { NUGGET_TIPS } from "./facts";
@@ -44,6 +45,34 @@ const CELL_W = 152;
 const CELL_H = 156;
 const SOCIAL_W = 560;
 const SOCIAL_H = 120;
+
+const LANGS: { id: Lang; name: string; flag: string }[] = [
+  {
+    id: "en",
+    name: "English",
+    flag: '<rect width="18" height="12" fill="#b22234"/><path d="M0 2h18M0 5h18M0 8h18M0 11h18" stroke="#fff"/><rect width="8" height="6" fill="#3c3b6e"/><path d="M2 1h1M5 1h1M3 3h1M6 3h1M2 5h1M5 5h1" stroke="#fff" stroke-width="0.8"/>',
+  },
+  {
+    id: "es",
+    name: "Español",
+    flag: '<rect width="6" height="12" fill="#006847"/><rect x="6" width="6" height="12" fill="#fff"/><rect x="12" width="6" height="12" fill="#ce1126"/><rect x="8" y="5" width="2" height="2" fill="#8c5a2b"/>',
+  },
+  {
+    id: "de",
+    name: "Deutsch",
+    flag: '<rect width="18" height="4" fill="#000"/><rect y="4" width="18" height="4" fill="#d00"/><rect y="8" width="18" height="4" fill="#ffce00"/>',
+  },
+  {
+    id: "fr",
+    name: "Français",
+    flag: '<rect width="6" height="12" fill="#0055a4"/><rect x="6" width="6" height="12" fill="#fff"/><rect x="12" width="6" height="12" fill="#ef4135"/>',
+  },
+];
+
+export function flagSvg(lang: Lang): string {
+  const item = LANGS.find((entry) => entry.id === lang) ?? LANGS[0];
+  return `<svg class="flag" viewBox="0 0 18 12" width="18" height="12" shape-rendering="crispEdges" aria-hidden="true">${item?.flag ?? ""}</svg>`;
+}
 
 interface Win {
   id: number;
@@ -130,7 +159,7 @@ const SIZES: Record<string, [number, number]> = {
   "/tetris": [480, 700],
   "/tron": [860, 600],
   "/legal": [560, 520],
-  "/": [720, 700],
+  "/": [780, 720],
   "/jobs": [720, 640],
   "/work": [760, 680],
   "/skills": [560, 480],
@@ -244,8 +273,21 @@ export function bootDesktop(): void {
   const lang = document.createElement("button");
   lang.type = "button";
   lang.id = "lang";
-  lang.textContent = getLang().toUpperCase();
-  lang.setAttribute("aria-label", t("Language"));
+  lang.setAttribute("aria-haspopup", "menu");
+  lang.setAttribute("aria-expanded", "false");
+  const langMenu = document.createElement("div");
+  langMenu.id = "lang-menu";
+  langMenu.className = "window";
+  langMenu.setAttribute("role", "menu");
+  langMenu.hidden = true;
+  for (const item of LANGS) {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.dataset.lang = item.id;
+    option.setAttribute("role", "menuitemradio");
+    option.innerHTML = `${flagSvg(item.id)}<span>${item.name}</span><span class="lang-code">${item.id.toUpperCase()}</span>`;
+    langMenu.append(option);
+  }
   const tasks = document.createElement("div");
   tasks.id = "tasks";
   const clock = document.createElement("div");
@@ -261,7 +303,7 @@ export function bootDesktop(): void {
   menuList.className = "menu-list";
   menu.append(brand, menuList);
 
-  app.replaceChildren(boot, desktop, taskbar, menu);
+  app.replaceChildren(boot, desktop, taskbar, menu, langMenu);
 
   const windows: Win[] = [];
   let clippy: ReturnType<typeof mountClippy> | null = null;
@@ -485,6 +527,10 @@ export function bootDesktop(): void {
     if (runHost instanceof HTMLElement) win.host = mountRun(runHost, (href) => openHref(href));
     const findHost = body.querySelector(".find-mount");
     if (findHost instanceof HTMLElement) win.host = mountFind(findHost, (href) => openHref(href));
+    const heroHost = body.querySelector(".hero");
+    if (heroHost instanceof HTMLElement) {
+      win.host = mountHero(heroHost, matchMedia("(prefers-reduced-motion: reduce)").matches);
+    }
     const padHost = body.querySelector(".notepad-mount");
     if (padHost instanceof HTMLElement) win.host = mountPad(padHost);
     const filter = body.querySelector("#work-filter");
@@ -651,12 +697,19 @@ export function bootDesktop(): void {
     const fittedW = Math.min(wantW, Math.max(240, areaW - 36));
     const fittedH = Math.min(wantH, Math.max(180, areaH - 36));
     const parkHack = path === "/hack" && !narrow;
+    const center = path === "/" && !narrow && cascade === 0;
     const win: Win = {
       id: ++seq,
       path,
       title: titleFor(path),
-      x: parkHack ? Math.min(220, Math.max(8, areaW - fittedW - 220)) : narrow ? 0 : 24 + (cascade % 8) * 22,
-      y: parkHack ? 36 : narrow ? 0 : 12 + (cascade % 8) * 20,
+      x: parkHack
+        ? Math.min(220, Math.max(8, areaW - fittedW - 220))
+        : narrow
+          ? 0
+          : center
+            ? Math.max(8, Math.round((areaW - fittedW) / 2))
+            : 24 + (cascade % 8) * 22,
+      y: parkHack ? 36 : narrow ? 0 : center ? Math.max(8, Math.round((areaH - fittedH) / 2)) : 12 + (cascade % 8) * 20,
       w: narrow ? areaW : fittedW,
       h: narrow ? areaH : fittedH,
       rx: 0,
@@ -820,10 +873,7 @@ export function bootDesktop(): void {
         }
         selected = item.id;
         paintSelection();
-        if (matchMedia("(pointer: coarse)").matches || phoneLayout()) openHref(item.path);
-      });
-      button.addEventListener("dblclick", () => {
-        if (matchMedia("(pointer: fine)").matches && !phoneLayout()) openHref(item.path);
+        openHref(item.path);
       });
       icons.append(button);
     }
@@ -892,8 +942,15 @@ export function bootDesktop(): void {
     boot.hidden = true;
     sessionSet("pkn-boot", "1");
     idleAt = Date.now();
-    const path = normalizePath(location.pathname);
-    if (path !== "/") openHref(`${location.pathname}${location.search}`, false);
+    openLanding();
+  }
+
+  function openLanding(): void {
+    openHref(`${location.pathname}${location.search}`, false);
+    if (normalizePath(location.pathname) !== "/") return;
+    const icon = icons.querySelector<HTMLElement>('.desk-icon[data-app="about"]');
+    icon?.classList.add("attn");
+    window.setTimeout(() => icon?.classList.remove("attn"), 2600);
   }
 
   function arrangeIcons(): void {
@@ -913,7 +970,7 @@ export function bootDesktop(): void {
     setLang(next);
     sessionSet("pkn-lang", getLang());
     document.documentElement.lang = getLang();
-    lang.textContent = getLang().toUpperCase();
+    paintLang();
     if (startLabel) startLabel.textContent = t("Start");
     loadMenu();
     for (const button of deskMenu.querySelectorAll<HTMLButtonElement>("button")) {
@@ -1032,10 +1089,64 @@ export function bootDesktop(): void {
   paintClock();
   window.setInterval(paintClock, 10000);
 
-  const langs: Lang[] = ["en", "es", "de", "fr"];
-  lang.addEventListener("click", () => {
-    const index = langs.indexOf(getLang());
-    applyLang(langs[(index + 1) % langs.length] ?? "en");
+  function paintLang(): void {
+    const current = getLang();
+    lang.innerHTML = `${flagSvg(current)}<span>${current.toUpperCase()}</span>`;
+    lang.setAttribute("aria-label", `${t("Language")}: ${LANGS.find((item) => item.id === current)?.name ?? current}`);
+    for (const option of langMenu.querySelectorAll<HTMLButtonElement>("button")) {
+      option.setAttribute("aria-checked", String(option.dataset.lang === current));
+    }
+  }
+
+  function closeLang(focus = false): void {
+    if (langMenu.hidden) return;
+    langMenu.hidden = true;
+    lang.setAttribute("aria-expanded", "false");
+    if (focus) lang.focus();
+  }
+
+  function openLang(): void {
+    menu.classList.remove("open");
+    langMenu.hidden = false;
+    lang.setAttribute("aria-expanded", "true");
+    const box = lang.getBoundingClientRect();
+    const bar = taskbar.getBoundingClientRect();
+    langMenu.style.right = `${Math.max(4, Math.round(bar.right - box.right))}px`;
+    const current = langMenu.querySelector<HTMLButtonElement>(`button[data-lang="${getLang()}"]`);
+    current?.focus();
+  }
+
+  paintLang();
+  lang.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (langMenu.hidden) openLang();
+    else closeLang();
+  });
+  langMenu.addEventListener("click", (event) => {
+    const option = event.target instanceof Element ? event.target.closest<HTMLButtonElement>("button[data-lang]") : null;
+    if (!option) return;
+    closeLang(true);
+    applyLang((option.dataset.lang as Lang | undefined) ?? "en");
+  });
+  langMenu.addEventListener("keydown", (event) => {
+    const options = [...langMenu.querySelectorAll<HTMLButtonElement>("button")];
+    const index = options.findIndex((item) => item === document.activeElement);
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      closeLang(true);
+      return;
+    }
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    const step = event.key === "ArrowDown" ? 1 : -1;
+    options[(index + step + options.length) % options.length]?.focus();
+  });
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Node)) return;
+    if (langMenu.contains(target) || lang.contains(target)) return;
+    closeLang();
   });
   setNavigator((dest) => {
     if (dest === "/admin") {
@@ -1070,6 +1181,7 @@ export function bootDesktop(): void {
 
   start.addEventListener("click", (event) => {
     event.stopPropagation();
+    closeLang();
     menu.classList.toggle("open");
   });
   document.addEventListener("click", (event) => {
@@ -1152,8 +1264,7 @@ export function bootDesktop(): void {
 
   if (sessionGet("pkn-boot") === "1") {
     boot.hidden = true;
-    const path = normalizePath(location.pathname);
-    if (path !== "/") openHref(`${location.pathname}${location.search}`, false);
+    openLanding();
   } else {
     const bar = boot.querySelector("#boot-bar");
     const steps = [8, 19, 33, 52, 71, 86, 100];
