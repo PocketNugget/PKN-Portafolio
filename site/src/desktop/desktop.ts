@@ -511,7 +511,7 @@ export function bootDesktop(): void {
         win.el.style.top = "auto";
         win.el.style.bottom = "0";
         win.el.style.height = `${Math.round(desktop.clientHeight * 0.54)}px`;
-        win.el.style.maxHeight = "";
+        win.el.style.maxHeight = "none";
         return;
       }
       if (narrow && win.path === "/player") {
