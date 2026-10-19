@@ -391,12 +391,12 @@ function skillsPage(): string {
     }
   }
   const items = tools.map((tool) => `<li>${escapeHtml(tool)}</li>`).join("");
-  const list = (names: string[]) => `<ul class="ls">${names.map((name) => `<li>${escapeHtml(name)}</li>`).join("")}</ul>`;
+  const list = (names: string[]) => `<ul class="ls chips">${names.map((name) => `<li>${escapeHtml(name)}</li>`).join("")}</ul>`;
   return `<h2>${tx("Tools")}</h2>
     <p>${tx("Tools from the jobs, in the order those jobs are listed.")}</p>
-    <ul class="ls">${items}</ul>
+    <ul class="ls chips">${items}</ul>
     <h2>${tx("In projects and the lab")}</h2>
-    ${list(skillGroups.lab)}
+    ${list(skillGroups.lab.filter((name) => !seen.has(name)))}
     <h2>${tx("Known, not used at work")}</h2>
     <p>${tx("I know them. I do not list them as work experience.")}</p>
     ${list(skillGroups.known)}
