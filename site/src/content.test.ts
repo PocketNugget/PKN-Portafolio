@@ -198,6 +198,12 @@ describe("pages", () => {
     expect(skills).toContain("Splunk");
     expect(skills).toContain("read the diff");
     expect(skills.toLowerCase()).not.toContain("cylance");
+    expect(skills).toContain("Kubernetes");
+    expect(skills).toContain("Not earned and not work experience");
+    const learning = skills.slice(skills.indexOf("Learning"));
+    for (const name of ["Security+", "AWS Cloud Practitioner", "GCP", "Terraform"]) expect(learning).toContain(name);
+    const atWork = skills.slice(0, skills.indexOf("In projects and the lab"));
+    for (const name of ["Kubernetes", "Terraform", "AWS", "Ansible"]) expect(atWork).not.toContain(name);
   });
 
   it("lists every document path in the sitemap", () => {

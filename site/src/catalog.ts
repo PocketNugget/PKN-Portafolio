@@ -555,6 +555,43 @@ export interface HeroStat {
   cmd: string;
 }
 
+/** Skills beyond the jobs. Each list says how the skill was used, so none of it reads as work experience. */
+export const skillGroups = {
+  lab: [
+    "Burp Suite",
+    "Nmap",
+    "Ghidra",
+    "Metasploit",
+    "HackRF One",
+    "bladeRF 2.0",
+    "Docker",
+    "Docker Compose",
+    "Cloudflare Tunnels",
+    "Cloudflare Workers",
+    "D1",
+    "Linux",
+    "Git",
+    "Raspberry Pi",
+    "TypeScript",
+    "JavaScript",
+    "React",
+    "Next.js",
+    "Deno",
+    "SQLite",
+    "Angular",
+    "MySQL",
+    "Kotlin",
+    "Swift",
+    "SwiftUI",
+    "Firebase",
+    "Supabase",
+    "Vite",
+    "Vitest",
+  ],
+  known: ["Kubernetes", "CI/CD", "Ansible", "Puppet", "Chef"],
+  learning: ["CompTIA Security+", "AWS Cloud Practitioner", "GCP", "Terraform"],
+};
+
 export const hero = {
   title: "SOC/MDR analyst at TBSeK",
   since: "In cybersecurity since April 2025. Computer systems engineering, UDLAP, 2021 to 2025.",

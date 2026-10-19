@@ -35,6 +35,10 @@ describe("i18n", () => {
     const lines = [
       ...bio,
       hero.title,
+      "In projects and the lab",
+      "Known, not used at work",
+      "I know them. I do not list them as work experience.",
+      "Not earned and not work experience. These are what I am studying now.",
       hero.since,
       ...hero.roles,
       hero.open,

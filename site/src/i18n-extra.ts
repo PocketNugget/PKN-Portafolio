@@ -34,6 +34,21 @@ const rows: readonly (readonly [string, string, string, string])[] = [
     "In der Cybersicherheit seit April 2025. Computeringenieurwissenschaften, UDLAP, 2021 bis 2025.",
     "En cybersécurité depuis avril 2025. Ingénierie en systèmes informatiques, UDLAP, de 2021 à 2025.",
   ],
+  ["In projects and the lab", "En proyectos y en el laboratorio", "In Projekten und im Labor", "En projets et en laboratoire"],
+  ["Known, not used at work", "Lo conozco, no lo he usado en el trabajo", "Bekannt, nicht im Job eingesetzt", "Connu, pas utilisé au travail"],
+  [
+    "I know them. I do not list them as work experience.",
+    "Los conozco. No los presento como experiencia laboral.",
+    "Ich kenne sie. Ich führe sie nicht als Berufserfahrung auf.",
+    "Je les connais. Je ne les présente pas comme une expérience professionnelle.",
+  ],
+  ["Learning", "Aprendiendo", "In Arbeit", "En apprentissage"],
+  [
+    "Not earned and not work experience. These are what I am studying now.",
+    "No obtenido y no es experiencia laboral. Esto es lo que estudio ahora.",
+    "Nicht erworben und keine Berufserfahrung. Das lerne ich gerade.",
+    "Pas obtenu et pas une expérience professionnelle. C'est ce que j'étudie en ce moment.",
+  ],
   [
     "Top 5% at HTB University CTF 2025",
     "Top 5% en HTB University CTF 2025",
@@ -843,7 +858,7 @@ const rows: readonly (readonly [string, string, string, string])[] = [
     "Using the Metasploit Framework, Juli 2025. macOS Fundamentals, Juli 2025. Andere Kursabzeichen stehen auf LinkedIn. Scans der Event-Zertifikate stehen unter Zertifikate.",
     "Using the Metasploit Framework, juillet 2025. macOS Fundamentals, juillet 2025. Les autres badges de cours sont sur LinkedIn. Les scans des certificats d'événements sont dans Certificats.",
   ],
-  ["In progress. Not earned.", "En curso. No obtenido.", "Laufend. Nicht bestanden.", "En cours. Pas obtenu."],
+  ["In progress. Not earned.", "En curso. No obtenido.", "Laufend. Nicht erworben.", "En cours. Pas obtenu."],
   [
     "A coding agent can draft a change. I still read the diff. The pipelines I will talk about are the report scripts, the radio tools, and the prototypes already under projects.",
     "Un agente de código puede redactar un cambio. Yo sigo leyendo el diff. Los pipelines de los que voy a hablar son los scripts de reportes, las herramientas de radio y los prototipos que ya están en proyectos.",

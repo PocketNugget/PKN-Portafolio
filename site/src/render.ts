@@ -10,6 +10,7 @@ import {
   projectKind,
   projects,
   radio,
+  skillGroups,
   type Job,
   type Project,
 } from "./catalog";
@@ -307,6 +308,10 @@ function certsPage(): string {
       <p>${tx("In progress. Not earned.")}</p>
     </article>
     <article class="block">
+      <h2>AWS Cloud Practitioner, GCP, Terraform</h2>
+      <p>${tx("In progress. Not earned.")}</p>
+    </article>
+    <article class="block">
       <h2>${tx("Languages")}</h2>
       <p>${tx("Spanish, native. English, C1+. French, A2. German, A1.")}</p>
     </article>
@@ -386,9 +391,18 @@ function skillsPage(): string {
     }
   }
   const items = tools.map((tool) => `<li>${escapeHtml(tool)}</li>`).join("");
+  const list = (names: string[]) => `<ul class="ls">${names.map((name) => `<li>${escapeHtml(name)}</li>`).join("")}</ul>`;
   return `<h2>${tx("Tools")}</h2>
     <p>${tx("Tools from the jobs, in the order those jobs are listed.")}</p>
     <ul class="ls">${items}</ul>
+    <h2>${tx("In projects and the lab")}</h2>
+    ${list(skillGroups.lab)}
+    <h2>${tx("Known, not used at work")}</h2>
+    <p>${tx("I know them. I do not list them as work experience.")}</p>
+    ${list(skillGroups.known)}
+    <h2>${tx("Learning")}</h2>
+    <p>${tx("Not earned and not work experience. These are what I am studying now.")}</p>
+    ${list(skillGroups.learning)}
     <h2>${tx("Languages")}</h2>
     <p>${tx("Spanish, native. English, C1+. French, A2. German, A1.")}</p>
     <h2>${tx("Agents")}</h2>
