@@ -109,6 +109,10 @@ body {
   to { opacity: 1; transform: none; }
 }
 
+.desk-win .window-body:focus {
+  outline: none;
+}
+
 .desk-win.is-min {
   display: none;
 }
@@ -1541,7 +1545,7 @@ a.about-go:active {
   button.start-btn,
   button.task-btn,
   button#lang {
-    min-height: 32px;
+    min-height: 40px;
   }
 
   button.task-btn {
@@ -2759,7 +2763,7 @@ a.hero-stat:nth-child(6) { animation-delay: 780ms; }
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  color: #008080;
+  color: #004c4c;
 }
 
 .hero-label {

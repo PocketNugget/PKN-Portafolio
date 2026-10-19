@@ -117,6 +117,8 @@ describe("desktop for a recruiter", () => {
     expect(titles()).toEqual(["About Me"]);
     expect(document.querySelector(".desk-win .hero")).not.toBeNull();
     expect(document.querySelector('.desk-icon[data-app="about"]')?.classList.contains("attn")).toBe(true);
+    expect(document.activeElement?.classList.contains("window-body")).toBe(true);
+    expect(document.activeElement?.closest(".desk-win")?.querySelector(".hero")).not.toBeNull();
   });
 
   it("opens an icon with one click and does not duplicate it", () => {

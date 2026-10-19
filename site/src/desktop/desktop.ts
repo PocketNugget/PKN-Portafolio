@@ -783,6 +783,11 @@ export function bootDesktop(): void {
     windowsLayer.append(win.el);
     fill(win);
     focusWindow(win);
+    if (!win.term) {
+      const body = win.el.querySelector<HTMLElement>(".window-body");
+      body?.setAttribute("tabindex", "-1");
+      body?.focus({ preventScroll: true });
+    }
     maybeTip(path);
     clippy?.nudge();
     requestAnimationFrame(() => clippy?.nudge());
