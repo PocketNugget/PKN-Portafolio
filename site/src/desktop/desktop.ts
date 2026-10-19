@@ -41,8 +41,8 @@ interface LayoutSave {
   spots: Record<string, Spot>;
 }
 
-const CELL_W = 152;
-const CELL_H = 156;
+const CELL_W = 166;
+const CELL_H = 172;
 const SOCIAL_W = 560;
 const SOCIAL_H = 120;
 
@@ -108,7 +108,7 @@ export const APPS: App[] = [
   { id: "contact", label: "Contact", path: "/contact", icon: "contact", desk: true },
   { id: "terminal", label: "Terminal", path: "/terminal", icon: "terminal", desk: true },
   { id: "games", label: "Games", path: "/games", icon: "games", desk: true },
-  { id: "accessories", label: "Accessories", path: "/accessories", icon: "accessories", desk: true },
+  { id: "accessories", label: "Accessories", path: "/accessories", icon: "accessories", desk: false },
   { id: "snake", label: "Snake", path: "/snake", icon: "snake", desk: false },
   { id: "tetris", label: "Tetris", path: "/tetris", icon: "tetris", desk: false },
   { id: "sweep", label: "Sweep", path: "/sweep", icon: "sweep", desk: false },
@@ -585,7 +585,7 @@ export function bootDesktop(): void {
     const convertHost = body.querySelector(".convert-mount");
     if (convertHost instanceof HTMLElement) win.host = mountConvert(convertHost);
     const sweepHost = body.querySelector(".sweep-mount");
-    if (sweepHost instanceof HTMLElement) win.host = mountSweep(sweepHost);
+    if (sweepHost instanceof HTMLElement) win.host = mountSweep(sweepHost, () => closeWindow(win.id));
     const diceHost = body.querySelector(".dice-mount");
     if (diceHost instanceof HTMLElement) win.host = mountDice(diceHost);
     const flipHost = body.querySelector(".flip-mount");

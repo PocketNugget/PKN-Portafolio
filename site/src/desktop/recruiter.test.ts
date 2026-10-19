@@ -174,10 +174,10 @@ describe("desktop for a recruiter", () => {
     expect(menu?.hidden).toBe(true);
   });
 
-  it("keeps games and accessories in folders, one click each", () => {
+  it("keeps the games in one folder and the accessories in Start only", () => {
     const desk = [...document.querySelectorAll<HTMLElement>("#icons .desk-icon")].map((el) => el.dataset.app);
     expect(desk).toContain("games");
-    expect(desk).toContain("accessories");
+    expect(desk).not.toContain("accessories");
     for (const id of [...(FOLDERS["/games"] ?? []), ...(FOLDERS["/accessories"] ?? [])]) expect(desk).not.toContain(id);
     expect(desk.length).toBeLessThanOrEqual(16);
     document.querySelector<HTMLButtonElement>('.desk-icon[data-app="games"]')?.click();
