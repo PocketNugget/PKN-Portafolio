@@ -169,8 +169,9 @@ function home(): string {
   return `<p><img class="shot portrait" src="/media/me.png" alt="Goben Diego Constantino Aguirre" /></p>
     <h2>${tx("Profile")}</h2>
     ${bio.map((paragraph) => `<p>${tx(paragraph)}</p>`).join("")}
+    <p class="resume-row"><a class="resume-btn" href="#print" data-action="print">${tx("Print or Save Resume (PDF)")}</a></p>
     <h2>${tx("Read next")}</h2>
-    <p>${tx("Open these in order. Jobs first, then the work, then the tools. Courses and Contact close it.")}</p>
+    <p>${tx("The jobs and the projects are the work. Skills is the tools list. Courses has the degree and the certs. Contact has the address I read.")}</p>
     ${row(next, "about-main")}
     <h2>${tx("Also")}</h2>
     ${row(more)}`;

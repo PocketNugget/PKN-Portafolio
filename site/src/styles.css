@@ -1399,6 +1399,36 @@ a.about-go:active {
   box-shadow: inset -1px -1px #7fffff, inset 1px 1px #000, inset -2px -2px #0000a0, inset 2px 2px #000040;
 }
 
+.resume-row {
+  margin: 10px 0 14px;
+}
+
+a.resume-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-height: 36px;
+  padding: 6px 16px;
+  color: #000;
+  background: silver;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  border-top: 3px solid #008080;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px grey, inset 2px 2px #dfdfdf;
+}
+
+a.resume-btn:hover {
+  background: #d4d0c8;
+}
+
+a.resume-btn:active {
+  padding: 7px 15px 5px 17px;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px grey;
+}
+
 .viewer img.shot {
   display: block;
   max-width: 100%;
@@ -1638,7 +1668,7 @@ a.about-go:active {
 }
 
 #lang {
-  min-width: 36px;
+  min-width: 52px;
   padding: 0 6px;
 }
 

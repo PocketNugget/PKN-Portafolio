@@ -5,16 +5,16 @@ import models from "../content/notes/model-files.md?raw";
 
 const rows: readonly (readonly [string, string, string, string])[] = [
   [
-    "Goben Diego Constantino Aguirre. I finished computer systems engineering at UDLAP, 2021 to 2025, with a 9.0/10.",
-    "Goben Diego Constantino Aguirre. Terminé ingeniería en sistemas computacionales en la UDLAP, de 2021 a 2025, con 9.0/10.",
-    "Goben Diego Constantino Aguirre. Ich habe das Studium der Computeringenieurwissenschaften an der UDLAP abgeschlossen, 2021 bis 2025, mit 9.0/10.",
-    "Goben Diego Constantino Aguirre. J'ai terminé l'ingénierie en systèmes informatiques à l'UDLAP, de 2021 à 2025, avec 9.0/10.",
+    "Goben Diego Constantino Aguirre. I finished computer systems engineering at UDLAP, 2021 to 2025, with a 9.0/10. I focus on defensive telemetry and pragmatic infrastructure: the evidence belongs in the packets and logs, and clean software should not need an oversized cluster behind it.",
+    "Goben Diego Constantino Aguirre. Terminé ingeniería en sistemas computacionales en la UDLAP, de 2021 a 2025, con 9.0/10. Me enfoco en telemetría defensiva e infraestructura pragmática: la evidencia está en los paquetes y registros, y el software limpio no necesita un cluster sobredimensionado detrás.",
+    "Goben Diego Constantino Aguirre. Ich habe das Studium der Computeringenieurwissenschaften an der UDLAP abgeschlossen, 2021 bis 2025, mit 9.0/10. Mein Fokus liegt auf defensiver Telemetrie und pragmatischer Infrastruktur: Die Beweise liegen in den Paketen und Protokollen, und saubere Software braucht keinen uebergrossen Cluster dahinter.",
+    "Goben Diego Constantino Aguirre. J'ai terminé l'ingénierie en systèmes informatiques à l'UDLAP, de 2021 à 2025, avec 9.0/10. Je me concentre sur la télémétrie défensive et l'infrastructure pragmatique: les preuves sont dans les paquets et les journaux, et un logiciel propre ne nécessite pas un cluster surdimensionné derrière lui.",
   ],
   [
-    "SOC/MDR analyst at TBSeK, full-time, July 2026 to present. The junior seat was part-time from April 2025. I am looking for MDR, SOC, and SRE roles in Mexico, the United States, Austria, Ireland, and the Netherlands.",
-    "Analista SOC/MDR en TBSeK, tiempo completo, de julio de 2026 a la fecha. El puesto junior fue de medio tiempo desde abril de 2025. Busco puestos de MDR, SOC y SRE en México, Estados Unidos, Austria, Irlanda y Países Bajos.",
-    "SOC/MDR-Analyst bei TBSeK, Vollzeit, Juli 2026 bis heute. Die Junior-Stelle war Teilzeit ab April 2025. Ich suche MDR-, SOC- und SRE-Rollen in Mexiko, den USA, Österreich, Irland und den Niederlanden.",
-    "Analyste SOC/MDR chez TBSeK, temps plein, de juillet 2026 à aujourd'hui. Le poste junior était à temps partiel depuis avril 2025. Je cherche des postes MDR, SOC et SRE au Mexique, aux États-Unis, en Autriche, en Irlande et aux Pays-Bas.",
+    "SOC/MDR analyst at TBSeK, full-time, July 2026 to present. The junior seat was part-time from April 2025. I chair Hackztecs, co-authored an image realism paper published by Springer, and run my homelab on physical hardware. I am looking for MDR, SOC, and SRE roles in Mexico, the United States, Austria, Ireland, and the Netherlands.",
+    "Analista SOC/MDR en TBSeK, tiempo completo, de julio de 2026 a la fecha. El puesto junior fue de medio tiempo desde abril de 2025. Presido Hackztecs, fui coautor de un artículo sobre realismo de imágenes publicado por Springer y mantengo mi homelab en hardware físico. Busco puestos de MDR, SOC y SRE en México, Estados Unidos, Austria, Irlanda y Países Bajos.",
+    "SOC/MDR-Analyst bei TBSeK, Vollzeit, Juli 2026 bis heute. Die Junior-Stelle war Teilzeit ab April 2025. Ich leite Hackztecs, habe eine bei Springer veroeffentlichte Arbeit ueber Bildrealismus mitverfasst und betreibe mein Homelab auf physischer Hardware. Ich suche MDR-, SOC- und SRE-Rollen in Mexiko, den USA, Oesterreich, Irland und den Niederlanden.",
+    "Analyste SOC/MDR chez TBSeK, temps plein, de juillet 2026 à aujourd'hui. Le poste junior était à temps partiel depuis avril 2025. Je préside Hackztecs, j'ai coécrit un article sur le réalisme des images publié par Springer et j'administre mon homelab sur du matériel physique. Je cherche des postes MDR, SOC et SRE au Mexique, aux États-Unis, en Autriche, en Irlande et aux Pays-Bas.",
   ],
   [
     "Hack The Box University CTF 2025 finished 52 of 1,014, top 5%, and UDLAP was the only Mexican university in the top 100. HTB Cyber Apocalypse CTF 2025 scored 34,125 points, rank 293, 3rd in Mexico.",
@@ -23,16 +23,22 @@ const rows: readonly (readonly [string, string, string, string])[] = [
     "Hack The Box University CTF 2025 a fini 52e sur 1,014, top 5%, et l'UDLAP était la seule université mexicaine du top 100. HTB Cyber Apocalypse CTF 2025 a marqué 34,125 points, rang 293, 3e au Mexique.",
   ],
   [
+    "Print or Save Resume (PDF)",
+    "Imprimir o guardar CV (PDF)",
+    "Lebenslauf drucken oder speichern (PDF)",
+    "Imprimer ou enregistrer le CV (PDF)",
+  ],
+  [
     "Read next",
     "Sigue por aquí",
     "Lies als Nächstes",
     "Lis ensuite",
   ],
   [
-    "Open these in order. Jobs first, then the work, then the tools. Courses and Contact close it.",
-    "Ábralos en este orden. Primero los empleos, luego el trabajo, luego las herramientas. Cursos y Contacto cierran el recorrido.",
-    "Öffnen Sie sie in dieser Reihenfolge. Zuerst die Jobs, dann die Arbeit, dann die Werkzeuge. Kurse und Kontakt schliessen ab.",
-    "Ouvrez-les dans cet ordre. D'abord les postes, puis le travail, puis les outils. Les cours et le contact ferment le parcours.",
+    "The jobs and the projects are the work. Skills is the tools list. Courses has the degree and the certs. Contact has the address I read.",
+    "Los empleos y proyectos son el trabajo real. Habilidades lista las herramientas. Cursos contiene el título y certificaciones. Contacto tiene el correo que leo.",
+    "Die Jobs und Projekte sind die eigentliche Arbeit. Faehigkeiten listet die Werkzeuge auf. Kurse enthaelt den Abschluss und die Zertifikate. Kontakt enthaelt die Adresse, die ich lese.",
+    "Les postes et les projets constituent le travail concret. Compétences liste les outils. Cours contient le diplôme et les certifications. Contact indique l'adresse que je consulte.",
   ],
   ["Also", "También", "Ausserdem", "Aussi"],
   ["About", "Sobre mí", "Über mich", "À propos"],

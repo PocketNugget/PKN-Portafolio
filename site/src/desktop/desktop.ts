@@ -45,6 +45,17 @@ const CELL_H = 156;
 const SOCIAL_W = 560;
 const SOCIAL_H = 120;
 
+const LANG_FLAGS: Record<Lang, string> = {
+  en: "🇺🇸",
+  es: "🇲🇽",
+  de: "🇩🇪",
+  fr: "🇫🇷",
+};
+
+function langLabel(l: Lang): string {
+  return `${LANG_FLAGS[l] ?? ""} ${l.toUpperCase()}`.trim();
+}
+
 interface Win {
   id: number;
   path: string;
@@ -244,7 +255,7 @@ export function bootDesktop(): void {
   const lang = document.createElement("button");
   lang.type = "button";
   lang.id = "lang";
-  lang.textContent = getLang().toUpperCase();
+  lang.textContent = langLabel(getLang());
   lang.setAttribute("aria-label", t("Language"));
   const tasks = document.createElement("div");
   tasks.id = "tasks";
@@ -820,10 +831,10 @@ export function bootDesktop(): void {
         }
         selected = item.id;
         paintSelection();
-        if (matchMedia("(pointer: coarse)").matches || phoneLayout()) openHref(item.path);
+        openHref(item.path);
       });
       button.addEventListener("dblclick", () => {
-        if (matchMedia("(pointer: fine)").matches && !phoneLayout()) openHref(item.path);
+        openHref(item.path);
       });
       icons.append(button);
     }
@@ -892,8 +903,7 @@ export function bootDesktop(): void {
     boot.hidden = true;
     sessionSet("pkn-boot", "1");
     idleAt = Date.now();
-    const path = normalizePath(location.pathname);
-    if (path !== "/") openHref(`${location.pathname}${location.search}`, false);
+    openHref(`${location.pathname}${location.search}`, false);
   }
 
   function arrangeIcons(): void {
@@ -913,7 +923,7 @@ export function bootDesktop(): void {
     setLang(next);
     sessionSet("pkn-lang", getLang());
     document.documentElement.lang = getLang();
-    lang.textContent = getLang().toUpperCase();
+    lang.textContent = langLabel(getLang());
     if (startLabel) startLabel.textContent = t("Start");
     loadMenu();
     for (const button of deskMenu.querySelectorAll<HTMLButtonElement>("button")) {
@@ -1089,6 +1099,11 @@ export function bootDesktop(): void {
     if (!(event.target instanceof Element)) return;
     const anchor = event.target.closest("a");
     if (!anchor) return;
+    if (anchor.dataset.action === "print") {
+      event.preventDefault();
+      window.print();
+      return;
+    }
     const href = anchor.getAttribute("href") ?? "";
     if (!href.startsWith("/") || href.startsWith("//")) return;
     const internal =
@@ -1152,8 +1167,7 @@ export function bootDesktop(): void {
 
   if (sessionGet("pkn-boot") === "1") {
     boot.hidden = true;
-    const path = normalizePath(location.pathname);
-    if (path !== "/") openHref(`${location.pathname}${location.search}`, false);
+    openHref(`${location.pathname}${location.search}`, false);
   } else {
     const bar = boot.querySelector("#boot-bar");
     const steps = [8, 19, 33, 52, 71, 86, 100];
