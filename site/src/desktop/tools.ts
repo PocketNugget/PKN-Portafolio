@@ -109,6 +109,7 @@ export function mountDice(host: HTMLElement): DeskApp {
   pick.append(select);
   const face = document.createElement("div");
   face.className = "die";
+  face.setAttribute("role", "img");
   face.setAttribute("aria-live", "polite");
   const roll = document.createElement("button");
   roll.type = "button";

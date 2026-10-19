@@ -511,7 +511,7 @@ export function bootDesktop(): void {
         win.el.style.top = "auto";
         win.el.style.bottom = "0";
         win.el.style.height = "auto";
-        win.el.style.maxHeight = "54%";
+        win.el.style.maxHeight = `${Math.round(desktop.clientHeight * 0.54)}px`;
         return;
       }
       if (narrow && win.path === "/player") {
@@ -824,6 +824,9 @@ export function bootDesktop(): void {
     title.append(text, controls);
     const body = document.createElement("div");
     body.className = "window-body";
+    body.tabIndex = 0;
+    body.setAttribute("role", "region");
+    body.setAttribute("aria-label", win.title);
     win.el.append(title, body);
     for (const edge of ["n", "s", "e", "w", "nw", "ne", "sw", "se"]) {
       const handle = document.createElement("div");
@@ -863,11 +866,7 @@ export function bootDesktop(): void {
     windowsLayer.append(win.el);
     fill(win);
     focusWindow(win);
-    if (!win.term) {
-      const body = win.el.querySelector<HTMLElement>(".window-body");
-      body?.setAttribute("tabindex", "-1");
-      body?.focus({ preventScroll: true });
-    }
+    if (!win.term) win.el.querySelector<HTMLElement>(".window-body")?.focus({ preventScroll: true });
     maybeTip(path);
     clippy?.nudge();
     requestAnimationFrame(() => clippy?.nudge());
@@ -1066,6 +1065,7 @@ export function bootDesktop(): void {
       win.title = titleFor(win.path);
       const text = win.el.querySelector(".title-bar-text");
       if (text) text.textContent = win.title;
+      win.el.querySelector(".window-body")?.setAttribute("aria-label", win.title);
       fill(win);
     }
     for (const button of icons.querySelectorAll<HTMLButtonElement>(".desk-icon")) {
@@ -1322,6 +1322,7 @@ export function bootDesktop(): void {
     }
     const target = event.target;
     if (target instanceof HTMLElement && (target.closest("input, textarea") || target.isContentEditable)) return;
+    if (target instanceof HTMLElement && target.closest(".desk-win, #taskbar, #start-menu, #lang-menu")) return;
     if (event.key === "Enter" && selected) {
       const item = APPS.find((appItem) => appItem.id === selected);
       if (item) openHref(item.path);

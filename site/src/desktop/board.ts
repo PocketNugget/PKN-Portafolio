@@ -11,6 +11,8 @@ const NAME_KEY = "pkn-player-name";
 export function mountBoard(parent: HTMLElement, game: GameId): BoardHandle {
   const box = document.createElement("aside");
   box.className = "top-scores";
+  box.tabIndex = 0;
+  box.setAttribute("aria-label", t("Top scores"));
   const title = document.createElement("p");
   title.className = "top-title";
   title.textContent = t("Top scores");

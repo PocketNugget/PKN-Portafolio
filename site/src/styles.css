@@ -2093,7 +2093,7 @@ button#lang,
   50% { transform: scaleY(0.15); }
 }
 
-@media (min-width: 701px) and (pointer: fine) {
+@media (min-width: 701px) and (pointer: fine), (min-width: 701px) and (min-height: 501px) {
   :root {
     --bar: 48px;
   }
@@ -3066,7 +3066,7 @@ button.folder-item:focus-visible {
 }
 
 /* Title-bar controls meet the WCAG 2.2 AA 24px target on a desktop. */
-@media (min-width: 701px) and (pointer: fine) {
+@media (min-width: 701px) and (pointer: fine), (min-width: 701px) and (min-height: 501px) {
   .desk-win .title-bar-controls button {
     min-width: 24px;
     min-height: 24px;
@@ -3189,5 +3189,160 @@ fieldset.glance dd p {
 
   fieldset.glance dd {
     margin-bottom: 6px;
+  }
+}
+
+/* Legibility pass. Type scale: 13 (fine print) 14 15 16 17 (reading) 20 24 30.
+   Nothing a visitor has to read is under 13px; reading copy is 17px Tahoma. */
+#clippy .balloon {
+  font-family: Tahoma, Verdana, "Segoe UI", "DejaVu Sans", sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: auto;
+}
+
+#clippy .balloon button {
+  font-size: 14px;
+}
+
+.desk-win .window-body.doc {
+  font-size: 17px;
+}
+
+.desk-win .window-body legend,
+fieldset.glance legend {
+  font-size: 15px;
+  font-weight: 700;
+  padding: 0 4px;
+}
+
+.window-body .tools span {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.desk-win .title-bar-text {
+  font-size: 15px;
+}
+
+.play-status {
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.top-scores {
+  font-size: 14px;
+}
+
+.sweep-app > .meta {
+  font-size: 14px;
+}
+
+.hack-app > p,
+.hack-log {
+  font-size: 14px;
+}
+
+p.hero-open {
+  font-size: 15px;
+}
+
+p.hero-langs,
+.hero-prompt,
+.hero-label,
+.hero-ticker {
+  font-size: 14px;
+}
+
+.hero-unit {
+  font-size: 13px;
+}
+
+a.hero-go,
+button.hero-go,
+button.hero-go.copy-mail {
+  font-size: 15px;
+}
+
+#lang-menu .lang-code {
+  font-size: 13px;
+}
+
+.folder-item .label {
+  font-size: 15px;
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  .desk-win .window-body {
+    font-size: 16px;
+  }
+
+  .desk-win .window-body.doc {
+    font-size: 17px;
+  }
+
+  .desk-win .title-bar {
+    min-height: 44px;
+  }
+
+  .desk-win .title-bar-text {
+    font-size: 16px;
+  }
+
+  .desk-win .title-bar-controls button {
+    min-width: 44px;
+    min-height: 38px;
+  }
+
+  .window-body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  .window-body select,
+  .window-body textarea,
+  .term-line input {
+    min-height: 44px;
+  }
+
+  .desk-win .window-body button:not(.sweep-cell):not(.play-cell),
+  .desk-win .window-body a.about-go {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .window-body p.links a,
+  fieldset.glance dd a,
+  .window-body .ls a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  #clippy .balloon {
+    font-size: 15px;
+  }
+
+  a.hero-go,
+  button.hero-go,
+  button.hero-go.copy-mail {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 700px), (pointer: coarse) and (max-height: 500px) {
+  .desk-icon .label {
+    font-size: 13px;
+  }
+
+  a.social-link {
+    font-size: 12px;
+  }
+}
+
+/* Desktop: buttons and fields inside windows reach the 24px AA target. Touch screens get 44px above. */
+@media (min-width: 701px) and (pointer: fine) {
+  .desk-win .window-body button:not(.sweep-cell):not(.play-cell):not(.folder-item),
+  .desk-win .window-body select,
+  .desk-win .window-body input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  .term-line input {
+    min-height: 30px;
   }
 }
