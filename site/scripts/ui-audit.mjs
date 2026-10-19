@@ -140,8 +140,12 @@ const windowCheck = async ({ touch, dense }) => {
   }
   const board = body.querySelector(".play-board");
   if (board && board.firstElementChild) {
-    const cell = board.firstElementChild.getBoundingClientRect();
-    if (Math.abs(cell.width - cell.height) > 1) out.push("game cells not square " + cell.width.toFixed(1) + "x" + cell.height.toFixed(1));
+    const first = board.firstElementChild;
+    const cell = first.getBoundingClientRect();
+    if (first.tagName === "CANVAS") {
+      const want = first.width / first.height;
+      if (Math.abs(cell.width / cell.height - want) > 0.01) out.push("game canvas stretched " + cell.width.toFixed(1) + "x" + cell.height.toFixed(1));
+    } else if (Math.abs(cell.width - cell.height) > 1) out.push("game cells not square " + cell.width.toFixed(1) + "x" + cell.height.toFixed(1));
   }
   const small = [...win.querySelectorAll("a[href], button, input, select, textarea")]
     .filter((el) => {
