@@ -244,7 +244,7 @@ describe("d1 store", () => {
     const db = new FakeDb();
     const store = new D1Store(db as unknown as D1Like);
     await store.ensure();
-    expect(db.execs).toHaveLength(8);
+    expect(db.execs).toHaveLength(10);
     expect(db.execs).toContain(
       "CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, body TEXT NOT NULL, created INTEGER NOT NULL)",
     );

@@ -10,6 +10,7 @@ import { mountFind, mountRun } from "./extras";
 import { mountPad } from "./pad";
 import { mountFacts } from "./facts";
 import { mountGallery } from "./gallery";
+import { mountContactForm } from "./contact";
 import { mountHack } from "./hack";
 import { mountHero } from "./hero";
 import type { DeskApp } from "./host";
@@ -104,7 +105,6 @@ export const APPS: App[] = [
   { id: "notes", label: "Notes", path: "/notes", icon: "notes", desk: true },
   { id: "certs", label: "Courses", path: "/certs", icon: "certs", desk: true },
   { id: "blog", label: "Blog", path: "/blog", icon: "blog", desk: true },
-  { id: "pad", label: "Suggestions", path: "/pad", icon: "pad", desk: true },
   { id: "links", label: "My Links", path: "/links", icon: "links", desk: false },
   { id: "contact", label: "Contact", path: "/contact", icon: "contact", desk: true },
   { id: "terminal", label: "Terminal", path: "/terminal", icon: "terminal", desk: true },
@@ -124,6 +124,7 @@ export const APPS: App[] = [
   { id: "facts", label: "Facts", path: "/facts", icon: "facts", desk: false },
   { id: "games", label: "Games", path: "/games", icon: "games", desk: true },
   { id: "hack", label: "Hack", path: "/hack", icon: "hack", desk: true },
+  { id: "pad", label: "Give your opinion", path: "/pad", icon: "pad", desk: true },
   { id: "buddy", label: "Nugget", path: "/buddy", icon: "buddy", desk: false },
   { id: "help", label: "Help", path: "/help", icon: "help", desk: false },
   { id: "display", label: "Display", path: "/display", icon: "display", desk: false },
@@ -155,7 +156,7 @@ const WALLPAPERS = [
 
 const SIZES: Record<string, [number, number]> = {
   "/player": [612, 296],
-  "/pictures": [640, 480],
+  "/pictures": [700, 580],
   "/awards": [640, 480],
   "/convert": [480, 480],
   "/sweep": [560, 640],
@@ -175,9 +176,9 @@ const SIZES: Record<string, [number, number]> = {
   "/skills": [560, 480],
   "/blog": [680, 640],
   "/certs": [560, 460],
-  "/contact": [440, 340],
+  "/contact": [460, 640],
   "/facts": [500, 440],
-  "/hack": [480, 360],
+  "/hack": [520, 480],
   "/run": [320, 160],
   "/find": [420, 320],
   "/pad": [420, 480],
@@ -378,7 +379,6 @@ export function bootDesktop(): void {
 
   const windows: Win[] = [];
   let clippy: ReturnType<typeof mountClippy> | null = null;
-  let idleAt = Date.now();
   const tipped = new Set<string>();
   let seq = 0;
   let zTop = 2;
@@ -514,7 +514,7 @@ export function bootDesktop(): void {
       if (narrow && win.path === "/hack") {
         win.el.style.top = "auto";
         win.el.style.bottom = "0";
-        win.el.style.height = `${Math.round(desktop.clientHeight * 0.54)}px`;
+        win.el.style.height = `${Math.round(desktop.clientHeight * 0.72)}px`;
         win.el.style.maxHeight = "none";
         return;
       }
@@ -606,6 +606,8 @@ export function bootDesktop(): void {
     if (runHost instanceof HTMLElement) win.host = mountRun(runHost, (href) => openHref(href));
     const findHost = body.querySelector(".find-mount");
     if (findHost instanceof HTMLElement) win.host = mountFind(findHost, (href) => openHref(href));
+    const contactForm = body.querySelector(".contact-form");
+    if (contactForm instanceof HTMLFormElement) mountContactForm(contactForm);
     for (const button of body.querySelectorAll<HTMLButtonElement>("button[data-copy]")) {
       button.addEventListener("click", () => void copyText(button));
     }
@@ -966,43 +968,59 @@ export function bootDesktop(): void {
       icons.append(button);
     }
     layoutIcons();
-    void blogBadge();
+    void iconBadges();
   }
 
-  /** A bubble on Blog while a post from the last four months exists. It stays until that changes. */
-  let newPosts = 0;
+  /** Bubbles on icons. Blog counts posts from the last four months. Give your opinion counts every comment left. */
+  const badges: Record<string, { count: number; unit: string }> = {
+    blog: { count: 0, unit: "new posts" },
+    pad: { count: 0, unit: "comments" },
+  };
 
   function paintBadge(): void {
-    const button = icons.querySelector<HTMLButtonElement>('.desk-icon[data-app="blog"]');
-    if (!button) return;
-    button.querySelector(".icon-badge")?.remove();
-    const name = t("Blog");
-    if (newPosts < 1) {
-      button.removeAttribute("aria-label");
-      return;
+    for (const [app, badgeInfo] of Object.entries(badges)) {
+      const button = icons.querySelector<HTMLButtonElement>(`.desk-icon[data-app="${app}"]`);
+      if (!button) continue;
+      button.querySelector(".icon-badge")?.remove();
+      if (badgeInfo.count < 1) {
+        button.removeAttribute("aria-label");
+        continue;
+      }
+      const badge = document.createElement("span");
+      badge.className = "icon-badge";
+      badge.textContent = badgeInfo.count > 99 ? "99+" : String(badgeInfo.count);
+      badge.setAttribute("aria-hidden", "true");
+      button.append(badge);
+      const item = APPS.find((appItem) => appItem.id === app);
+      button.setAttribute("aria-label", `${t(item?.label ?? app)}, ${badgeInfo.count} ${t(badgeInfo.unit)}`);
     }
-    const badge = document.createElement("span");
-    badge.className = "icon-badge";
-    badge.textContent = String(Math.min(newPosts, 9));
-    badge.setAttribute("aria-hidden", "true");
-    button.append(badge);
-    button.setAttribute("aria-label", `${name}, ${newPosts} ${t("new posts")}`);
   }
 
-  async function blogBadge(): Promise<void> {
+  async function iconBadges(): Promise<void> {
     try {
       const res = await fetch("/api/blog", { cache: "no-store" });
-      if (!res.ok) return;
-      const body = (await res.json()) as { posts?: { created?: unknown }[] };
-      const posts = Array.isArray(body.posts) ? body.posts : [];
-      newPosts = newPostCount(
-        posts.filter((post): post is { created: string } => typeof post.created === "string"),
-        Date.now(),
-      );
-      paintBadge();
+      if (res.ok) {
+        const body = (await res.json()) as { posts?: { created?: unknown }[] };
+        const posts = Array.isArray(body.posts) ? body.posts : [];
+        badges.blog.count = newPostCount(
+          posts.filter((post): post is { created: string } => typeof post.created === "string"),
+          Date.now(),
+        );
+      }
     } catch {
       /* no badge when the store is quiet */
     }
+    try {
+      const res = await fetch("/api/comments", { cache: "no-store" });
+      if (res.ok) {
+        const body = (await res.json()) as { count?: unknown; notes?: unknown };
+        const total = typeof body.count === "number" ? body.count : Array.isArray(body.notes) ? body.notes.length : 0;
+        badges.pad.count = Number.isSafeInteger(total) && total > 0 ? total : 0;
+      }
+    } catch {
+      /* no badge when the store is quiet */
+    }
+    paintBadge();
   }
 
   function loadSocial(): void {
@@ -1067,7 +1085,6 @@ export function bootDesktop(): void {
     window.clearInterval(bootTimer);
     boot.hidden = true;
     sessionSet("pkn-boot", "1");
-    idleAt = Date.now();
     openLanding();
   }
 
@@ -1139,71 +1156,6 @@ export function bootDesktop(): void {
 
   const printPack = document.createElement("div");
   printPack.id = "print-pack";
-  const saver = document.createElement("div");
-  saver.id = "saver";
-  saver.hidden = true;
-  const saverPic = document.createElement("img");
-  saverPic.src = "/buddy/nugget.png";
-  saverPic.loading = "lazy";
-  saverPic.alt = "";
-  saver.append(saverPic);
-  saverPic.style.left = "12px";
-  saverPic.style.top = "12px";
-  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let saverFrame = 0;
-  let saverX = 12;
-  let saverY = 12;
-  let saverVx = 0.11;
-  let saverVy = 0.07;
-  let saverLast = 0;
-  function saverStep(now: number): void {
-    saverFrame = 0;
-    if (saver.hidden || reducedMotion) return;
-    const dt = saverLast ? Math.min(34, now - saverLast) : 16;
-    saverLast = now;
-    const maxX = Math.max(0, saver.clientWidth - saverPic.offsetWidth);
-    const maxY = Math.max(0, saver.clientHeight - saverPic.offsetHeight);
-    saverX += saverVx * dt;
-    saverY += saverVy * dt;
-    let hitX = false;
-    let hitY = false;
-    if (saverX <= 0) {
-      saverX = 0;
-      hitX = true;
-    } else if (saverX >= maxX) {
-      saverX = maxX;
-      hitX = true;
-    }
-    if (saverY <= 0) {
-      saverY = 0;
-      hitY = true;
-    } else if (saverY >= maxY) {
-      saverY = maxY;
-      hitY = true;
-    }
-    if (hitX) saverVx = -saverVx;
-    if (hitY) saverVy = -saverVy;
-    saverPic.style.left = `${saverX}px`;
-    saverPic.style.top = `${saverY}px`;
-    saverFrame = window.requestAnimationFrame(saverStep);
-  }
-  function showSaver(): void {
-    if (!saver.hidden) return;
-    saver.hidden = false;
-    if (reducedMotion) {
-      saverPic.style.left = "12px";
-      saverPic.style.top = "12px";
-      return;
-    }
-    saverLast = 0;
-    if (!saverFrame) saverFrame = window.requestAnimationFrame(saverStep);
-  }
-  function hideSaver(): void {
-    saver.hidden = true;
-    if (saverFrame) window.cancelAnimationFrame(saverFrame);
-    saverFrame = 0;
-    saverLast = 0;
-  }
   const deskMenu = document.createElement("div");
   deskMenu.id = "desk-menu";
   deskMenu.hidden = true;
@@ -1222,7 +1174,7 @@ export function bootDesktop(): void {
     });
     deskMenu.append(button);
   }
-  app.append(printPack, saver, deskMenu);
+  app.append(printPack, deskMenu);
 
   applyWallpaper(wallpaperId());
   loadDesktop();
@@ -1302,18 +1254,12 @@ export function bootDesktop(): void {
     openHref(dest);
   });
   const wake = (event: Event) => {
-    idleAt = Date.now();
-    hideSaver();
     const target = event.target;
     if (target instanceof Node && deskMenu.contains(target)) return;
     deskMenu.hidden = true;
   };
   document.addEventListener("pointerdown", wake);
   document.addEventListener("keydown", wake);
-  window.setInterval(() => {
-    if (!boot.hidden || document.hidden) return;
-    if (Date.now() - idleAt > 90_000) showSaver();
-  }, 5000);
   desktop.addEventListener("contextmenu", (event) => {
     const target = event.target;
     if (target !== desktop && target !== wallpaper && target !== icons) return;

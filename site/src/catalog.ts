@@ -150,7 +150,7 @@ export const projects: Project[] = [
       "Writes require the browser Origin.",
       "Each response sends a Content-Security-Policy locked to this origin, nosniff, a strict referrer policy, a permissions policy with the sensors off, and Cross-Origin-Opener-Policy same-origin.",
       "Frames are denied. The music player is the exception, and it may load YouTube.",
-      "security.txt has the contact address. No contact form. No analytics table.",
+      "security.txt has the contact address. No analytics table.",
       "pocketnugget.xyz publishes only from the prod branch. The old app in legacy/ was React, Deno, SQLite, and JWT, and it is not this deploy.",
       "Docker and Cloudflare Tunnels stay on the homelab.",
     ],

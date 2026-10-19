@@ -3,13 +3,17 @@ import { renderNote } from "./markup";
 import { randomToken, safeEqual, sha256Hex, verifyPassword } from "./password";
 import { cleanBlock, cleanLine, cleanTags, NOTE_BODY_MAX, NOTE_LINES, NOTE_NAME_MAX, scrubInvisible } from "./plain";
 import { parseGame, parseLevel, parseScore, parseScoreName, SCORE_LIMIT, TOP_N } from "./scores";
-import type { Note, Store } from "./store";
+import type { Message, Note, Store } from "./store";
 import { openSecret, otpauthUri, totpMatches } from "./totp";
 
 const COOKIE = "pkn_session";
 const WINDOW_MS = 15 * 60 * 1000;
 const LOCK_AFTER = 8;
 const NOTE_LIMIT = 10;
+const MESSAGE_LIMIT = 5;
+const MESSAGE_BODY_MAX = 1500;
+const MESSAGE_LINES = 20;
+const EMAIL_MAX = 120;
 const SESSION_MS = 12 * 60 * 60 * 1000;
 const MAX_BODY = 100_000;
 
@@ -112,6 +116,43 @@ function publicNote(note: Note) {
     body,
     created: new Date(note.created).toISOString(),
   };
+}
+
+function messageEmail(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const mail = cleanLine(value, EMAIL_MAX);
+  if (!mail || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) return null;
+  return mail;
+}
+
+function publicMessage(message: Message) {
+  const name = cleanLine(message.name, NOTE_NAME_MAX);
+  const email = cleanLine(message.email, EMAIL_MAX);
+  const body = cleanBlock(message.body, MESSAGE_BODY_MAX, MESSAGE_LINES);
+  if (!name || !email || !body || !Number.isSafeInteger(message.id) || message.id < 1) return null;
+  return { id: message.id, name, email, body, created: new Date(message.created).toISOString() };
+}
+
+async function createMessage(request: Request, store: Store, now: number): Promise<Response> {
+  if (!originOk(request)) return text(403, "bad origin\n");
+  const body = await readJson(request);
+  if (body instanceof Response) return body;
+  const record = body as { name?: unknown; email?: unknown; body?: unknown; company?: unknown };
+  const trap = typeof record.company === "string" && record.company.trim().length > 0;
+  await store.clearMessageAttempts(now - WINDOW_MS);
+  const full = (await store.countMessageAttempts(now - WINDOW_MS)) >= MESSAGE_LIMIT;
+  if (trap) {
+    if (!full) await store.addMessageAttempt(now);
+    return json(201, { ok: true });
+  }
+  const name = noteName(record.name);
+  const email = messageEmail(record.email);
+  const written = typeof record.body === "string" ? cleanBlock(record.body, MESSAGE_BODY_MAX, MESSAGE_LINES) : null;
+  if (!name || !email || !written) return text(400, "name, email and message are required\n");
+  if (full) return text(429, "too many messages\n");
+  await store.insertMessage({ name, email, body: written, created: now });
+  await store.addMessageAttempt(now);
+  return json(201, { ok: true });
 }
 
 async function saveScore(request: Request, store: Store, now: number): Promise<Response> {
@@ -351,9 +392,24 @@ export async function handleApi(
   if (path === "/api/blog" && method === "POST") return create(request, store, auth, now);
   if (path === "/api/comments" && method === "GET") {
     const notes = (await store.listNotes(80)).map(publicNote).filter((note) => note !== null);
-    return json(200, { notes });
+    return json(200, { notes, count: await store.countNotes() });
   }
   if (path === "/api/comments" && method === "POST") return createNote(request, store, now);
+  if (path === "/api/contact" && method === "POST") return createMessage(request, store, now);
+  if (path === "/api/contact" && method === "GET") {
+    if (!(await sessionUser(request, store, auth, now))) return text(401, "no\n");
+    const messages = (await store.listMessages(200)).map(publicMessage).filter((message) => message !== null);
+    return json(200, { messages });
+  }
+  const message = /^\/api\/contact\/([1-9]\d*)$/.exec(path);
+  if (message) {
+    if (method !== "DELETE") return text(405, "method not allowed\n");
+    const denied = await requireUser(request, store, auth, now);
+    if (denied) return denied;
+    const id = Number(message[1]);
+    if (!Number.isSafeInteger(id) || !(await store.deleteMessage(id))) return text(404, "no such message\n");
+    return text(204, "");
+  }
   if (path === "/api/scores" && method === "GET") {
     const game = parseGame(url.searchParams.get("game"));
     if (!game) return text(400, "bad game\n");

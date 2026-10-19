@@ -1,8 +1,8 @@
 import { openTable } from "../catalog";
+import { bash, BASH_COMMANDS, helpLines, listing } from "./bash";
 import {
   applyCompletion,
   completions,
-  HELP,
   histDown,
   histUp,
   parseCommand,
@@ -72,8 +72,8 @@ export class Terminal {
   private readonly board: HTMLElement;
   private readonly status: HTMLElement;
   private lines: string[] = [
-    "PocketNugget terminal",
-    "help lists commands. snake and tetris run in this window.",
+    "PocketNugget terminal [Version 98.1]",
+    "Type help for what each command does, or ls for the names. snake, tetris and tron run in this window.",
     "",
   ];
   private commandLog: string[] = [];
@@ -464,7 +464,7 @@ export class Terminal {
     if (this.mode !== "shell") return;
     if (event.key === "Tab") {
       event.preventDefault();
-      const matches = completions(this.input.value, openNames);
+      const matches = completions(this.input.value, openNames, BASH_COMMANDS);
       if (matches.length === 1) {
         this.input.value = applyCompletion(this.input.value, matches);
         return;
@@ -524,7 +524,18 @@ export class Terminal {
       return;
     }
     if (cmd === "help") {
-      for (const item of HELP) this.lines.push(`${item.cmd.padEnd(18)}${item.blurb}`);
+      this.lines.push(...helpLines(this.cols()));
+      this.paint();
+      return;
+    }
+    if (cmd === "ls" && !/\s-/.test(line) && line.split(" ").length === 1) {
+      this.lines.push(...listing(this.cols()));
+      this.paint();
+      return;
+    }
+    const said = bash(line, { now: new Date(), history: this.commandLog, cols: this.cols() });
+    if (said) {
+      this.lines.push(...said);
       this.paint();
       return;
     }
@@ -656,10 +667,50 @@ export class Terminal {
       this.pre.textContent = this.tron.won ? "clear" : this.tron.dead ? "game over" : "tron";
       this.drawCycle(this.tron);
     } else {
-      this.pre.textContent = this.lines.join("\n");
+      this.paintShell();
     }
     this.pre.scrollTop = this.pre.scrollHeight;
     this.paintOverlay();
+  }
+
+  /** How many characters fit across the screen, so lists wrap to the window instead of scrolling sideways. */
+  private cols(): number {
+    const width = this.pre.clientWidth;
+    if (width < 1) return 80;
+    const probe = document.createElement("span");
+    probe.className = "term-probe";
+    probe.textContent = "0".repeat(20);
+    this.pre.append(probe);
+    const char = probe.getBoundingClientRect().width / 20;
+    probe.remove();
+    if (!(char > 0)) return 80;
+    const style = getComputedStyle(this.pre);
+    const pad = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+    return Math.max(24, Math.floor((width - pad) / char) - 1);
+  }
+
+  private paintShell(): void {
+    const frag = document.createDocumentFragment();
+    for (const text of this.lines) {
+      const row = document.createElement("div");
+      row.className = "t-line";
+      const prompt = /^goben@pkn:~\$ /.exec(text);
+      if (prompt) {
+        const who = document.createElement("span");
+        who.className = "t-prompt";
+        who.textContent = prompt[0];
+        const typed = document.createElement("span");
+        typed.className = "t-cmd";
+        typed.textContent = text.slice(prompt[0].length);
+        row.append(who, typed);
+      } else {
+        row.textContent = text || "\u00a0";
+        if (/command not found|^open: |No such file|read-only|not in the sudoers|nice try/.test(text)) row.classList.add("t-err");
+        else if (/^(site commands|bash-style commands)$/.test(text)) row.classList.add("t-head");
+      }
+      frag.append(row);
+    }
+    this.pre.replaceChildren(frag);
   }
 
   private score(): number {

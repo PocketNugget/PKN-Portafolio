@@ -545,3 +545,60 @@ describe("blog api", () => {
     expect(who.status).toBe(401);
   });
 });
+
+describe("contact messages", () => {
+  const post = (store: MemoryStore, body: unknown, at = NOW) =>
+    handleApi(
+      new Request("https://pocketnugget.com/api/contact", {
+        method: "POST",
+        headers: { origin: "https://pocketnugget.com", "content-type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+      store,
+      { user: "goben", hash: "" },
+      at,
+    );
+
+  it("saves a message, drops the trap, rejects bad input, and limits the rate", async () => {
+    const store = new MemoryStore();
+    const good = { name: "Ada", email: "ada@example.com", body: "Hello there", company: "" };
+    expect((await post(store, good)).status).toBe(201);
+    expect(store.messages).toHaveLength(1);
+    expect((await post(store, { ...good, company: "spam" })).status).toBe(201);
+    expect(store.messages).toHaveLength(1);
+    expect((await post(store, { ...good, email: "nope" })).status).toBe(400);
+    expect((await post(store, { ...good, body: "<b>x</b>" })).status).toBe(400);
+    for (let i = 0; i < 4; i += 1) await post(store, good);
+    expect((await post(store, good)).status).toBe(429);
+  });
+
+  it("lists and deletes only for a signed-in user", async () => {
+    const store = new MemoryStore();
+    await store.insertMessage({ name: "Ada", email: "ada@example.com", body: "Hi", created: NOW });
+    const list = await handleApi(
+      new Request("https://pocketnugget.com/api/contact"),
+      store,
+      { user: "goben", hash: "" },
+      NOW,
+    );
+    expect(list.status).toBe(401);
+    const del = await handleApi(
+      new Request("https://pocketnugget.com/api/contact/1", {
+        method: "DELETE",
+        headers: { origin: "https://pocketnugget.com" },
+      }),
+      store,
+      { user: "goben", hash: "" },
+      NOW,
+    );
+    expect(del.status).toBe(401);
+    expect(store.messages).toHaveLength(1);
+  });
+
+  it("counts the comments on the public list", async () => {
+    const store = new MemoryStore();
+    await store.insertNote({ name: "Ada", body: "Nice", created: NOW });
+    const res = await handleApi(new Request("https://pocketnugget.com/api/comments"), store, { user: "", hash: "" }, NOW);
+    expect(((await res.json()) as { count: number }).count).toBe(1);
+  });
+});

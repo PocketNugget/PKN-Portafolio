@@ -250,7 +250,7 @@ describe("pages", () => {
     expect(documentBody("/login")).toContain("Loading login.");
     expect(commandFor("/login")).toBe("login");
     expect(render("/help")).not.toContain(">login<");
-    expect(render("/colophon")).toContain("suggestions");
+    expect(render("/colophon")).toContain("comments");
   });
 });
 

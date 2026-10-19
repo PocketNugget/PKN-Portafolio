@@ -5,6 +5,8 @@ export interface HelpLine {
 
 export const HELP: HelpLine[] = [
   { cmd: "help", blurb: "this list" },
+  { cmd: "ls", blurb: "every command, names only" },
+  { cmd: "man <cmd>", blurb: "what one command does. pwd, cat, echo, date, tree, ping and more run on a pretend system" },
   { cmd: "whoami", blurb: "name, school, where I am looking" },
   { cmd: "about", blurb: "the same page as whoami" },
   { cmd: "jobs", blurb: "TBSeK, STEM, T-Systems" },
@@ -122,13 +124,14 @@ export function parseCommand(raw: string, opens: Record<string, string>): Step {
   return { type: "nav", path, echo: cmd === "clear" ? "whoami" : line };
 }
 
-export function completions(line: string, openNames: string[]): string[] {
+export function completions(line: string, openNames: string[], extra: string[] = []): string[] {
+  const names = [...COMMANDS, ...extra];
   const endsWithSpace = /\s$/.test(line);
   const parts = line.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return [...COMMANDS];
+  if (parts.length === 0) return names;
   const head = parts[0].toLowerCase();
   if (parts.length === 1 && !endsWithSpace) {
-    return COMMANDS.filter((cmd) => cmd.startsWith(head));
+    return names.filter((cmd) => cmd.startsWith(head));
   }
   if (head === "open" && (endsWithSpace || parts.length >= 2)) {
     const prefix = parts.length >= 2 && !endsWithSpace ? parts[1].toLowerCase() : "";

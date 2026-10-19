@@ -344,7 +344,15 @@ function contactPage(): string {
     .join("");
   return `<ul class="ls">${rows}</ul>
     <p><button type="button" class="copy-mail" data-copy="${escapeHtml(profiles.email.label)}">${tx("Copy email")}</button></p>
-    <p>${tx("No form. The address above is the one I read.")}</p>`;
+    <p>${tx("Or send a message here. It lands in my editor, and I read it.")}</p>
+    <form class="contact-form" novalidate>
+      <label>${tx("Name")}<input name="name" maxlength="40" autocomplete="name" required></label>
+      <label>${tx("Email")}<input name="email" type="email" maxlength="120" autocomplete="email" required></label>
+      <label>${tx("Message")}<textarea name="message" rows="5" maxlength="1500" required></textarea></label>
+      <div class="notepad-hp" aria-hidden="true"><input name="company" tabindex="-1" autocomplete="off"></div>
+      <p><button type="submit">${tx("Send message")}</button></p>
+      <p class="contact-status err" role="status"></p>
+    </form>`;
 }
 
 function radioPage(): string {
@@ -369,8 +377,8 @@ function legalPage(): string {
 
 function colophonPage(): string {
   const lines = [
-    "This site is a Vite build served by a Cloudflare Worker. The Worker adds the headers, security.txt, and build.json. Most pages are files. There is no contact form.",
-    "The blog, the suggestions page, and the game scores are the exception. Posts, suggestions, game score names, and session hashes live in D1. The password hash is a Worker secret. Sessions are HttpOnly cookies. Visitor addresses are not stored.",
+    "This site is a Vite build served by a Cloudflare Worker. The Worker adds the headers, security.txt, and build.json. Most pages are files. The contact form is the exception.",
+    "The blog, the opinion page, the contact form, and the game scores are the exception. Posts, comments, contact messages, game score names, and session hashes live in D1. The password hash is a Worker secret. Sessions are HttpOnly cookies. Visitor addresses are not stored.",
     "Licenses, marks, and the music player are on the legal page.",
     "The homelab is where Docker and Cloudflare Tunnels live, on a Raspberry Pi and on the STEM Mac Mini while that apprenticeship ran. I did not put Kubernetes in front of these pages. Naming a cluster here would not make the site safer. Terraform for the DNS zone can come later, against the real zone, not as a diagram.",
     "Scripts and styles are same-origin. The window font is Pixelated MS Sans Serif by lou on Fontstruct, shipped under CC BY-SA 3.0 with 98.css. It is not loaded from a third party. The only cookie is the editor session, and only after login. scripts/check.sh typechecks, runs the tests, and greps the build for the defaults I do not want shipped.",

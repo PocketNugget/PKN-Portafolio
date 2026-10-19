@@ -71,10 +71,11 @@ describe("desktop with a recent blog post", () => {
     setLang("en");
   });
 
-  it("lists Games second to last on the desktop, right before Hack, with the tools loose", () => {
+  it("lists Games, Hack, then the opinion box last on the desktop, with the tools loose", () => {
     const order = APPS.filter((app) => app.desk).map((app) => app.id);
-    expect(order.at(-1)).toBe("hack");
-    expect(order.at(-2)).toBe("games");
+    expect(order.at(-1)).toBe("pad");
+    expect(order.at(-2)).toBe("hack");
+    expect(order.at(-3)).toBe("games");
     for (const id of ["player", "convert", "math", "dice", "flip", "wheel"]) expect(order).toContain(id);
     expect(order).not.toContain("accessories");
   });

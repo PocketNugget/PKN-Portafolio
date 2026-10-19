@@ -203,7 +203,7 @@ The session is an HttpOnly, SameSite=Strict cookie. The database stores a hash o
 
 ## What the Worker stores
 
-Blog posts, public suggestions, session hashes, the authenticator secret (encrypted), recovery-code hashes, and login-failure times, in D1. No contact form, no third-party script, no analytics table. The window font ships with 98.css in `site/public/vendor/`. `security.txt` points at `goben.ca.pkn@hotmail.com`.
+Blog posts, public comments, contact messages, session hashes, the authenticator secret (encrypted), recovery-code hashes, and login-failure times, in D1. The contact form writes to D1 and nothing leaves it. No third-party script, no analytics table. The window font ships with 98.css in `site/public/vendor/`. `security.txt` points at `goben.ca.pkn@hotmail.com`.
 
 ## Legacy
 

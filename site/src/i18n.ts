@@ -85,8 +85,8 @@ const es: Record<string, string> = {
     "Un agente de código puede redactar un cambio. Yo sigo leyendo el diff.",
   "Spanish, native. English, C1+. French, A2. German, A1.":
     "Español, nativo. Inglés, C1+. Francés, A2. Alemán, A1.",
-  "No form. The address above is the one I read.":
-    "No hay formulario. La dirección de arriba es la que leo.",
+  "Or send a message here. It lands in my editor, and I read it.":
+    "O mándame un mensaje aquí. Llega a mi editor y lo leo.",
   "Tools from the jobs, in the order those jobs are listed.":
     "Herramientas de los empleos, en el orden en que están listados.",
   "Projects I will talk about in an interview. Older one-liners sit under Earlier.":
@@ -156,8 +156,8 @@ const de: Record<string, string> = {
     "Ein Coding-Agent kann eine Änderung entwerfen. Ich lese den Diff trotzdem.",
   "Spanish, native. English, C1+. French, A2. German, A1.":
     "Spanisch, Muttersprache. Englisch, C1+. Französisch, A2. Deutsch, A1.",
-  "No form. The address above is the one I read.":
-    "Kein Formular. Die Adresse oben lese ich.",
+  "Or send a message here. It lands in my editor, and I read it.":
+    "Oder schick mir hier eine Nachricht. Sie landet in meinem Editor, und ich lese sie.",
   "STEM UDLAP was February 2024 to June 2026. I wrote the MICAI paper, published the dataset, and kept the lab server on a Mac Mini. Cloudflare Tunnels published the registration services. Older Angular and Node apps moved into Docker. I also taught a hands-on Docker session: one container, then Compose.":
     "STEM UDLAP war Februar 2024 bis Juni 2026. Ich schrieb das MICAI-Paper, veröffentlichte das Dataset und hielt den Laborserver auf einem Mac Mini. Cloudflare Tunnels veröffentlichte die Registrierung. Ältere Angular- und Node-Apps kamen nach Docker. Ich gab auch eine Docker-Sitzung: ein Container, dann Compose.",
   "T-Systems was a part-time internship in Puebla, April 2024 to July 2024. I built a course platform in Angular, with MySQL behind it, so people could track training. Some of the progress was game-like. I wrote the docs and used the team's Git process.":
@@ -229,8 +229,8 @@ const fr: Record<string, string> = {
     "Un agent de code peut rédiger un changement. Je lis quand même le diff.",
   "Spanish, native. English, C1+. French, A2. German, A1.":
     "Espagnol, langue maternelle. Anglais, C1+. Français, A2. Allemand, A1.",
-  "No form. The address above is the one I read.":
-    "Pas de formulaire. L'adresse ci-dessus est celle que je lis.",
+  "Or send a message here. It lands in my editor, and I read it.":
+    "Ou envoie-moi un message ici. Il arrive dans mon éditeur, et je le lis.",
   "STEM UDLAP was February 2024 to June 2026. I wrote the MICAI paper, published the dataset, and kept the lab server on a Mac Mini. Cloudflare Tunnels published the registration services. Older Angular and Node apps moved into Docker. I also taught a hands-on Docker session: one container, then Compose.":
     "STEM UDLAP, de février 2024 à juin 2026. J'ai écrit le papier MICAI, publié le jeu de données et gardé le serveur du labo sur un Mac Mini. Cloudflare Tunnels a publié les services d'inscription. Les vieilles apps Angular et Node sont passées dans Docker. J'ai aussi donné une séance Docker: un conteneur, puis Compose.",
   "T-Systems was a part-time internship in Puebla, April 2024 to July 2024. I built a course platform in Angular, with MySQL behind it, so people could track training. Some of the progress was game-like. I wrote the docs and used the team's Git process.":

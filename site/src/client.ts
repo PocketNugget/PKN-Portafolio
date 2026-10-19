@@ -505,7 +505,51 @@ async function renderAdmin(root: HTMLElement): Promise<void> {
     }
   }
 
-  root.append(form, el("h2", "posts"), list, notesHead, notesWrap, passForm, logout);
+  const mailHead = el("h2", "Messages");
+  const mailWrap = document.createElement("div");
+  mailWrap.className = "notepad";
+  const mailResponse = await api("/api/contact");
+  let armedMail = 0;
+  if (!mailResponse.ok) {
+    mailWrap.append(el("p", "The messages did not load."));
+  } else {
+    const data = (await readJson(mailResponse)) as { messages?: unknown } | null;
+    const mails = Array.isArray(data?.messages) ? (data.messages as Record<string, unknown>[]) : [];
+    if (mails.length === 0) mailWrap.append(el("p", "No messages yet."));
+    for (const mail of mails) {
+      const id = typeof mail.id === "number" ? mail.id : 0;
+      if (!id || typeof mail.name !== "string" || typeof mail.email !== "string" || typeof mail.body !== "string") continue;
+      const created = typeof mail.created === "string" ? dateLabel(mail.created) : "";
+      const row = document.createElement("article");
+      row.className = "notepad-line";
+      const who = el("p", `${mail.name}  ${created}`);
+      who.className = "notepad-who";
+      const reply = document.createElement("a");
+      reply.href = `mailto:${encodeURIComponent(mail.email).replace(/%40/g, "@")}`;
+      reply.textContent = mail.email;
+      const text = el("p", mail.body);
+      text.className = "notepad-body";
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "delete";
+      remove.addEventListener("click", () => {
+        void (async () => {
+          if (armedMail !== id) {
+            armedMail = id;
+            remove.textContent = "delete, again";
+            return;
+          }
+          const response = await api(`/api/contact/${id}`, { method: "DELETE" });
+          if (response.status === 204) row.remove();
+          else status.textContent = "delete failed.";
+        })();
+      });
+      row.append(who, reply, text, remove);
+      mailWrap.append(row);
+    }
+  }
+
+  root.append(form, el("h2", "posts"), list, mailHead, mailWrap, notesHead, notesWrap, passForm, logout);
 }
 
 export function hydrate(pathname: string, scope: ParentNode = document): void {

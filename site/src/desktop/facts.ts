@@ -53,7 +53,7 @@ export const NUGGET_TIPS: Record<string, string> = {
   "/work": "You are on the projects he will talk about. The two HTB boards are different events, so read both.",
   "/skills": "You are on the tool list from the jobs. A coding agent can draft a change. He still has to read the diff.",
   "/certs": "You are on the courses. The named ones are Metasploit and macOS Fundamentals, both July 2025. Security+ is in progress, not earned.",
-  "/contact": "You are on contact. There is no form. The address he reads is the mail link above.",
+  "/contact": "You are on contact. Write to him with the form, or use the mail link above. He reads both.",
   "/awards": "You are looking at the scans. If a year has no rank in the record, you will not find one invented here.",
   "/pictures": "You are in the photos. The portrait is the same one on About.",
   "/notes": "You are on the notes. Two short ones. Solve steps stay in the repo, not on this page.",

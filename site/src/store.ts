@@ -21,6 +21,14 @@ export interface Note {
   created: number;
 }
 
+export interface Message {
+  id: number;
+  name: string;
+  email: string;
+  body: string;
+  created: number;
+}
+
 export interface ScoreRow {
   game: string;
   name: string;
@@ -54,6 +62,13 @@ export interface Store {
   listNotes(limit: number): Promise<Note[]>;
   insertNote(note: Omit<Note, "id">): Promise<Note>;
   deleteNote(id: number): Promise<boolean>;
+  countNotes(): Promise<number>;
+  listMessages(limit: number): Promise<Message[]>;
+  insertMessage(message: Omit<Message, "id">): Promise<Message>;
+  deleteMessage(id: number): Promise<boolean>;
+  countMessageAttempts(since: number): Promise<number>;
+  addMessageAttempt(at: number): Promise<void>;
+  clearMessageAttempts(before: number): Promise<void>;
   countNoteAttempts(since: number): Promise<number>;
   addNoteAttempt(at: number): Promise<void>;
   clearNoteAttempts(before: number): Promise<void>;
@@ -83,6 +98,8 @@ const SCHEMA = [
   "CREATE TABLE IF NOT EXISTS auth (id INTEGER PRIMARY KEY CHECK (id = 1), password_hash TEXT NOT NULL DEFAULT '', totp_cipher TEXT NOT NULL DEFAULT '', totp_ready INTEGER NOT NULL DEFAULT 0, recovery TEXT NOT NULL DEFAULT '[]')",
   "CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, body TEXT NOT NULL, created INTEGER NOT NULL)",
   "CREATE TABLE IF NOT EXISTS comment_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL)",
+  "CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, email TEXT NOT NULL, body TEXT NOT NULL, created INTEGER NOT NULL)",
+  "CREATE TABLE IF NOT EXISTS message_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL)",
   "CREATE TABLE IF NOT EXISTS scores (game TEXT NOT NULL, name TEXT NOT NULL, score INTEGER NOT NULL, level INTEGER NOT NULL, created INTEGER NOT NULL, PRIMARY KEY (game, name))",
   "CREATE TABLE IF NOT EXISTS score_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL)",
 ];
@@ -234,6 +251,57 @@ export class D1Store implements Store {
     return true;
   }
 
+  async countNotes(): Promise<number> {
+    const row = await this.db.prepare("SELECT COUNT(*) AS n FROM comments").first<{ n: number }>();
+    return row?.n ?? 0;
+  }
+
+  async listMessages(limit: number): Promise<Message[]> {
+    const cap = Math.max(0, Math.min(200, limit));
+    const rows = await this.db
+      .prepare("SELECT id, name, email, body, created FROM messages ORDER BY created DESC, id DESC LIMIT ?")
+      .bind(cap)
+      .all<Message>();
+    return rows.results ?? [];
+  }
+
+  async insertMessage(message: Omit<Message, "id">): Promise<Message> {
+    const result = await this.db
+      .prepare("INSERT INTO messages (name, email, body, created) VALUES (?, ?, ?, ?)")
+      .bind(message.name, message.email, message.body, message.created)
+      .run();
+    const id = result.meta?.last_row_id;
+    if (id && id > 0) return { id, ...message };
+    const row = await this.db
+      .prepare("SELECT id FROM messages WHERE created = ? ORDER BY id DESC LIMIT 1")
+      .bind(message.created)
+      .first<{ id: number }>();
+    return { id: row?.id ?? 0, ...message };
+  }
+
+  async deleteMessage(id: number): Promise<boolean> {
+    const existing = await this.db.prepare("SELECT id FROM messages WHERE id = ?").bind(id).first<{ id: number }>();
+    if (!existing) return false;
+    await this.db.prepare("DELETE FROM messages WHERE id = ?").bind(id).run();
+    return true;
+  }
+
+  async countMessageAttempts(since: number): Promise<number> {
+    const row = await this.db
+      .prepare("SELECT COUNT(*) AS n FROM message_attempts WHERE at >= ?")
+      .bind(since)
+      .first<{ n: number }>();
+    return row?.n ?? 0;
+  }
+
+  async addMessageAttempt(at: number): Promise<void> {
+    await this.db.prepare("INSERT INTO message_attempts (at) VALUES (?)").bind(at).run();
+  }
+
+  async clearMessageAttempts(before: number): Promise<void> {
+    await this.db.prepare("DELETE FROM message_attempts WHERE at < ?").bind(before).run();
+  }
+
   async countNoteAttempts(since: number): Promise<number> {
     const row = await this.db
       .prepare("SELECT COUNT(*) AS n FROM comment_attempts WHERE at >= ?")
@@ -325,9 +393,12 @@ export class MemoryStore implements Store {
   auth: AuthRow | null = null;
   notes: Note[] = [];
   noteAttempts: number[] = [];
+  messages: Message[] = [];
+  messageAttempts: number[] = [];
   scores: ScoreRow[] = [];
   scoreAttempts: number[] = [];
   private noteSeq = 1;
+  private messageSeq = 1;
 
   async ensure(): Promise<void> {}
 
@@ -424,6 +495,40 @@ export class MemoryStore implements Store {
     const before = this.notes.length;
     this.notes = this.notes.filter((note) => note.id !== id);
     return this.notes.length !== before;
+  }
+
+  async countNotes(): Promise<number> {
+    return this.notes.length;
+  }
+
+  async listMessages(limit: number): Promise<Message[]> {
+    const cap = Math.max(0, Math.min(200, limit));
+    return [...this.messages].sort((a, b) => b.created - a.created || b.id - a.id).slice(0, cap);
+  }
+
+  async insertMessage(message: Omit<Message, "id">): Promise<Message> {
+    const saved = { ...message, id: this.messageSeq };
+    this.messageSeq += 1;
+    this.messages.push(saved);
+    return saved;
+  }
+
+  async deleteMessage(id: number): Promise<boolean> {
+    const before = this.messages.length;
+    this.messages = this.messages.filter((message) => message.id !== id);
+    return this.messages.length !== before;
+  }
+
+  async countMessageAttempts(since: number): Promise<number> {
+    return this.messageAttempts.filter((at) => at >= since).length;
+  }
+
+  async addMessageAttempt(at: number): Promise<void> {
+    this.messageAttempts.push(at);
+  }
+
+  async clearMessageAttempts(before: number): Promise<void> {
+    this.messageAttempts = this.messageAttempts.filter((at) => at >= before);
   }
 
   async countNoteAttempts(since: number): Promise<number> {
