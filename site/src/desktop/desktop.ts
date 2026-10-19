@@ -1194,7 +1194,7 @@ export function bootDesktop(): void {
   function paintLang(): void {
     const current = getLang();
     lang.innerHTML = `${flagSvg(current)}<span>${current.toUpperCase()}</span>`;
-    lang.setAttribute("aria-label", `${t("Language")}: ${LANGS.find((item) => item.id === current)?.name ?? current}`);
+    lang.setAttribute("aria-label", `${current.toUpperCase()}, ${t("Language")}: ${LANGS.find((item) => item.id === current)?.name ?? current}`);
     for (const option of langMenu.querySelectorAll<HTMLButtonElement>("button")) {
       option.setAttribute("aria-checked", String(option.dataset.lang === current));
     }
