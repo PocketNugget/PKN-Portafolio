@@ -28,7 +28,7 @@ There is one admin, username `goben`, with a password and an authenticator code.
 
 ### Phone
 
-![The same desktop on a phone: twenty icons, Games and Hack last](docs/screenshots/phone.png)
+![The same desktop on a phone: twenty icons, the social links in the taskbar tray](docs/screenshots/phone.png)
 
 ### Suggestions
 
@@ -36,11 +36,15 @@ There is one admin, username `goben`, with a password and an authenticator code.
 
 ### Player
 
-![Webdeck Player, Silver theme, in a desktop window](docs/screenshots/player.png)
+![The Music window (Webdeck Player) in Chrome, with the default theme](docs/screenshots/player.png)
 
 ### Games
 
 ![The Games folder](docs/screenshots/games.png)
+
+### Tetris
+
+![Tetris with Hold and the next three pieces beside the board](docs/screenshots/tetris.png)
 
 ### Tron
 
@@ -56,7 +60,7 @@ Other shots can go in `docs/screenshots/`. Add the file and one line in this sec
 
 Portfolio for Goben Diego Constantino Aguirre (PocketNugget). It runs on Cloudflare Workers. The public pages are English, Spanish, German, and French.
 
-The page is a Windows 98 style desktop. Icons and the Start menu open the same pages. The Terminal window still runs the real commands. Snake, Tetris, and Tron are their own windows, with a public best score. Content lives in `site/src/catalog.ts` and `site/content/notes/`.
+The profile covers security operations (SOC/MDR), research, DevOps, and software development, and the pages say so. The page is a Windows 98 style desktop. Icons and the Start menu open the same pages. The Terminal window still runs the real commands. Snake, Tetris, and Tron are their own windows, with a public best score. Content lives in `site/src/catalog.ts` and `site/content/notes/`.
 
 ## Tech stack and how it was built
 
@@ -68,7 +72,7 @@ The page is a Windows 98 style desktop. Icons and the Start menu open the same p
 | Look | 98.css 0.1.21 plus `styles.css` | Windows 98 window chrome from 98.css. The pixel face (Pixelated MS Sans Serif) is served from this site. Tahoma carries the reading text and the controls |
 | Server | One Cloudflare Worker (`site/src/worker.ts`) | Sets the security headers, serves `security.txt` and `build.json`, answers `/api/*`, and returns `index.html` for document routes |
 | Data | Cloudflare D1 (SQLite) | Blog posts, suggestions, game score names, session hashes, the encrypted TOTP secret, recovery-code hashes, login-failure times |
-| Tests | Vitest 4 with happy-dom | 164 tests in 29 files, covering the API, markup, i18n, the desktop, the games, and the blog |
+| Tests | Vitest 4 with happy-dom | 170 tests in 29 files, covering the API, markup, i18n, the desktop, the games, and the blog |
 | Tooling | Wrangler 4, `scripts/check.sh` | One command typechecks, tests, builds, and greps the output for what the site does not ship |
 
 The only runtime dependency is `98.css`. TypeScript, Vite, Vitest, Wrangler, and happy-dom are build and test tools.
@@ -83,7 +87,7 @@ The only runtime dependency is `98.css`. TypeScript, Vite, Vitest, Wrangler, and
 
 **The games**
 
-- Snake and Tetris are DOM grids driven by pure state functions in `games.ts`, so the tests step them without a browser.
+- Snake and Tetris are DOM grids driven by pure state functions in `games.ts`, so the tests step them without a browser. Tetris deals pieces from a shuffled seven-piece bag, so the order changes every game. It shows the next three pieces and a Hold box (C, or the Hold button on a phone).
 - Tron (`cycle.ts`, drawn by `cyclepaint.ts`) runs on a 64 by 48 grid with two enemies. One hunts you by aiming ahead of your bike. The other plays for open space. A crashed enemy loses its light trail. Clear five grids to win. The drawing is a canvas: glow lines for trails, a rotated light cycle for each bike, a synth backdrop with scan lines.
 - Sweep grows tighter after each clear and keeps the score.
 - Each game shows the public top scores inside its Play and Exit panel, with a name box when a round ends. Scores are capped per game on the server.
@@ -138,7 +142,7 @@ To change a page, edit `site/src/catalog.ts`. The desktop apps are the list at t
 
 Each of these is a normal window. Open it from the icon or from Start. The terminal names are in parentheses.
 
-- Player (`player`). Webdeck Player v1.0.2, MIT, by Chris, hosted on this site under `site/public/vendor/webdeck-player/`. The window opens on Floral Radio in the Silver theme, played in YouTube's own player. The list also has Floral Shoppe, by Macintosh Plus, Magic Ways, by Tatsuro Yamashita, a mix that starts on that video, and Permaculture, by MTHRBORD. This site does not host those files. Square-wave tones are gone from this window. The legal page says what is embedded and what is not.
+- Music (`player`, the Player window). Webdeck Player v1.0.2, MIT, by Chris, hosted on this site under `site/public/vendor/webdeck-player/`. The window opens on Floral Radio, played in YouTube's own player. The theme is Silver in Safari and the default theme in Chrome based browsers and the rest. The list also has Floral Shoppe, by Macintosh Plus, Magic Ways, by Tatsuro Yamashita, a mix that starts on that video, and Permaculture, by MTHRBORD. This site does not host those files. Square-wave tones are gone from this window. The legal page says what is embedded and what is not.
 - My Pictures (`pictures`) and Certificates (`awards`). Thumbnails, then a larger view with previous and next. The files live in `site/public/media/`. The titles and captions are `site/src/desktop/media.ts`. The public site cannot read a folder on your computer, so copy new photos into `public/media` and add a line to that file. The first set was copied from the local Desktop folder of photos and certificate scans.
 - Converter (`encode`). Base64, hex, and URL encode and decode, text to binary, MD5, SHA-1, and SHA-256, plus KB, MB, and GB using 1024, not 1000. One MB is 1048576 bytes. It runs in the page. Nothing is uploaded.
 - Sweep (`sweep`). It starts as a 9 by 9 grid with 10 mines. A clear opens a tighter grid and keeps the score. Click opens a cell. Right-click, or the Flag button, marks one. The first open cell is never a mine. Again starts over. A name can be saved on the public score list.
@@ -157,7 +161,7 @@ Each of these is a normal window. Open it from the icon or from Start. The termi
 - Right-click the desktop for Arrange icons, Display, and Run.
 - Print hides the taskbar and prints About, Jobs, and Projects.
 
-Social icons sit on the wallpaper, in a row at the bottom right (a bar under the icons on a phone). They are PNGs in `site/public/social/`: `github.png`, `linkedin.png`, `x.png`, `instagram.png`, `youtube.png`. The addresses are the same ones as My Links. A click opens a new tab. To point one somewhere else, change the profile in `site/src/catalog.ts`. To redraw an icon, replace the PNG and keep the name.
+Social icons sit in the taskbar tray, small like the Windows notification icons, between the window buttons and the language button. Each one shows its name as a tooltip on hover or focus and is named for screen readers. They are PNGs in `site/public/social/`: `github.png`, `linkedin.png`, `x.png`, `instagram.png`, `youtube.png`. The addresses are the same ones as My Links. A click opens a new tab. To point one somewhere else, change the profile in `site/src/catalog.ts`. To redraw an icon, replace the PNG and keep the name.
 
 ## Deploy
 
@@ -187,7 +191,7 @@ Terraform for the DNS zone is a follow-up against the real zone. It is not in th
 
 ## Login and the blog
 
-`links` is the public list (email, GitHub, LinkedIn, X, Instagram, YouTube). `blog` reads posts. `pad` opens Suggestions, the site's comment box, with a Leave a comment! button. The editor is not a desktop icon, a Start item, or a terminal command. Open `/login` in the address bar. `/admin/login` lands on that same form. A valid session opens `/admin`.
+`links` is the public list (email, GitHub, LinkedIn, X, Instagram, YouTube). `blog` reads posts. `pad` opens Suggestions, the site's feedback box, with a Leave some feedback!! button. The editor is not a desktop icon, a Start item, or a terminal command. Open `/login` in the address bar. `/admin/login` lands on that same form. A valid session opens `/admin`.
 
 There is one admin, username `goben`. No public signup. The password is not in the repo. Login also asks for a 6 digit code from an authenticator app (TOTP, the same code Google Authenticator and Microsoft Authenticator show). It is not a Google or Microsoft login. The first successful password shows a QR once. After that code is accepted, later logins are password plus code. Eight recovery codes work in the code field, once each.
 

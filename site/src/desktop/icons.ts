@@ -54,7 +54,7 @@ export const ICONS: Record<string, string> = {
     `<rect x="8" y="14" width="16" height="12" fill="#c0c0c0" stroke="#000"/><path d="M12 14 v-3 a4 4 0 0 1 8 0 v3" fill="none" stroke="#000"/><rect x="14" y="18" width="4" height="4" fill="#000080"/>`,
   ),
   player: svg(
-    `<rect x="4" y="6" width="24" height="14" fill="#000" stroke="#808080"/><path d="M7 16 V11 M11 17 V9 M15 15 V12 M19 17 V10 M23 14 V12" stroke="#00a000"/><rect x="6" y="22" width="6" height="5" fill="#c0c0c0" stroke="#000"/><rect x="14" y="22" width="12" height="5" fill="#c0c0c0" stroke="#000"/>`,
+    `<circle cx="14" cy="17" r="11" fill="#c0c0c0" stroke="#000"/><circle cx="14" cy="17" r="8" fill="#e8f0ff" stroke="#808080"/><circle cx="14" cy="17" r="2.5" fill="#000080" stroke="#000"/><path d="M14 17 L20 9" stroke="#fff" stroke-width="1.5"/><ellipse cx="22.5" cy="22.5" rx="3.2" ry="2.4" fill="#000080" stroke="#000"/><path d="M25.5 22.5 V8 L30 10 V13 L28 12 V22" fill="#000080" stroke="#000" stroke-linejoin="round"/>`,
   ),
   pictures: svg(
     `<rect x="3" y="6" width="26" height="20" fill="#c0c0c0" stroke="#000"/><rect x="6" y="9" width="20" height="14" fill="#87ceeb"/><circle cx="11" cy="13" r="2" fill="#ffd200"/><path d="M6 20 l6 -5 4 3 4 -4 6 6 v3 h-20 z" fill="#228b22"/>`,

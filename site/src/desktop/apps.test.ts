@@ -66,13 +66,21 @@ describe("desktop media", () => {
     expect(NUGGET_TIPS["/hack"]).toBeUndefined();
   });
 
-  it("opens Floral Radio in the silver theme through the vendored player", () => {
+  it("opens Floral Radio, silver in Safari and the default theme elsewhere, through the vendored player", () => {
     expect(PLAYER_PAGE).toBe("/vendor/webdeck-player/index.html");
     expect(script).toContain("srYi1mTO5kA");
     expect(script).toContain("bAgmGZ9iQ2Y");
     expect(script).toContain("RDbAgmGZ9iQ2Y");
     expect(script).toContain("JfCNwhWWdCs");
-    expect(script).toContain('currentTheme = "SILVER"');
+    expect(script).toContain('currentTheme = isSafari ? "SILVER" : "DEFAULT"');
+    const lines = script.split("\n").filter((line) => line.startsWith("var isSafari") || line.startsWith("var currentTheme"));
+    const themeFor = (userAgent: string) => new Function("navigator", `${lines.join("\n")}\nreturn currentTheme;`)({ userAgent });
+    expect(themeFor("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15")).toBe("SILVER");
+    expect(themeFor("Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1")).toBe("SILVER");
+    expect(themeFor("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36")).toBe("DEFAULT");
+    expect(themeFor("Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36 Edg/124.0")).toBe("DEFAULT");
+    expect(themeFor("Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/124.0 Mobile/15E148 Safari/604.1")).toBe("DEFAULT");
+    expect(themeFor("Mozilla/5.0 (X11; Linux x86_64; rv:125.0) Gecko/20100101 Firefox/125.0")).toBe("DEFAULT");
     expect(script).toContain('currentPlaylist = "Floral Radio"');
     expect(script).toContain("playlistSelector.value = currentPlaylist");
     expect(script).toContain("loadVideoById");

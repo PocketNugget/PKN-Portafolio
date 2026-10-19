@@ -78,8 +78,8 @@ describe("notepad", () => {
     const body = host.querySelector<HTMLTextAreaElement>("textarea");
     const button = host.querySelector<HTMLButtonElement>('button[type="submit"]');
     expect(name && body && button).toBeTruthy();
-    expect(button?.textContent).toBe("Leave a comment!");
-    expect(host.textContent).toContain("Comment box for this site");
+    expect(button?.textContent).toBe("Leave some feedback!!");
+    expect(host.textContent).toContain("Feedback box for this site");
     name!.value = "Ada";
     body!.value = "hello <script>alert(1)</script>";
     host.querySelector("form")!.requestSubmit(button!);

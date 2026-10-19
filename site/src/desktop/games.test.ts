@@ -3,6 +3,9 @@ import {
   clearLines,
   createSnake,
   createTetris,
+  pieceBag,
+  tetrisHold,
+  tetrisPreview,
   placeFood,
   snakeAim,
   snakeLevel,
@@ -149,5 +152,46 @@ describe("tetris", () => {
     expect(tetrisLevel(2)).toBe(2);
     expect(tetrisPace(1)).toBeGreaterThan(tetrisPace(4));
     expect(tetrisPace(30)).toBe(80);
+  });
+
+  it("deals every piece once per bag, in a different order each game", () => {
+    const kinds = ["I", "J", "L", "O", "S", "T", "Z"];
+    expect([...pieceBag()].sort()).toEqual(kinds);
+    const orders = new Set<string>();
+    for (let i = 0; i < 12; i += 1) orders.add(createTetris().queue.slice(0, 7).join(""));
+    expect(orders.size).toBeGreaterThan(1);
+    expect(pieceBag(() => 0).join("")).not.toBe(pieceBag(() => 0.999).join(""));
+    let state = createTetris();
+    const seen: string[] = [state.kind];
+    for (let i = 0; i < 6; i += 1) {
+      state = tetrisHard({ ...state, grid: Array.from({ length: state.width * state.height }, () => 0), y: 0 });
+      seen.push(state.kind);
+    }
+    expect(state.queue.length).toBeGreaterThanOrEqual(7);
+  });
+
+  it("holds a piece once per drop, swaps it back later, and shows it in a 4 by 4 box", () => {
+    const start = createTetris({ width: 10, height: 16, queue: ["O", "I", "T", "L", "J", "S", "Z"] });
+    expect(start.hold).toBeNull();
+    expect(start.canHold).toBe(true);
+    const held = tetrisHold(start);
+    expect(held.hold).toBe("O");
+    expect(held.kind).toBe("I");
+    expect(held.canHold).toBe(false);
+    expect(tetrisHold(held)).toBe(held);
+    const dropped = tetrisHard(held);
+    expect(dropped.canHold).toBe(true);
+    const swapped = tetrisHold(dropped);
+    expect(swapped.kind).toBe("O");
+    expect(swapped.hold).toBe(dropped.kind);
+    expect(swapped.y).toBe(0);
+    for (const kind of ["I", "O", "T", "S", "Z", "J", "L"] as const) {
+      const cells = tetrisPreview(kind);
+      expect(cells).toHaveLength(4);
+      expect(Math.min(...cells.map((cell) => cell.x))).toBe(0);
+      expect(Math.min(...cells.map((cell) => cell.y))).toBe(0);
+      expect(Math.max(...cells.map((cell) => Math.max(cell.x, cell.y)))).toBeLessThan(4);
+    }
+    expect(tetrisHold({ ...start, over: true }).hold).toBeNull();
   });
 });

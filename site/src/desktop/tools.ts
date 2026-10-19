@@ -93,7 +93,7 @@ export function wheelIndex(count: number, roll: () => number = Math.random): num
   return Math.floor(roll() * count);
 }
 
-const WHEEL_COLORS = ["#000080", "#008080", "#800000", "#808080", "#004000", "#000000"];
+const WHEEL_COLORS = ["#ff3df0", "#2d9bff", "#ffb020", "#7a5cff", "#16c784", "#ff5a5a"];
 const PIP: Record<number, number[]> = {
   1: [4],
   2: [0, 8],
@@ -214,6 +214,7 @@ export function mountMath(host: HTMLElement): DeskApp {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = key;
+    button.dataset.kind = "/*-+".includes(key) ? "op" : key === "=" ? "eq" : key === "C" ? "clear" : "num";
     button.addEventListener("click", () => {
       state = mathKey(state, key);
       display.textContent = state.display;
@@ -269,26 +270,40 @@ export function mountWheel(host: HTMLElement): DeskApp {
       ctx.closePath();
       ctx.fillStyle = WHEEL_COLORS[i % WHEEL_COLORS.length] ?? "#000080";
       ctx.fill();
-      ctx.strokeStyle = "#c0c0c0";
+      ctx.strokeStyle = "#0b0b2a";
+      ctx.lineWidth = 2;
       ctx.stroke();
       if (!names.length) continue;
       ctx.save();
       ctx.rotate((start + end) / 2);
       ctx.fillStyle = "#ffffff";
-      ctx.font = "12px sans-serif";
+      ctx.shadowColor = "#000";
+      ctx.shadowBlur = 3;
+      ctx.font = "bold 13px sans-serif";
       ctx.textAlign = "right";
       const label = names[i] ?? "";
-      ctx.fillText(label.slice(0, 16), radius - 8, 4);
+      ctx.fillText(label.slice(0, 16), radius - 10, 5);
+      ctx.shadowBlur = 0;
       ctx.restore();
     }
     ctx.restore();
-    ctx.fillStyle = "#000";
     ctx.beginPath();
-    ctx.moveTo(size / 2, 22);
-    ctx.lineTo(size / 2 - 8, 6);
-    ctx.lineTo(size / 2 + 8, 6);
+    ctx.arc(size / 2, size / 2, 14, 0, Math.PI * 2);
+    ctx.fillStyle = "#0b0b2a";
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#2df3ff";
+    ctx.stroke();
+    ctx.fillStyle = "#ffffff";
+    ctx.strokeStyle = "#0b0b2a";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(size / 2, 26);
+    ctx.lineTo(size / 2 - 10, 4);
+    ctx.lineTo(size / 2 + 10, 4);
     ctx.closePath();
     ctx.fill();
+    ctx.stroke();
   };
   draw([], 0);
   spin.addEventListener("click", () => {

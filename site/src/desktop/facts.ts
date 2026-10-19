@@ -14,7 +14,6 @@ export const FACTS: string[] = [
   "ColorScore, November 2025, first place at Enactus Changemakers with team Xcookers. SwiftUI, k-means, geometric marks.",
   "The MICAI 2024 paper Easy for Us, Complex for AI is in Springer LNCS 15246, pages 198 to 209. Co-authored with Zobeida Guzmán.",
   "Spanish is native. English is C1+. French is A2. German is A1.",
-  "The search is SOC, MDR, and SRE work. A cybersecurity master's is also on the list.",
   "On the bench: a HackRF One and a Nuand bladeRF 2.0, mostly 2.4 to 5.8 GHz. Separately, an iMac G4 restoration.",
   "A coding agent can draft a change. He still has to read the diff.",
 ];
@@ -31,7 +30,6 @@ export const NUGGET_LINES: string[] = [
   "You can open ColorScore under Projects. November 2025, first place at Enactus Changemakers with team Xcookers. SwiftUI, k-means, geometric marks.",
   "There is a paper if you need it. MICAI 2024, Easy for Us, Complex for AI, Springer LNCS 15246, pages 198 to 209. He wrote it with Zobeida Guzmán.",
   "Languages, since you will ask: Spanish is native. English is C1+. French is A2. German is A1.",
-  "If you are hiring, he is open to SOC, MDR, and SRE work. A cybersecurity master's is also on the list.",
   "On the bench, if you open Radio: a HackRF One and a Nuand bladeRF 2.0, mostly 2.4 to 5.8 GHz. The iMac G4 restoration is a separate pile.",
   "One habit you should know. A coding agent can draft a change. He still has to read the diff.",
 ];
@@ -48,7 +46,7 @@ export const NUGGET_RELIEF = "Phew. The desk is clean again. Thank you.";
 
 export const NUGGET_TIPS: Record<string, string> = {
   "/": "Welcome to Goben's portfolio! I am Nugget, and I will be your guide. Start with Jobs, then Projects, then Skills. Courses and Contact close it. I will say something on each page, and Next gives you facts about him.",
-  "/pad": "You are at the comment box for the site. Leave a comment about the portfolio, and Goben reads it in the editor.",
+  "/pad": "You are at the feedback box for the site. Leave some feedback about the portfolio, and Goben reads it in the editor.",
   "/games": "You are in the games folder. Snake, Tetris, Tron, and Sweep each keep a public top score.",
   "/terminal": "You are in the terminal. Type help, and you get the same pages as the icons.",
   "/jobs": "You are on the jobs. Full-time SOC/MDR at TBSeK, July 2026 to present. The junior seat before that was part-time. STEM and T-Systems are further down.",
@@ -64,7 +62,7 @@ export const NUGGET_TIPS: Record<string, string> = {
 };
 
 const TOOLS: { label: string; path: string }[] = [
-  { label: "Player", path: "/player" },
+  { label: "Music", path: "/player" },
   { label: "My Pictures", path: "/pictures" },
   { label: "Certificates", path: "/awards" },
   { label: "Converter", path: "/convert" },

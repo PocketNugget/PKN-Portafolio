@@ -24,14 +24,17 @@ import {
   tetrisDown,
   tetrisGhost,
   tetrisHard,
+  tetrisHold,
   tetrisLeft,
   tetrisLevel,
   tetrisPace,
+  tetrisPreview,
   tetrisRender,
   tetrisRight,
   tetrisRotate,
   tetrisTick,
   type Dir,
+  type Kind,
   type SnakeState,
   type TetrisState,
 } from "./games";
@@ -65,6 +68,7 @@ export class Terminal {
   private readonly input: HTMLInputElement;
   private readonly root: HTMLElement;
   private readonly stage: HTMLElement;
+  private side: HTMLElement | null = null;
   private readonly board: HTMLElement;
   private readonly status: HTMLElement;
   private lines: string[] = [
@@ -117,6 +121,14 @@ export class Terminal {
               <button type="button" class="play-over-exit" data-key="Escape"></button>
             </div>
           </div>
+          <aside class="tetris-side" hidden aria-hidden="true">
+            <p class="side-title">Hold</p>
+            <div class="mini" data-slot="hold"></div>
+            <p class="side-title">Next</p>
+            <div class="mini" data-slot="next0"></div>
+            <div class="mini" data-slot="next1"></div>
+            <div class="mini" data-slot="next2"></div>
+          </aside>
         </div>
         <p class="play-status"></p>
         <p class="play-live" aria-live="polite"></p>
@@ -134,6 +146,7 @@ export class Terminal {
         </div>
         <div class="pad-act">
           <button type="button" data-key=" " data-role="drop">Drop</button>
+          <button type="button" data-key="c" data-role="hold">Hold</button>
           <button type="button" data-key="p">Pause</button>
           <button type="button" class="pad-again" data-key="Again" data-role="again">Again</button>
           <button type="button" class="pad-exit" data-key="Escape">Exit</button>
@@ -159,6 +172,7 @@ export class Terminal {
     this.input = input;
     this.root = host;
     this.stage = stage;
+    this.side = host.querySelector(".tetris-side");
     this.board = board;
     this.status = status;
     const over = host.querySelector(".play-over");
@@ -261,7 +275,10 @@ export class Terminal {
       button.textContent = glyphs[key] ?? "";
       button.setAttribute("aria-label", name ? t(name) : "");
     }
-    const actions: Record<string, string> = { " ": "Drop", p: "Pause", Again: "Again", Escape: "Exit" };
+    const titles = this.side?.querySelectorAll(".side-title");
+    if (titles?.[0]) titles[0].textContent = t("Hold");
+    if (titles?.[1]) titles[1].textContent = t("Next");
+    const actions: Record<string, string> = { " ": "Drop", c: "Hold", p: "Pause", Again: "Again", Escape: "Exit" };
     for (const button of this.root.querySelectorAll<HTMLButtonElement>(".pad-act button")) {
       const name = actions[button.dataset.key ?? ""];
       if (!name) continue;
@@ -417,6 +434,7 @@ export class Terminal {
       if (repeat) return true;
       if (key === "ArrowUp") this.tetris = tetrisRotate(this.tetris);
       else if (key === " ") this.tetris = tetrisHard(this.tetris);
+      else if (key === "c" || key === "C" || key === "Shift") this.tetris = tetrisHold(this.tetris);
       else return false;
       this.paint();
       if (this.tetris.over) this.stopLoop();
@@ -624,6 +642,7 @@ export class Terminal {
   private paint(): void {
     const playing = this.mode !== "shell";
     this.stage.hidden = !playing;
+    if (this.side) this.side.hidden = this.mode !== "tetris";
     this.pre.setAttribute("aria-hidden", playing ? "true" : "false");
     if (this.mode === "snake" && this.snake) {
       const extra = this.paused ? "\npaused" : "";
@@ -674,6 +693,7 @@ export class Terminal {
       text.textContent = touch
         ? t(this.mode === "tetris" ? "Swipe or use the buttons. Tap the board to turn." : "Swipe or use the buttons to steer.")
         : t(this.mode === "tetris" ? "Arrows or WASD move. Up turns, space drops. P pauses, R restarts." : "Arrows or WASD steer. P pauses, R restarts.");
+      if (this.mode === "tetris") text.textContent += ` ${t("C holds a piece. The next three are on the right.")}`;
       go.textContent = t("Play");
       go.dataset.key = "Start";
     } else if (this.finished()) {
@@ -741,6 +761,23 @@ export class Terminal {
     this.scores?.setOffer(state.score, level, state.dead);
   }
 
+  /** A 4 by 4 box that shows one piece. Used for Hold and for the next three. */
+  private paintMini(slot: string, kind: Kind | null, dim: boolean): void {
+    const box = this.side?.querySelector<HTMLElement>(`[data-slot="${slot}"]`);
+    if (!box) return;
+    while (box.childElementCount < 16) {
+      const cell = document.createElement("span");
+      cell.className = "play-cell";
+      box.append(cell);
+    }
+    const on = new Set((kind ? tetrisPreview(kind) : []).map((cell) => cell.y * 4 + cell.x));
+    box.classList.toggle("is-dim", dim);
+    [...box.children].forEach((node, index) => {
+      const want = on.has(index) ? `play-cell k${kind}` : "play-cell";
+      if (node.className !== want) node.className = want;
+    });
+  }
+
   private drawTetris(state: TetrisState): void {
     this.board.className = "play-board tetris";
     this.board.style.aspectRatio = `${state.width} / ${state.height}`;
@@ -765,8 +802,11 @@ export class Terminal {
         : t("arrows, space drops. r restarts. esc leaves");
     const hold = this.paused ? `  ${t("paused")}` : "";
     const level = tetrisLevel(state.lines);
-    const next = state.queue[0] ? `  ${t("Next")} ${state.queue[0]}` : "";
-    this.status.textContent = `${t("Score")} ${state.score}  ${t("Lines")} ${state.lines}  ${t("Level")} ${level}${next}  ${hint}${hold}`;
+    const next = state.queue[0] ? `  ${t("Next")} ${state.queue.slice(0, 3).join(" ")}` : "";
+    const held = state.hold ? `  ${t("Hold")} ${state.hold}` : "";
+    this.paintMini("hold", state.hold, !state.canHold);
+    for (let slot = 0; slot < 3; slot += 1) this.paintMini(`next${slot}`, state.queue[slot] ?? null, false);
+    this.status.textContent = `${t("Score")} ${state.score}  ${t("Lines")} ${state.lines}  ${t("Level")} ${level}${next}${held}  ${hint}${hold}`;
     this.scores?.setOffer(state.score, level, state.over);
   }
 

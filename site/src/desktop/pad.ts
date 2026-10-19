@@ -79,11 +79,11 @@ export function mountPad(host: HTMLElement): DeskApp {
   trapWrap.append(trap);
   const button = document.createElement("button");
   button.type = "submit";
-  button.textContent = t("Leave a comment!");
+  button.textContent = t("Leave some feedback!!");
   const status = document.createElement("p");
   status.className = "err";
   status.setAttribute("role", "status");
-  form.append(line(form, "notepad-lead", t("Comment box for this site. Leave a comment about the portfolio. It stays on this page, and I can read it in the editor.")), name, body, trapWrap, button, status);
+  form.append(line(form, "notepad-lead", t("Feedback box for this site. Leave some feedback about the portfolio. It stays on this page, and I can read it in the editor.")), name, body, trapWrap, button, status);
 
   const list = document.createElement("div");
   list.className = "notepad-sheet";

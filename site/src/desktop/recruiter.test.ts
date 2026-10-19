@@ -158,7 +158,7 @@ describe("desktop for a recruiter", () => {
     expect(lang?.textContent).toBe("ES");
     expect(titles()).toEqual(["Sobre mí", "Empleos"]);
     expect(document.querySelector(".desk-win .hero-langs")?.textContent).toContain("Inglés C1+");
-    expect(document.querySelector(".desk-win .hero-open")?.textContent).toContain("Busco trabajo Abierto a puestos de SOC, MDR y SRE.");
+    expect(document.querySelector(".desk-win .hero-open")).toBeNull();
   });
 
   it("closes the language menu with Escape and with an outside click", () => {

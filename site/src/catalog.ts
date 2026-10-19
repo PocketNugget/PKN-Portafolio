@@ -541,8 +541,8 @@ export const radio = {
 };
 
 export const bio = [
-  "Goben Diego Constantino Aguirre. I finished computer systems engineering at UDLAP, 2021 to 2025, with a 9.0/10.",
-  "SOC/MDR analyst at TBSeK, full-time, July 2026 to present. The junior seat was part-time from April 2025. I am open to SOC, MDR, and SRE roles.",
+  "Goben Diego Constantino Aguirre. I finished computer systems engineering at UDLAP, 2021 to 2025, with a 9.0/10. My work spans security operations, research, DevOps, and software.",
+  "SOC/MDR analyst at TBSeK, full-time, July 2026 to present. The junior seat was part-time from April 2025.",
   "Hack The Box University CTF 2025 finished 52 of 1,014, top 5%, and UDLAP was the only Mexican university in the top 100. HTB Cyber Apocalypse CTF 2025 scored 34,125 points, rank 293, 3rd in Mexico.",
 ];
 
@@ -594,6 +594,7 @@ export const skillGroups = {
 
 export const hero = {
   title: "SOC/MDR analyst at TBSeK",
+  focus: "Security operations, research, DevOps, and software development.",
   since: "In cybersecurity since April 2025. Computer systems engineering, UDLAP, 2021 to 2025.",
   roles: [
     "Top 5% at HTB University CTF 2025",
@@ -601,7 +602,6 @@ export const hero = {
     "President of Hackztecs since 2024",
     "First of 22 teams at the AI and Mobility Hackathon",
   ],
-  open: "Open to SOC, MDR, and SRE roles.",
   langs: "Spanish native · English C1+ · French A2 · German A1",
   stats: [
     {

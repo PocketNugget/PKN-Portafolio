@@ -198,8 +198,8 @@ function heroBlock(): string {
           <p class="hero-name">Goben Diego Constantino Aguirre</p>
           <p class="hero-title">${tx(hero.title)}</p>
           <p class="hero-since">${tx(hero.since)}</p>
+          <p class="hero-focus">${tx(hero.focus)}</p>
           <p class="hero-role"><span class="hero-type">${tx(hero.roles[0] ?? "")}</span><span class="hero-caret" aria-hidden="true"></span></p>
-          <p class="hero-open"><span class="hero-dot" aria-hidden="true"></span><b>${tx("Open to work")}</b> ${tx(hero.open)}</p>
           <p class="hero-langs">${tx(hero.langs)}</p>
         </div>
       </div>

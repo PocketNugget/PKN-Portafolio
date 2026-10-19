@@ -116,7 +116,8 @@ describe("pages", () => {
     expect(html).toContain("52 of 1,014");
     expect(html).toContain("34,125");
     expect(html).toContain('class="hero"');
-    expect(html).toContain("Open to work");
+    expect(html).not.toContain("Open to work");
+    expect(html).not.toContain("hero-open");
     expect(html).toContain("Springer");
     expect(html).toContain('href="mailto:goben.ca.pkn@hotmail.com"');
     expect(html).toContain('href="https://www.linkedin.com/in/goben-diego/" target="_blank" rel="noreferrer noopener"');

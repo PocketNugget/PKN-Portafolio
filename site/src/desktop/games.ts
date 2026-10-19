@@ -342,9 +342,32 @@ export interface TetrisState {
   x: number;
   y: number;
   queue: Kind[];
+  /** The piece set aside with Hold, and whether Hold can be used again before the next lock. */
+  hold: Kind | null;
+  canHold: boolean;
   score: number;
   lines: number;
   over: boolean;
+}
+
+/** One shuffled set of the seven pieces. Every piece comes up once per bag, in a random order. */
+export function pieceBag(roll: () => number = Math.random): Kind[] {
+  const bag = [...ORDER];
+  for (let i = bag.length - 1; i > 0; i -= 1) {
+    const j = Math.min(i, Math.floor(roll() * (i + 1)));
+    const keep = bag[i] as Kind;
+    bag[i] = bag[j] as Kind;
+    bag[j] = keep;
+  }
+  return bag;
+}
+
+/** The cells of a piece in its first turn, moved to the top left of a 4 by 4 box. */
+export function tetrisPreview(kind: Kind): Point[] {
+  const cells = ROT[kind][0] ?? [];
+  const minX = Math.min(...cells.map((cell) => cell.x));
+  const minY = Math.min(...cells.map((cell) => cell.y));
+  return cells.map((cell) => ({ x: cell.x - minX, y: cell.y - minY }));
 }
 
 export function clearLines(
@@ -383,9 +406,9 @@ function spawnX(kind: Kind, width: number): number {
 function spawn(state: TetrisState): TetrisState {
   const kind = state.queue[0] ?? "T";
   const queue = state.queue.slice(1);
-  if (queue.length < ORDER.length) queue.push(...ORDER);
+  if (queue.length < ORDER.length) queue.push(...pieceBag());
   const x = spawnX(kind, state.width);
-  const next: TetrisState = { ...state, kind, rot: 0, x, y: 0, queue };
+  const next: TetrisState = { ...state, kind, rot: 0, x, y: 0, queue, canHold: true };
   if (!fits(next, kind, 0, x, 0)) return { ...next, over: true };
   return next;
 }
@@ -408,7 +431,7 @@ export function createTetris(opts?: {
   const width = opts?.width ?? 10;
   const height = opts?.height ?? 16;
   const grid = opts?.grid ? [...opts.grid] : Array.from({ length: width * height }, () => 0);
-  const queue = opts?.queue ? [...opts.queue] : [...ORDER];
+  const queue = opts?.queue ? [...opts.queue] : [...pieceBag(), ...pieceBag()];
   return spawn({
     width,
     height,
@@ -418,10 +441,26 @@ export function createTetris(opts?: {
     x: 0,
     y: 0,
     queue,
+    hold: null,
+    canHold: true,
     score: 0,
     lines: 0,
     over: false,
   });
+}
+
+/** Sets the falling piece aside and brings back the held one, or the next in line. Once per piece. */
+export function tetrisHold(state: TetrisState): TetrisState {
+  if (state.over || !state.canHold) return state;
+  const kept = state.kind;
+  if (state.hold === null) {
+    const next = spawn({ ...state, hold: kept });
+    return { ...next, canHold: false };
+  }
+  const x = spawnX(state.hold, state.width);
+  const swapped: TetrisState = { ...state, kind: state.hold, rot: 0, x, y: 0, hold: kept, canHold: false };
+  if (!fits(swapped, swapped.kind, 0, x, 0)) return { ...swapped, over: true };
+  return swapped;
 }
 
 function shift(state: TetrisState, dx: number, dy: number): TetrisState {

@@ -23,3 +23,11 @@
 - Tron: arena de 64x48, dos enemigos, estelas de luz como líneas, motos dibujadas y estética synth.
 - Blog: Markdown ampliado (encabezados, negritas, cursivas, listas numeradas, citas, código en bloque, reglas e imágenes locales), tarjetas con extracto y etiquetas, editor con barra de formato y vista previa en vivo, y una burbuja en el icono mientras haya un artículo de los últimos 4 meses.
 - Safari: probado en WebKit real con Playwright (iPhone 13, iPad Pro 11 y escritorio). Sin errores de página; la única advertencia es `interactive-widget` del viewport, que Safari ignora. Se agregaron prefijos `-webkit-user-select`, `-webkit-touch-callout` y `-webkit-tap-highlight-color`.
+
+## Segunda tanda de cambios pedidos por Diego (2026-10-19)
+- Se quitó "Open to work" y "Open to SOC, MDR, and SRE roles" del hero, de la bio, del nugget, de los datos y del resumen sin JavaScript. Esto contradice la frase pública vigente que la memoria pedía respetar y tres pruebas que la exigían; las actualicé porque la petición fue explícita.
+- El perfil público ahora dice que cubre operaciones de seguridad, investigación, DevOps y desarrollo de software (hero, bio, descripción, JSON-LD y resumen sin JavaScript). El puesto fijo sigue siendo "SOC/MDR analyst at TBSeK" porque es el trabajo actual.
+- Las redes sociales pasaron a la bandeja de la barra de tareas, con su nombre como tooltip.
+- Suggestions usa la fuente de lectura y el botón dice "Leave some feedback!!".
+- Tetris: piezas aleatorias por bolsa de siete, vista de las siguientes tres y pieza guardada (Hold).
+- Los iconos del escritorio se reparten hasta cerca de la barra de tareas.

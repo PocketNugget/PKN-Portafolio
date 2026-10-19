@@ -84,8 +84,8 @@ describe("desktop with a recent blog post", () => {
       "Posts by Goben. The newest is on top.",
       "No posts yet. Check back soon.",
       "Back to the blog",
-      "Leave a comment!",
-      "Comment box for this site. Leave a comment about the portfolio. It stays on this page, and I can read it in the editor.",
+      "Leave some feedback!!",
+      "Feedback box for this site. Leave some feedback about the portfolio. It stays on this page, and I can read it in the editor.",
       "Warning: this effect flashes, shakes, and glitches the screen. If you have photosensitive epilepsy or are sensitive to flashing images, do not press the button.",
       "Hey! You hacked me! My tie is changing colors!",
     ];

@@ -1,6 +1,6 @@
 import { linkPage, notes, openTable, profiles, projects } from "../catalog";
 import { hydrate, setNavigator } from "../client";
-import { getLang, setLang, t, type Lang } from "../i18n";
+import { detectLang, getLang, setLang, t, type Lang } from "../i18n";
 import { normalizePath } from "../paths";
 import { documentBody } from "../render";
 import { parseCommand } from "../shell";
@@ -44,8 +44,8 @@ interface LayoutSave {
 
 const CELL_W = 166;
 const CELL_H = 172;
-const SOCIAL_W = 560;
-const SOCIAL_H = 120;
+const SOCIAL_W = 0;
+const SOCIAL_H = 0;
 
 const LANGS: { id: Lang; name: string; flag: string }[] = [
   {
@@ -115,7 +115,7 @@ export const APPS: App[] = [
   { id: "tron", label: "Tron", path: "/tron", icon: "tron", desk: false },
   { id: "pictures", label: "My Pictures", path: "/pictures", icon: "pictures", desk: true },
   { id: "awards", label: "Certificates", path: "/awards", icon: "awards", desk: true },
-  { id: "player", label: "Player", path: "/player", icon: "player", desk: true },
+  { id: "player", label: "Music", path: "/player", icon: "player", desk: true },
   { id: "convert", label: "Converter", path: "/convert", icon: "convert", desk: true },
   { id: "dice", label: "Dice", path: "/dice", icon: "dice", desk: true },
   { id: "flip", label: "Flip", path: "/flip", icon: "flip", desk: true },
@@ -164,7 +164,7 @@ const SIZES: Record<string, [number, number]> = {
   "/math": [320, 460],
   "/wheel": [420, 560],
   "/snake": [760, 545],
-  "/tetris": [480, 700],
+  "/tetris": [500, 684],
   "/tron": [1000, 780],
   "/legal": [560, 520],
   "/games": [520, 190],
@@ -303,7 +303,7 @@ function fitViewport(): void {
 
 export function bootDesktop(): void {
   fitViewport();
-  setLang(sessionGet("pkn-lang") ?? "en");
+  setLang(sessionGet("pkn-lang") ?? detectLang(navigator.languages?.length ? navigator.languages : [navigator.language]));
   document.documentElement.lang = getLang();
   const app = document.querySelector("#app");
   if (!(app instanceof HTMLElement)) return;
@@ -327,9 +327,11 @@ export function bootDesktop(): void {
   icons.id = "icons";
   const social = document.createElement("div");
   social.id = "social";
+  social.setAttribute("role", "group");
+  social.setAttribute("aria-label", "Links");
   const windowsLayer = document.createElement("div");
   windowsLayer.id = "windows";
-  desktop.append(wallpaper, icons, social, windowsLayer);
+  desktop.append(wallpaper, icons, windowsLayer);
 
   const taskbar = document.createElement("div");
   taskbar.id = "taskbar";
@@ -361,7 +363,7 @@ export function bootDesktop(): void {
   tasks.id = "tasks";
   const clock = document.createElement("div");
   clock.id = "clock";
-  taskbar.append(start, tasks, lang, clock);
+  taskbar.append(start, tasks, social, lang, clock);
 
   const menu = document.createElement("div");
   menu.id = "start-menu";
@@ -1011,11 +1013,12 @@ export function bootDesktop(): void {
       link.href = item.href;
       link.target = "_blank";
       link.rel = "noreferrer noopener";
+      link.dataset.name = item.label;
       const img = document.createElement("img");
       img.src = item.icon;
       img.alt = "";
-      img.width = 32;
-      img.height = 32;
+      img.width = 20;
+      img.height = 20;
       const label = document.createElement("span");
       label.textContent = item.label;
       link.append(img, label);
@@ -1430,12 +1433,14 @@ function gridFor(ids: string[], areaW: number, areaH: number): Record<string, Sp
   const width = Math.max(CELL_W, areaW);
   const height = Math.max(CELL_H, areaH);
   const rows = Math.max(1, Math.floor((height - 8) / CELL_H));
+  // Spread the rows down the desk so the last one ends near the taskbar.
+  const rowH = Math.max(CELL_H, Math.floor((height - 16) / rows));
   const cells: Spot[] = [];
   const maxCols = Math.max(1, Math.ceil(ids.length / rows) + 6);
   for (let col = 0; col < maxCols && cells.length < ids.length; col += 1) {
     for (let row = 0; row < rows && cells.length < ids.length; row += 1) {
       const x = 8 + col * CELL_W;
-      const y = 8 + row * CELL_H;
+      const y = 8 + row * rowH;
       if (x + 48 > width) continue;
       if (x + CELL_W > width - SOCIAL_W && y + CELL_H > height - SOCIAL_H) continue;
       cells.push({ x, y });

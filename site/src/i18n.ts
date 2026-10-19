@@ -20,6 +20,7 @@ const es: Record<string, string> = {
   Terminal: "Terminal",
   "My Pictures": "Mis fotos",
   Certificates: "Certificados",
+  Music: "Música",
   Player: "Reproductor",
   Converter: "Conversor",
   Dice: "Dados",
@@ -111,6 +112,7 @@ const de: Record<string, string> = {
   Terminal: "Terminal",
   "My Pictures": "Bilder",
   Certificates: "Zertifikate",
+  Music: "Musik",
   Player: "Player",
   Converter: "Konverter",
   Dice: "Würfel",
@@ -183,6 +185,7 @@ const fr: Record<string, string> = {
   Terminal: "Terminal",
   "My Pictures": "Photos",
   Certificates: "Certificats",
+  Music: "Musique",
   Player: "Lecteur",
   Converter: "Convertisseur",
   Dice: "Dés",
@@ -249,6 +252,15 @@ const tables: Record<Exclude<Lang, "en">, Record<string, string>> = { es, de, fr
 
 export function getLang(): Lang {
   return current;
+}
+
+/** The first language in the browser's list that this site speaks, or English. */
+export function detectLang(preferred: readonly string[] | undefined): Lang {
+  for (const tag of preferred ?? []) {
+    const base = tag.toLowerCase().split("-")[0] ?? "";
+    if (LANGS.includes(base as Lang)) return base as Lang;
+  }
+  return "en";
 }
 
 export function setLang(lang: string): void {

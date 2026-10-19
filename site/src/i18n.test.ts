@@ -3,7 +3,7 @@ import { bio, earlier, hero, jobs, projects, radio } from "./catalog";
 import { FACTS, NUGGET_HACKED, NUGGET_LINES, NUGGET_RELIEF, NUGGET_SCARE, NUGGET_TIPS } from "./desktop/facts";
 import { HACK_LINES, HACK_POPS } from "./desktop/hack";
 import { AWARDS, PICTURES } from "./desktop/media";
-import { getLang, setLang, t } from "./i18n";
+import { detectLang, getLang, setLang, t } from "./i18n";
 import { noteBySlug, noteSource } from "./notes";
 import { HELP } from "./shell";
 
@@ -40,8 +40,8 @@ describe("i18n", () => {
       "I know them. I do not list them as work experience.",
       "Not earned and not work experience. These are what I am studying now.",
       hero.since,
+      hero.focus,
       ...hero.roles,
-      hero.open,
       ...hero.stats.map((stat) => stat.label),
       ...radio.paragraphs,
       ...earlier.map((item) => item.text),
@@ -79,5 +79,15 @@ describe("i18n", () => {
       }
       for (const line of NUGGET_LINES) expect(line.toLowerCase()).toContain("you");
     }
+  });
+
+  it("picks the first language the browser lists that the site speaks", () => {
+    expect(detectLang(["es-MX", "en-US"])).toBe("es");
+    expect(detectLang(["pt-BR", "de-DE", "en"])).toBe("de");
+    expect(detectLang(["fr"])).toBe("fr");
+    expect(detectLang(["ja-JP", "zh"])).toBe("en");
+    expect(detectLang([])).toBe("en");
+    expect(detectLang(undefined)).toBe("en");
+    expect(detectLang(["EN-gb"])).toBe("en");
   });
 });

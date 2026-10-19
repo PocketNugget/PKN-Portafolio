@@ -246,6 +246,37 @@ describe("game flow", () => {
     term.destroy();
   });
 
+  it("shows Hold and the next three pieces beside the Tetris board, and holds with C", () => {
+    vi.useFakeTimers();
+    stubScores();
+    const { host, term } = mountGame("tetris");
+    term.onKey(" ", false);
+    const side = host.querySelector<HTMLElement>(".tetris-side");
+    expect(side?.hidden).toBe(false);
+    const filled = (slot: string) => host.querySelectorAll(`.mini[data-slot="${slot}"] .play-cell[class*=" k"]`).length;
+    expect(filled("next0")).toBe(4);
+    expect(filled("next1")).toBe(4);
+    expect(filled("next2")).toBe(4);
+    expect(filled("hold")).toBe(0);
+    const falling = () => host.querySelectorAll(".play-board .play-cell[class*=\" k\"]").length;
+    expect(falling()).toBe(4);
+    term.onKey("c", false);
+    expect(filled("hold")).toBe(4);
+    expect(host.querySelector(".mini[data-slot=\"hold\"]")?.classList.contains("is-dim")).toBe(true);
+    expect(host.querySelector(".play-status")?.textContent).toMatch(/Hold [IOTSZJL]/);
+    expect(host.querySelector("[data-role='hold']")?.textContent).toBe("Hold");
+    expect(side?.querySelector(".side-title")?.textContent).toBe("Hold");
+    term.destroy();
+  });
+
+  it("keeps the Tetris side panel for Tetris only", () => {
+    vi.useFakeTimers();
+    stubScores();
+    const { host, term } = mountGame("snake");
+    expect(host.querySelector<HTMLElement>(".tetris-side")?.hidden).toBe(true);
+    term.destroy();
+  });
+
   it("leaves the game from the box's Exit button", () => {
     vi.useFakeTimers();
     stubScores();

@@ -61,7 +61,9 @@ var myThemes = {
  * [4. CURRENT THEME]
  * Set the theme of your player writing its name below.
  */
-var currentTheme = "SILVER";
+// Silver in Safari, the default theme in Chrome based browsers and everything else.
+var isSafari = /Safari\//.test(navigator.userAgent) && !/Chrome|Chromium|CriOS|FxiOS|EdgiOS|Edg\/|OPR\/|Android/.test(navigator.userAgent);
+var currentTheme = isSafari ? "SILVER" : "DEFAULT";
 
 
 // ===== END OF CONFIGURATION =====
