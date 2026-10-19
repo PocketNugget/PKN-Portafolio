@@ -5,9 +5,9 @@ import type { CycleState } from "./cycle";
 export const CYCLE_CELL = 16;
 
 const BIKES = [
-  { line: "#25c8ff", body: "#06243a" },
-  { line: "#ffd21f", body: "#3a2c00" },
-  { line: "#ff7a1a", body: "#3a1800" },
+  { line: "#2df3ff", body: "#062a3a" },
+  { line: "#ff3df0", body: "#3a0638" },
+  { line: "#ffb020", body: "#3a2400" },
 ];
 
 const TURN: Record<Dir, number> = { right: 0, down: Math.PI / 2, left: Math.PI, up: -Math.PI / 2 };
@@ -65,14 +65,22 @@ function bike(ctx: CanvasRenderingContext2D, at: Point, dir: Dir, size: number, 
   ctx.restore();
 }
 
-export function paintCycle(ctx: CanvasRenderingContext2D, state: CycleState, size: number): void {
+function backdrop(ctx: CanvasRenderingContext2D, state: CycleState, size: number): void {
   const w = state.width * size;
   const h = state.height * size;
-  ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "#02021a";
+  const sky = ctx.createLinearGradient(0, 0, 0, h);
+  sky.addColorStop(0, "#12002e");
+  sky.addColorStop(0.55, "#2a0a5a");
+  sky.addColorStop(1, "#4a0f6e");
+  ctx.fillStyle = sky;
   ctx.fillRect(0, 0, w, h);
-  ctx.strokeStyle = "#0b0b44";
+  const glow = ctx.createRadialGradient(w / 2, h, 10, w / 2, h, h * 0.9);
+  glow.addColorStop(0, "rgba(255,61,240,0.30)");
+  glow.addColorStop(1, "rgba(255,61,240,0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, w, h);
   ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(45,243,255,0.22)";
   ctx.beginPath();
   for (let x = 0; x <= state.width; x += 4) {
     ctx.moveTo(x * size + 0.5, 0);
@@ -83,9 +91,25 @@ export function paintCycle(ctx: CanvasRenderingContext2D, state: CycleState, siz
     ctx.lineTo(w, y * size + 0.5);
   }
   ctx.stroke();
+  ctx.strokeStyle = "rgba(255,61,240,0.9)";
+  ctx.shadowColor = "#ff3df0";
+  ctx.shadowBlur = 14;
+  ctx.lineWidth = 4;
+  ctx.strokeRect(2, 2, w - 4, h - 4);
+  ctx.shadowBlur = 0;
+}
 
-  const you = BIKES[0];
+function scanlines(ctx: CanvasRenderingContext2D, state: CycleState, size: number): void {
+  ctx.fillStyle = "rgba(0,0,0,0.16)";
+  for (let y = 0; y < state.height * size; y += 4) ctx.fillRect(0, y, state.width * size, 1);
+}
+
+export function paintCycle(ctx: CanvasRenderingContext2D, state: CycleState, size: number): void {
+  ctx.clearRect(0, 0, state.width * size, state.height * size);
+  backdrop(ctx, state, size);
+
   const heads: { at: Point; dir: Dir; alive: boolean; style: (typeof BIKES)[number] }[] = [];
+  const you = BIKES[0];
   if (you) heads.push({ at: state.you, dir: state.youDir, alive: !state.dead, style: you });
   state.foes.forEach((foe, index) => {
     const style = BIKES[index + 1];
@@ -93,22 +117,28 @@ export function paintCycle(ctx: CanvasRenderingContext2D, state: CycleState, siz
   });
   heads.forEach((entry, index) => {
     const corners = state.corners[index];
-    if (corners) trailLine(ctx, corners, entry.at, size, entry.style.line);
+    if (corners && corners.length > 0) trailLine(ctx, corners, entry.at, size, entry.style.line);
   });
-  for (const entry of heads) {
+  heads.forEach((entry, index) => {
     if (entry.alive) {
       bike(ctx, entry.at, entry.dir, size, entry.style.line, entry.style.body);
-      continue;
+      return;
     }
+    if (index > 0 && state.fresh <= 0) return;
     const [x, y] = center(entry.at, size);
-    ctx.strokeStyle = "#ffffff";
+    const spread = index > 0 ? (12 - state.fresh) / 12 : 0.4;
+    ctx.strokeStyle = entry.style.line;
+    ctx.shadowColor = entry.style.line;
+    ctx.shadowBlur = 12;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(x, y, size * 0.9, 0, Math.PI * 2);
+    ctx.arc(x, y, size * (0.8 + spread * 2.4), 0, Math.PI * 2);
     ctx.moveTo(x - size, y - size);
     ctx.lineTo(x + size, y + size);
     ctx.moveTo(x + size, y - size);
     ctx.lineTo(x - size, y + size);
     ctx.stroke();
-  }
+    ctx.shadowBlur = 0;
+  });
+  scanlines(ctx, state, size);
 }

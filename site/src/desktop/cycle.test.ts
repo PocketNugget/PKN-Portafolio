@@ -49,7 +49,7 @@ describe("tron", () => {
     expect(stepCycle({ ...start, you: { x: 5, y: 2 }, youDir: "right", trail }).dead).toBe(true);
   });
 
-  it("scores a crashed enemy and leaves its trail as a wall", () => {
+  it("scores a crashed enemy and wipes its light trail", () => {
     const start = createCycle();
     const trail = start.trail.slice();
     const first = start.foes[0];
@@ -66,7 +66,9 @@ describe("tron", () => {
     expect(next.foes[1]?.alive).toBe(true);
     expect(next.score).toBe(26);
     expect(next.fresh).toBe(12);
-    expect(next.trail[1]).toBe(2);
+    expect(next.trail.filter((cell) => cell === 2)).toHaveLength(0);
+    expect(next.corners[1]).toEqual([]);
+    expect(next.trail.filter((cell) => cell === 3)).toHaveLength(2);
   });
 
   it("starts a faster round when both enemies are gone and wins after the last one", () => {

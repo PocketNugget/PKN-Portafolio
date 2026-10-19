@@ -49,7 +49,7 @@ export const NUGGET_TIPS: Record<string, string> = {
   "/pictures": "You are in the photos. The portrait is the same one on About.",
   "/notes": "You are on the notes. Two short ones. Solve steps stay in the repo, not on this page.",
   "/radio": "You are on the radio page. HackRF One, bladeRF, and the iMac G4. He will tell you it is bench work, not a guide.",
-  "/tron": "You are on the light cycle. Two bikes hunt you. Steer, and do not cross a trail. A bike that crashes leaves its trail as a wall. Clear five grids to win. Press r to restart.",
+  "/tron": "You are on the light cycle. Two bikes hunt you. Steer, and do not cross a trail. A bike that crashes loses its light trail. Clear five grids to win. Press r to restart.",
 };
 
 const TOOLS: { label: string; path: string }[] = [

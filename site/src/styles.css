@@ -473,7 +473,7 @@ button.thumb img {
   --gap: 0px;
   --pad: 6px;
   display: block;
-  background: #02021a;
+  background: #12002e;
 }
 
 .play-canvas {
@@ -3683,7 +3683,7 @@ button.menu-item,
 }
 
 .desk-icon .label {
-  font-weight: 700;
+  font-weight: 400;
   text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 2px 3px #000;
 }
 
@@ -3691,33 +3691,5 @@ button.start-btn,
 button.task-btn,
 button.menu-item,
 .window-body button {
-  font-weight: 700;
-}
-
-/* Web: the pixel face is crisp at whole multiples of its 11px design size, so icon labels, the
-   social row, and Start use it at 22px. Buttons and the taskbar keep the readable face. */
-@media (min-width: 701px) and (pointer: fine), (min-width: 701px) and (min-height: 501px) {
-  .desk-icon .label,
-  a.social-link,
-  button.start-btn {
-    font-family: "Pixelated MS Sans Serif", Arial, sans-serif;
-    font-weight: 400;
-    -webkit-font-smoothing: none;
-  }
-
-  .desk-icon .label {
-    max-width: 144px;
-    font-size: 22px;
-    line-height: 1.05;
-    text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
-  }
-
-  a.social-link {
-    font-size: 22px;
-    text-shadow: 2px 2px 0 #000;
-  }
-
-  button.start-btn {
-    font-size: 22px;
-  }
+  font-weight: 400;
 }

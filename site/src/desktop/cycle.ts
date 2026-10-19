@@ -231,13 +231,19 @@ export function stepCycle(state: CycleState): CycleState {
     trail[at(state, move.next)] = index + 2;
     return { pos: move.next, dir: move.dir, alive: true };
   });
-  const crashed = state.foes.filter((foe, index) => foe.alive && !alive[index]).length;
+  let crashed = 0;
+  state.foes.forEach((foe, index) => {
+    if (!foe.alive || alive[index]) return;
+    crashed += 1;
+    for (let cell = 0; cell < trail.length; cell += 1) if (trail[cell] === index + 2) trail[cell] = 0;
+  });
   const score = base.score + crashed * 25 * state.level;
   const corners = state.corners.map((line) => line.slice());
   if (youDir !== state.youDir) corners[0]?.push(state.you);
   state.foes.forEach((foe, index) => {
     const move = nexts[index];
     if (move && foe.alive && alive[index] && move.dir !== foe.dir) corners[index + 1]?.push(foe.pos);
+    if (foe.alive && !alive[index]) corners[index + 1] = [];
   });
   const moved: CycleState = { ...base, you: youNext, foes, corners, trail, score, fresh: crashed > 0 ? 12 : base.fresh };
   if (foes.some((foe) => foe.alive)) return moved;
