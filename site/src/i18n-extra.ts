@@ -29,6 +29,12 @@ const rows: readonly (readonly [string, string, string, string])[] = [
     "Analyste SOC/MDR chez TBSeK",
   ],
   [
+    "In cybersecurity since April 2025. Computer systems engineering, UDLAP, 2021 to 2025.",
+    "En ciberseguridad desde abril de 2025. Ingeniería en sistemas computacionales, UDLAP, de 2021 a 2025.",
+    "In der Cybersicherheit seit April 2025. Computeringenieurwissenschaften, UDLAP, 2021 bis 2025.",
+    "En cybersécurité depuis avril 2025. Ingénierie en systèmes informatiques, UDLAP, de 2021 à 2025.",
+  ],
+  [
     "Top 5% at HTB University CTF 2025",
     "Top 5% en HTB University CTF 2025",
     "Top 5% bei HTB University CTF 2025",

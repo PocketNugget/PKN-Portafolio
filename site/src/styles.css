@@ -2602,6 +2602,21 @@ p.hero-name {
   text-shadow: 2px 2px 0 #000;
 }
 
+p.hero-title {
+  margin: 2px 0 0;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #fff;
+}
+
+p.hero-since {
+  margin: 2px 0 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #dfdfdf;
+}
+
 p.hero-role {
   min-height: 1.5em;
   margin: 2px 0 10px;

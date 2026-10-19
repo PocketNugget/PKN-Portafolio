@@ -55,6 +55,15 @@ describe("hero numbers", () => {
   });
 });
 
+describe("hero identity", () => {
+  it("keeps the current role and the start date fixed while the highlights rotate", () => {
+    const host = heroHost();
+    expect(host.querySelector(".hero-title")?.textContent).toBe(hero.title);
+    expect(host.querySelector(".hero-since")?.textContent).toContain("April 2025");
+    expect(hero.roles).not.toContain(hero.title);
+  });
+});
+
 describe("hero motion", () => {
   afterAll(() => {
     vi.useRealTimers();

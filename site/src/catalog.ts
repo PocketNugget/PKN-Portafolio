@@ -556,8 +556,9 @@ export interface HeroStat {
 }
 
 export const hero = {
+  title: "SOC/MDR analyst at TBSeK",
+  since: "In cybersecurity since April 2025. Computer systems engineering, UDLAP, 2021 to 2025.",
   roles: [
-    "SOC/MDR analyst at TBSeK",
     "Top 5% at HTB University CTF 2025",
     "Springer LNCS co-author",
     "President of Hackztecs since 2024",

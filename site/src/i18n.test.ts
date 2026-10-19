@@ -34,6 +34,8 @@ describe("i18n", () => {
   it("translates the record and the nugget in every language", () => {
     const lines = [
       ...bio,
+      hero.title,
+      hero.since,
       ...hero.roles,
       hero.open,
       ...hero.stats.map((stat) => stat.label),
