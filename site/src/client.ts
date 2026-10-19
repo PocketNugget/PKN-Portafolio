@@ -31,6 +31,14 @@ function el(tag: string, text?: string): HTMLElement {
   return node;
 }
 
+async function readJson(response: Response): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
 async function api(path: string, init?: RequestInit): Promise<Response> {
   const headers = new Headers(init?.headers);
   if (init?.body) headers.set("content-type", "application/json");
@@ -54,7 +62,11 @@ async function renderBlogList(root: HTMLElement): Promise<void> {
     line(root, "the blog store did not answer.");
     return;
   }
-  const data = (await response.json()) as { posts: PostSummary[] };
+  const data = (await readJson(response)) as { posts?: PostSummary[] } | null;
+  if (!data || !Array.isArray(data.posts)) {
+    line(root, "the blog store did not answer.");
+    return;
+  }
   if (data.posts.length === 0) {
     line(root, "No posts yet.", "meta");
     return;
@@ -88,8 +100,8 @@ async function renderBlogPost(root: HTMLElement, slug: string): Promise<void> {
     line(root, "the blog store did not answer.");
     return;
   }
-  const post = (await response.json()) as PostFull;
-  if (!/^[a-z0-9-]+$/.test(post.slug)) {
+  const post = (await readJson(response)) as PostFull | null;
+  if (!post || typeof post.slug !== "string" || !/^[a-z0-9-]+$/.test(post.slug)) {
     line(root, "no such post.");
     return;
   }

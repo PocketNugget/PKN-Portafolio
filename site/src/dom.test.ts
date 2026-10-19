@@ -90,6 +90,29 @@ describe("notepad", () => {
   });
 });
 
+describe("answers that are not JSON", () => {
+  it("says the store did not answer instead of throwing", async () => {
+    const html = () => new Response("<!doctype html><title>x</title>", { status: 200, headers: { "content-type": "text/html" } });
+    vi.stubGlobal("fetch", async () => html());
+    const scope = document.createElement("div");
+    const root = document.createElement("div");
+    root.id = "dynamic";
+    scope.append(root);
+    hydrate("/blog", scope);
+    await flush();
+    expect(root.textContent).toContain("the blog store did not answer.");
+    root.replaceChildren();
+    hydrate("/blog/shift-note", scope);
+    await flush();
+    expect(root.textContent).toContain("no such post.");
+    const host = document.createElement("div");
+    document.body.append(host);
+    mountPad(host);
+    await flush();
+    expect(host.textContent).toContain("The suggestions did not load.");
+  });
+});
+
 describe("blog client", () => {
   it("skips a poisoned list row and escapes a post body", async () => {
     vi.stubGlobal("fetch", async (input: RequestInfo | URL) => {

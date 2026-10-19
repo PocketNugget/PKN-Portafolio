@@ -90,12 +90,13 @@ export function mountPad(host: HTMLElement): DeskApp {
   host.append(form, list);
 
   async function load(): Promise<void> {
-    const response = await fetch("/api/comments", { credentials: "same-origin" });
-    if (!response.ok) {
+    try {
+      const response = await fetch("/api/comments", { credentials: "same-origin" });
+      if (!response.ok) throw new Error("quiet");
+      paintNotes(list, readNotes(await response.json()));
+    } catch {
       status.textContent = t("The suggestions did not load.");
-      return;
     }
-    paintNotes(list, readNotes(await response.json()));
   }
 
   form.addEventListener("submit", (event) => {
