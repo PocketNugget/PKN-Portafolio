@@ -4512,3 +4512,152 @@ p.hero-focus {
     min-height: calc(24.5px / var(--ui-scale));
   }
 }
+
+/* Touch controls for the games: Tetris, Snake, Tron, and Sweep. Big targets, bold labels, a loud pressed state, and
+   color on the buttons that matter, all still 98 bevels. The pad is hidden on a desktop browser. */
+.pad {
+  gap: 12px;
+  padding: 8px;
+}
+
+.pad-move {
+  grid-template-rows: repeat(3, 58px);
+  gap: 6px;
+  width: min(210px, 52%);
+  aspect-ratio: auto;
+}
+
+.pad-act {
+  gap: 8px;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 220px;
+}
+
+.pad-act .pad-again {
+  grid-column: auto;
+}
+
+.desk-win .window-body .term-mount .pad button {
+  min-height: 56px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111;
+  white-space: nowrap;
+}
+
+.desk-win .window-body .term-mount .pad-move button {
+  font-size: 34px;
+  line-height: 1;
+}
+
+.desk-win .window-body .term-mount .pad button:active,
+.desk-win .window-body .term-mount .pad button.is-down {
+  background: #9a9a9a;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+  padding-top: 2px;
+}
+
+.desk-win .window-body .term-mount .pad .pad-up,
+.desk-win .window-body .term-mount .pad [data-role="drop"] { color: #000080; }
+.desk-win .window-body .term-mount .pad .pad-again { color: #004d00; }
+.desk-win .window-body .term-mount .pad .pad-exit { color: #800000; }
+
+.play-over-act {
+  gap: 10px;
+}
+
+.desk-win .window-body .term-mount .play-over-act button {
+  flex: 1 1 100px;
+  min-width: 0;
+  min-height: 52px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.desk-win .window-body .term-mount .play-over-act .play-over-exit {
+  color: #800000;
+}
+
+@media (max-height: 520px) {
+  .term-mount.playing .pad {
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .desk-win .window-body .term-mount .pad button {
+    flex: 1 1 0;
+    width: auto;
+    min-height: 52px;
+    height: 52px;
+    font-size: 16px;
+  }
+
+  .desk-win .window-body .term-mount .pad-move button {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  .sweep-bar {
+    gap: 8px;
+  }
+
+  .desk-win .window-body .sweep-app .sweep-bar button {
+    min-height: 52px;
+    min-width: 96px;
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  .sweep-readout {
+    min-width: 56px;
+    padding: 6px;
+    font-size: 22px;
+  }
+
+  .sweep-cell {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .desk-win .window-body .sweep-app .sweep-bar button[aria-pressed="true"] {
+    color: #fff;
+    background: #000080;
+    outline: 0;
+    box-shadow: inset -1px -1px #000040, inset 1px 1px #5a5aff, inset -2px -2px #00005a, inset 2px 2px #0000a0;
+  }
+
+  .sweep-app > .meta {
+    font-size: 15px;
+  }
+}
+
+/* A phone on its side is short. The start card puts its buttons right under the title and scrolls the rest, so Play
+   is never cut off. */
+@media (max-height: 520px) {
+  .term-mount.playing .play-over {
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    overflow-y: auto;
+    padding: 8px 12px;
+  }
+
+  .term-mount.playing .play-over .play-over-title {
+    order: 0;
+  }
+
+  .term-mount.playing .play-over .play-over-act {
+    order: 1;
+    margin-bottom: 8px;
+  }
+
+  .term-mount.playing .play-over .play-over-text {
+    order: 2;
+  }
+
+  .term-mount.playing .play-over > :not(.play-over-title):not(.play-over-act):not(.play-over-text) {
+    order: 3;
+  }
+}
