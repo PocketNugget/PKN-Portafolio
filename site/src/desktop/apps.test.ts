@@ -43,7 +43,7 @@ describe("desktop media", () => {
   it("has the nugget speak to the visitor from the same record", () => {
     expect(NUGGET_LINES).toHaveLength(FACTS.length);
     const spoken = NUGGET_LINES.join("\n");
-    expect(spoken).toContain("9.0/10");
+    expect(spoken).toContain("Welcome to Goben's portfolio");
     expect(spoken).toContain("52 of 1,014");
     expect(spoken).toContain("34,125");
     expect(spoken).toContain("read the diff");
@@ -53,10 +53,10 @@ describe("desktop media", () => {
     expect(spoken).not.toContain("Cultural Vistas");
     expect(spoken).not.toContain("Azuany");
     for (const line of NUGGET_LINES) expect(line.toLowerCase()).toContain("you");
-    expect(NUGGET_LINES[0]).toContain("You are looking at Goben's desk.");
-    expect(NUGGET_LINES[0].toLowerCase()).toContain("guide you");
-    expect(NUGGET_LINES[0].toLowerCase()).toContain("fun facts");
-    expect(NUGGET_LINES[0].toLowerCase()).toContain("tips");
+    expect(NUGGET_LINES[0]).toContain("Welcome to Goben's portfolio!");
+    expect(NUGGET_LINES[0].toLowerCase()).toContain("your guide");
+    expect(NUGGET_LINES[0].toLowerCase()).toContain("facts");
+    expect(NUGGET_TIPS["/"]).toBe(NUGGET_LINES[0]);
     expect(NUGGET_SCARE.toLowerCase()).toContain("you");
     expect(NUGGET_SCARE.toLowerCase()).toContain("hack");
     expect(NUGGET_SCARE).not.toMatch(/fake|falso/i);

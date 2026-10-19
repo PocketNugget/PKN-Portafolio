@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { setLang } from "../i18n";
 import { mountClippy } from "./buddy";
+import { NUGGET_HACKED } from "./facts";
 import { HACK_LINES, HACK_POPS, mountHack } from "./hack";
 
 const random = Math.random;
@@ -60,7 +61,7 @@ describe("desk payload", () => {
     buttonNamed(host, "Drop the payload").click();
     await vi.advanceTimersByTimeAsync(40);
     expect(document.getElementById("clippy")?.classList.contains("is-scared")).toBe(true);
-    expect(document.querySelector("#clippy .balloon p")?.textContent).toBe("I hope you do not hack me.");
+    expect(document.querySelector("#clippy .balloon p")?.textContent).toBe(NUGGET_HACKED[0]);
     expect(app.classList.contains("is-hacked")).toBe(true);
     expect(document.querySelector(".hack-tear")).not.toBeNull();
     expect(document.querySelector(".desk-icon.is-corrupt")).not.toBeNull();

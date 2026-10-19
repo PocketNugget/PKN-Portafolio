@@ -1,5 +1,6 @@
 import { t } from "../i18n";
-import { scareClippy, calmClippy } from "./buddy";
+import { scareClippy, calmClippy, speakClippy } from "./buddy";
+import { NUGGET_HACKED, NUGGET_RELIEF } from "./facts";
 import type { DeskApp } from "./host";
 
 export const HACK_LINES = [
@@ -34,6 +35,12 @@ export function mountHack(host: HTMLElement, layer: HTMLElement, desktop: HTMLEl
   lead.textContent = t(
     "Dropping an aggressive payload on this desk. Icons, labels, and colors take the hit until you hit Reset.",
   );
+  const warn = document.createElement("p");
+  warn.className = "hack-warning";
+  warn.setAttribute("role", "note");
+  warn.textContent = t(
+    "Warning: this effect flashes, shakes, and glitches the screen. If you have photosensitive epilepsy or are sensitive to flashing images, do not press the button.",
+  );
   const log = document.createElement("pre");
   log.className = "hack-log";
   const row = document.createElement("div");
@@ -47,7 +54,7 @@ export function mountHack(host: HTMLElement, layer: HTMLElement, desktop: HTMLEl
   reset.className = "hack-reset";
   reset.textContent = t("Reset");
   row.append(go, reset);
-  root.append(banner, lead, log, row);
+  root.append(banner, lead, warn, log, row);
   host.append(root);
 
   let token = 0;
@@ -125,7 +132,7 @@ export function mountHack(host: HTMLElement, layer: HTMLElement, desktop: HTMLEl
   }
 
   function engage(): void {
-    scareClippy();
+    scareClippy(NUGGET_HACKED[0]);
     shell().classList.add("is-hacked");
     desktop.classList.add("is-glitch");
     showTear();
@@ -189,6 +196,8 @@ export function mountHack(host: HTMLElement, layer: HTMLElement, desktop: HTMLEl
       }
       const pop = HACK_POPS[i];
       if (pop) popAt(pop);
+      if (i === 1) scareClippy(NUGGET_HACKED[1]);
+      if (i === spoken.length - 1) scareClippy(NUGGET_HACKED[2]);
       const alive = await wait(180, generation);
       if (!alive) return;
     }
@@ -203,6 +212,7 @@ export function mountHack(host: HTMLElement, layer: HTMLElement, desktop: HTMLEl
     token += 1;
     clearFx();
     log.textContent = t("Payload recalled. The desktop is clean.");
+    speakClippy(NUGGET_RELIEF);
   });
 
   return {

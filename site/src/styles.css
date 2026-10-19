@@ -1613,11 +1613,11 @@ a.about-go:active {
   }
 
   #clippy {
-    width: 168px;
+    width: 200px;
   }
 
   #clippy .buddy-pic {
-    width: 84px;
+    width: 118px;
   }
 
   #clippy .balloon {
@@ -1695,7 +1695,7 @@ button#lang,
 #clippy {
   position: absolute;
   z-index: 5;
-  width: 220px;
+  width: 300px;
   pointer-events: none;
 }
 
@@ -1714,7 +1714,7 @@ button#lang,
 }
 
 #clippy .buddy-pic {
-  width: 140px;
+  width: 210px;
   margin: 0 0 0 auto;
   transform: scaleX(-1);
   animation: nugget-idle 2.8s ease-in-out infinite;
@@ -2465,11 +2465,11 @@ button#lang,
 
 @media (max-width: 700px), (pointer: coarse) and (max-height: 500px) {
   #clippy {
-    width: 150px;
+    width: 190px;
   }
 
   #clippy .buddy-pic {
-    width: 92px;
+    width: 118px;
   }
 
   #start-menu {
@@ -2599,8 +2599,8 @@ button#lang,
 
 .hero-pic {
   flex: 0 0 auto;
-  width: 116px;
-  height: 116px;
+  width: 176px;
+  height: 176px;
   object-fit: cover;
   border: 2px solid #fff;
   box-shadow: 5px 5px 0 #000;
@@ -2870,8 +2870,8 @@ a.hero-stat:nth-child(6) { animation-delay: 780ms; }
   }
 
   .hero-pic {
-    width: 84px;
-    height: 84px;
+    width: 112px;
+    height: 112px;
   }
 
   p.hero-name {
@@ -3692,4 +3692,23 @@ button.task-btn,
 button.menu-item,
 .window-body button {
   font-weight: 400;
+}
+
+.hack-app > p.hack-warning {
+  margin: 8px 0;
+  padding: 6px 8px;
+  color: #000;
+  background: #ffff80;
+  border: 2px solid #800000;
+  font-weight: 700;
+}
+
+/* Safari: no callout or grey flash on long-press and tap of the desktop controls. */
+button,
+a,
+.desk-icon,
+.sweep-cell,
+.play-board {
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }

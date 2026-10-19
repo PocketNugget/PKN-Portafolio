@@ -21,7 +21,7 @@ export const FACTS: string[] = [
 
 /** Spoken by the nugget, to the visitor. Same record as FACTS. Nothing new is added. */
 export const NUGGET_LINES: string[] = [
-  "You are looking at Goben's desk. I will guide you, and I will drop fun facts about him and tips while you move through the site. He finished computer systems engineering at UDLAP, 2021 to 2025. The grade on the record is 9.0/10.",
+  "Welcome to Goben's portfolio! I am Nugget, and I will be your guide. Start with Jobs, then Projects, then Skills. Courses and Contact close it. I will say something on each page, and Next gives you facts about him.",
   "If you open Jobs, you get two seats at TBSeK. Part-time Jr. SOC from April 2025 to July 2026, then full-time SOC/MDR.",
   "If you want the lab story, the STEM server was a Mac Mini. He ran Docker and Cloudflare Tunnels on it from February 2024 to June 2026.",
   "You can ask about Hackztecs. It still meets weekly: TCP/IP, Wireshark, Nmap, Burp Suite, HTTP. He has chaired it since February 2024. More than 8 CTFs.",
@@ -38,8 +38,19 @@ export const NUGGET_LINES: string[] = [
 
 export const NUGGET_SCARE = "I hope you do not hack me.";
 
+/** Said while the payload runs, then when Reset brings the desk back. */
+export const NUGGET_HACKED = [
+  "Hey! You hacked me! My tie is changing colors!",
+  "Stop! The icons are screaming. You can hit Reset.",
+  "I am still here. Please press Reset.",
+];
+export const NUGGET_RELIEF = "Phew. The desk is clean again. Thank you.";
+
 export const NUGGET_TIPS: Record<string, string> = {
-  "/": "Start with Jobs, then Projects, then Skills. Courses and Contact sit on that same row. Hit Next if you want another line from me.",
+  "/": "Welcome to Goben's portfolio! I am Nugget, and I will be your guide. Start with Jobs, then Projects, then Skills. Courses and Contact close it. I will say something on each page, and Next gives you facts about him.",
+  "/pad": "You are at the comment box for the site. Leave a comment about the portfolio, and Goben reads it in the editor.",
+  "/games": "You are in the games folder. Snake, Tetris, Tron, and Sweep each keep a public top score.",
+  "/terminal": "You are in the terminal. Type help, and you get the same pages as the icons.",
   "/jobs": "You are on the jobs. Full-time SOC/MDR at TBSeK, July 2026 to present. The junior seat before that was part-time. STEM and T-Systems are further down.",
   "/work": "You are on the projects he will talk about. The two HTB boards are different events, so read both.",
   "/skills": "You are on the tool list from the jobs. A coding agent can draft a change. He still has to read the diff.",

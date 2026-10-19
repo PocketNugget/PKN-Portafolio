@@ -6,17 +6,22 @@ export interface Clippy {
   show(): void;
   hide(): void;
   tip(text?: string): void;
-  scare(): void;
+  scare(text?: string): void;
   calm(): void;
   nudge(): void;
   labels(): void;
 }
 
-let scareNow: (() => void) | null = null;
+let scareNow: ((text?: string) => void) | null = null;
+let speakNow: ((text: string) => void) | null = null;
 let calmNow: (() => void) | null = null;
 
-export function scareClippy(): void {
-  scareNow?.();
+export function scareClippy(text?: string): void {
+  scareNow?.(text);
+}
+
+export function speakClippy(text: string): void {
+  speakNow?.(text);
 }
 
 export function calmClippy(): void {
@@ -88,7 +93,7 @@ export function mountClippy(desktop: HTMLElement): Clippy {
   function rightSpot(): { left: number; top: number } {
     const narrow = phoneLayout();
     const height = boxHeight();
-    const width = root.offsetWidth || (narrow ? 168 : 200);
+    const width = root.offsetWidth || (narrow ? 200 : 300);
     const left = Math.max(8, desktop.clientWidth - width - 8);
     const areaH = Math.max(desktop.clientHeight, window.innerHeight - 40);
     let top = Math.max(8, areaH - height - bottomReserve());
@@ -157,7 +162,7 @@ export function mountClippy(desktop: HTMLElement): Clippy {
   function nudge(): void {
     if (root.hidden) return;
     const blocks = [...desktop.querySelectorAll("#social, #sticky, .desk-win:not(.is-min)")];
-    const width = root.offsetWidth || 200;
+    const width = root.offsetWidth || 300;
     const height = root.offsetHeight || 240;
     const hits = (left: number, top: number) => {
       const host = desktop.getBoundingClientRect();
@@ -197,10 +202,10 @@ export function mountClippy(desktop: HTMLElement): Clippy {
   window.visualViewport?.addEventListener("resize", refit);
   if (!root.hidden) talk(NUGGET_LINES[0] ?? "");
 
-  function scare(): void {
+  function scare(text?: string): void {
     if (root.hidden) return;
     root.classList.add("is-scared");
-    talk(NUGGET_SCARE);
+    talk(text ?? NUGGET_SCARE);
   }
 
   function calm(): void {
@@ -208,6 +213,9 @@ export function mountClippy(desktop: HTMLElement): Clippy {
   }
 
   scareNow = scare;
+  speakNow = (text) => {
+    if (!root.hidden) talk(text);
+  };
   calmNow = calm;
 
   return {
