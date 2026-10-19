@@ -281,7 +281,7 @@ describe("sweep window", () => {
     document.body.append(host);
     const app = mountSweep(host);
     const grid = host.querySelector<HTMLElement>(".sweep-grid");
-    expect(grid?.getAttribute("role")).toBe("grid");
+    expect(grid?.getAttribute("role")).toBe("group");
     const tabbable = () => [...host.querySelectorAll<HTMLButtonElement>(".sweep-cell")].filter((cell) => cell.tabIndex === 0);
     expect(tabbable()).toHaveLength(1);
     grid?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));

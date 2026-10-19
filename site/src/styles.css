@@ -3503,3 +3503,64 @@ p.play-over-text {
 .hero.is-still .hero-half {
   flex-wrap: wrap;
 }
+
+/* 98.css sets tables, labels, and legends to 11px. Inside windows they follow the reading scale. */
+.desk-win .window-body table,
+.desk-win .window-body label,
+.desk-win .window-body legend {
+  font-size: 15px;
+}
+
+.desk-win .window-body table.help {
+  white-space: normal;
+  width: 100%;
+}
+
+.desk-win .window-body table.help th,
+.desk-win .window-body table.help td {
+  height: auto;
+  padding: 4px 8px;
+  vertical-align: top;
+  line-height: 1.4;
+}
+
+.desk-win .window-body table.help th {
+  font-family: "Courier New", ui-monospace, monospace;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  .desk-win .window-body table,
+  .desk-win .window-body label,
+  .desk-win .window-body legend {
+    font-size: 16px;
+  }
+}
+
+.desk-win .window-body .field-row {
+  font-size: 15px;
+}
+
+/* Project titles in the Projects list are links; give them a real target. */
+.desk-win .window-body h2 > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  .desk-win .window-body h2 > a {
+    min-height: 44px;
+  }
+
+  .desk-win .window-body .field-row {
+    font-size: 16px;
+  }
+
+  button.start-btn,
+  button.task-btn,
+  button#lang,
+  #clock {
+    font-size: 14px;
+  }
+}

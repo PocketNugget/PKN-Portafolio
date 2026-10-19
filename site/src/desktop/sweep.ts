@@ -263,7 +263,7 @@ export function mountSweep(host: HTMLElement): DeskApp {
   const build = () => {
     built = `${state.width}x${state.height}`;
     grid.style.gridTemplateColumns = `repeat(${state.width}, minmax(0, 1fr))`;
-    grid.setAttribute("role", "grid");
+    grid.setAttribute("role", "group");
     grid.setAttribute("aria-label", t("Minefield"));
     grid.replaceChildren();
     state.cells.forEach((_, index) => {
