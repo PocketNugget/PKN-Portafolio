@@ -66,14 +66,14 @@ describe("desktop media", () => {
     expect(NUGGET_TIPS["/hack"]).toBeUndefined();
   });
 
-  it("loads the opening video through the vendored player", () => {
+  it("opens Floral Radio in the silver theme through the vendored player", () => {
     expect(PLAYER_PAGE).toBe("/vendor/webdeck-player/index.html");
     expect(script).toContain("srYi1mTO5kA");
     expect(script).toContain("bAgmGZ9iQ2Y");
     expect(script).toContain("RDbAgmGZ9iQ2Y");
     expect(script).toContain("JfCNwhWWdCs");
-    expect(script).toContain('currentTheme = "DEFAULT"');
-    expect(script).toContain('currentPlaylist = "Permaculture"');
+    expect(script).toContain('currentTheme = "SILVER"');
+    expect(script).toContain('currentPlaylist = "Floral Radio"');
     expect(script).toContain("playlistSelector.value = currentPlaylist");
     expect(script).toContain("loadVideoById");
     expect(script).toContain("controls");

@@ -1805,14 +1805,14 @@ button#lang,
   align-items: center;
   justify-content: center;
   overflow: clip;
-  background: #000;
+  background: #c8ccd2;
 }
 
 .deck-fit {
   overflow: clip;
   min-width: 0;
   flex: 0 0 auto;
-  background: #000;
+  background: #c8ccd2;
 }
 
 .deck-iframe {
@@ -1821,7 +1821,7 @@ button#lang,
   height: 250px;
   border: 0;
   transform-origin: top left;
-  background: #000;
+  background: #c8ccd2;
 }
 
 .sweep-app,

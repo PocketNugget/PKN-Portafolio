@@ -153,7 +153,7 @@ const WALLPAPERS = [
 ];
 
 const SIZES: Record<string, [number, number]> = {
-  "/player": [618, 286],
+  "/player": [612, 296],
   "/pictures": [640, 480],
   "/awards": [640, 480],
   "/convert": [480, 480],

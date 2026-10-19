@@ -75,6 +75,19 @@ export function wheelNames(text: string): string[] {
     .slice(0, 24);
 }
 
+/** The text with the winner's line taken out, so the next spin starts without them. */
+export function wheelWithout(text: string, winner: number): string {
+  let seen = -1;
+  return text
+    .split("\n")
+    .filter((line) => {
+      if (line.trim().length === 0) return true;
+      seen += 1;
+      return seen !== winner;
+    })
+    .join("\n");
+}
+
 export function wheelIndex(count: number, roll: () => number = Math.random): number {
   if (count <= 0) return -1;
   return Math.floor(roll() * count);
@@ -299,6 +312,7 @@ export function mountWheel(host: HTMLElement): DeskApp {
         return;
       }
       result.textContent = names[winner] ?? "";
+      box.value = wheelWithout(box.value, winner);
     };
     frame = window.requestAnimationFrame(step);
   });
