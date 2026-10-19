@@ -66,8 +66,6 @@ const es: Record<string, string> = {
     "T-Systems fue una práctica de medio tiempo en Puebla, de abril a julio de 2024. Armé una plataforma de cursos en Angular, con MySQL detrás, para seguir la capacitación. Parte del avance tenía forma de juego. Escribí la documentación y usé el Git del equipo.",
   "I write Python against a HackRF One and a bladeRF. I chair Hackztecs, after coming in as a member under Juan Pablo Morales Durante.":
     "Escribo Python contra un HackRF One y un bladeRF. Presido Hackztecs, después de entrar como miembro con Juan Pablo Morales Durante.",
-  "I am looking at MDR, SOC, and SRE roles in Mexico, the United States, Austria, Ireland, and the Netherlands. A cybersecurity master's, Ireland included, is on that same list.":
-    "Busco puestos de MDR, SOC y SRE en México, Estados Unidos, Austria, Irlanda y Países Bajos. Una maestría en ciberseguridad, Irlanda incluida, está en esa misma lista.",
   "Goben Diego Constantino Aguirre. Computer systems engineering at UDLAP, 2021 to 2025, graduated, 9.0/10.":
     "Goben Diego Constantino Aguirre. Ingeniería en sistemas computacionales en la UDLAP, 2021 a 2025, titulado, 9.0/10.",
   "Two seats at TBSeK. Part-time Jr. SOC from April 2025 to July 2026, then full-time SOC/MDR.":
@@ -152,8 +150,6 @@ const de: Record<string, string> = {
     "Goben Diego Constantino Aguirre. Studium der Computeringenieurwissenschaften an der UDLAP, 2021 bis 2025, 9.0/10. Die Pflichtpraktika sind fertig.",
   "I have been at TBSeK since April 2025. The part-time Jr. SOC seat ran until July 2026: alert triage for 7 or more clients, playbooks, false positives, and Python and Node.js that cut report time by about 70%. The full-time SOC/MDR seat is Splunk, Darktrace, CrowdStrike, Cisco AMP, Cisco Umbrella, and GroupIB, plus correlation and the first containment steps.":
     "Seit April 2025 bei TBSeK. Teilzeit als Jr. SOC bis Juli 2026: Alerts für 7 oder mehr Kunden, Playbooks, False Positives, und Python und Node.js, die die Berichtszeit um etwa 70% senkten. Die Vollzeitstelle SOC/MDR ist Splunk, Darktrace, CrowdStrike, Cisco AMP, Cisco Umbrella und GroupIB, plus Korrelation und die ersten Containment-Schritte.",
-  "I am looking at MDR, SOC, and SRE roles in Mexico, the United States, Austria, Ireland, and the Netherlands. A cybersecurity master's, Ireland included, is on that same list.":
-    "Ich suche MDR-, SOC- und SRE-Rollen in Mexiko, den USA, Österreich, Irland und den Niederlanden. Ein Master in Cybersicherheit, Irland inklusive, steht auf derselben Liste.",
   "A coding agent can draft a change. I still read the diff.":
     "Ein Coding-Agent kann eine Änderung entwerfen. Ich lese den Diff trotzdem.",
   "Spanish, native. English, C1+. French, A2. German, A1.":
@@ -226,8 +222,6 @@ const fr: Record<string, string> = {
     "Goben Diego Constantino Aguirre. Diplôme d'ingénierie en systèmes informatiques à l'UDLAP, 2021 à 2025, 9.0/10. Les stages du diplôme sont faits.",
   "I have been at TBSeK since April 2025. The part-time Jr. SOC seat ran until July 2026: alert triage for 7 or more clients, playbooks, false positives, and Python and Node.js that cut report time by about 70%. The full-time SOC/MDR seat is Splunk, Darktrace, CrowdStrike, Cisco AMP, Cisco Umbrella, and GroupIB, plus correlation and the first containment steps.":
     "Chez TBSeK depuis avril 2025. Le poste junior à temps partiel a duré jusqu'en juillet 2026: triage d'alertes pour 7 clients ou plus, playbooks, faux positifs, et Python et Node.js qui ont baissé le temps des rapports d'environ 70%. Le poste SOC/MDR à temps plein, c'est Splunk, Darktrace, CrowdStrike, Cisco AMP, Cisco Umbrella et GroupIB, plus la corrélation et les premiers pas de confinement.",
-  "I am looking at MDR, SOC, and SRE roles in Mexico, the United States, Austria, Ireland, and the Netherlands. A cybersecurity master's, Ireland included, is on that same list.":
-    "Je cherche des postes MDR, SOC et SRE au Mexique, aux États-Unis, en Autriche, en Irlande et aux Pays-Bas. Un master en cybersécurité, Irlande comprise, est sur la même liste.",
   "A coding agent can draft a change. I still read the diff.":
     "Un agent de code peut rédiger un changement. Je lis quand même le diff.",
   "Spanish, native. English, C1+. French, A2. German, A1.":

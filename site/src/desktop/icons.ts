@@ -98,6 +98,12 @@ export const ICONS: Record<string, string> = {
   wheel: svg(
     `<circle cx="16" cy="16" r="11" fill="#000080" stroke="#000"/><path d="M16 5 L16 27 M5 16 L27 16" stroke="#c0c0c0"/><path d="M16 3 l3 4 h-6 z" fill="#800000"/>`,
   ),
+  games: svg(
+    `<path d="M3 10 h10 l2 2 h14 v14 h-26 z" fill="#ffd200" stroke="#000"/><path d="M3 13 h26" stroke="#e0b000"/><rect x="9" y="16" width="14" height="7" rx="2" fill="#404040" stroke="#000"/><path d="M12 18 v3 M10.5 19.5 h3" stroke="#fff"/><rect x="18" y="18" width="2" height="2" fill="#ff3030"/><rect x="20" y="20" width="2" height="2" fill="#30c030"/>`,
+  ),
+  accessories: svg(
+    `<path d="M3 10 h10 l2 2 h14 v14 h-26 z" fill="#ffd200" stroke="#000"/><path d="M3 13 h26" stroke="#e0b000"/><rect x="10" y="15" width="12" height="9" fill="#c0c0c0" stroke="#000"/><rect x="12" y="17" width="8" height="2" fill="#000080"/><rect x="12" y="20" width="2" height="2" fill="#000"/><rect x="15" y="20" width="2" height="2" fill="#000"/><rect x="18" y="20" width="2" height="2" fill="#000"/>`,
+  ),
   legal: svg(
     `<rect x="7" y="3" width="18" height="24" fill="#fff" stroke="#000"/><path d="M11 9 h10 M11 13 h10 M11 17 h8 M11 21 h6" stroke="#000080"/>`,
   ),

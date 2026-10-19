@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import models from "../content/notes/model-files.md?raw";
-import { jobs, openTable, projects, validateCatalog } from "./catalog";
+import { hero, jobs, openTable, projects, validateCatalog } from "./catalog";
 import { safeUrl } from "./markup";
-import { assertSafeHtml, renderNote, renderedNotes } from "./notes";
+import { assertSafeHtml, escapeHtml, renderNote, renderedNotes } from "./notes";
 import { allDocumentPaths, isDocumentPath, sitemapXml } from "./paths";
 import { commandFor, documentBody, render } from "./render";
 
@@ -252,5 +252,45 @@ describe("source notes on disk", () => {
     expect(models).toContain("SafeTensors");
     expect(models.toLowerCase()).not.toContain("import pickle");
     expect(models).not.toContain("torch.load");
+  });
+});
+
+describe("recruiter pages", () => {
+  it("opens Jobs with an at-a-glance list in catalog order that links to each job", () => {
+    const html = render("/jobs");
+    const glance = html.slice(html.indexOf('class="timeline"'), html.indexOf("</nav>", html.indexOf('class="timeline"')));
+    const ids = [...glance.matchAll(/href="#job-([a-z-]+)"/g)].map((match) => match[1]);
+    expect(ids).toEqual(jobs.map((job) => job.id));
+    for (const job of jobs) {
+      expect(html).toContain(`id="job-${job.id}"`);
+      expect(glance).toContain(job.role);
+      expect(glance).toContain(job.date);
+    }
+    expect(html.indexOf('class="timeline"')).toBeLessThan(html.indexOf('id="job-tbsek"'));
+  });
+
+  it("puts an at-a-glance box on every full project page", () => {
+    for (const project of projects) {
+      const html = render(`/work/${project.slug}`);
+      expect(html, project.slug).toContain('<fieldset class="glance"><legend>At a glance</legend>');
+      expect(html, project.slug).toContain(`<dt>In short</dt><dd>${escapeHtml(project.summary)}`);
+      expect(html.indexOf("glance"), project.slug).toBeLessThan(html.indexOf("<p>", html.indexOf("</fieldset>")));
+    }
+  });
+
+  it("keeps the home versatile: no target countries, languages and copy email present", () => {
+    const html = render("/");
+    expect(html).not.toMatch(/Netherlands|Ireland/);
+    expect(html).toContain(hero.langs);
+    expect(html).toContain('class="hero-go copy-mail" data-copy="goben.ca.pkn@hotmail.com"');
+    expect(render("/contact")).toContain('class="copy-mail" data-copy="goben.ca.pkn@hotmail.com"');
+  });
+
+  it("serves the two folders as pages that stay out of the sitemap", () => {
+    for (const path of ["/games", "/accessories"]) {
+      expect(isDocumentPath(path)).toBe(true);
+      expect(documentBody(path)).toContain(`data-folder="${path.slice(1)}"`);
+      expect(sitemapXml()).not.toContain(`pocketnugget.xyz${path}<`);
+    }
   });
 });

@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { hero } from "../catalog";
 import { setLang } from "../i18n";
 import { render } from "../render";
-import { bootDesktop, flagSvg } from "./desktop";
+import { APPS, FOLDERS, bootDesktop, copyText, flagSvg, isDocPath } from "./desktop";
 import { countAt, mountHero, withCount } from "./hero";
 
 function media(matches: (query: string) => boolean): typeof window.matchMedia {
@@ -148,7 +148,8 @@ describe("desktop for a recruiter", () => {
     expect(sessionStorage.getItem("pkn-lang")).toBe("es");
     expect(lang?.textContent).toBe("ES");
     expect(titles()).toEqual(["Sobre mí", "Empleos"]);
-    expect(document.querySelector(".desk-win .hero-open")?.textContent).toContain("Busco trabajo Disponible para puestos");
+    expect(document.querySelector(".desk-win .hero-langs")?.textContent).toContain("Inglés C1+");
+    expect(document.querySelector(".desk-win .hero-open")?.textContent).toContain("Busco trabajo Abierto a puestos de SOC, MDR y SRE.");
   });
 
   it("closes the language menu with Escape and with an outside click", () => {
@@ -162,6 +163,47 @@ describe("desktop for a recruiter", () => {
     expect(menu?.hidden).toBe(false);
     document.querySelector("#desktop")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(menu?.hidden).toBe(true);
+  });
+
+  it("keeps games and accessories in folders, one click each", () => {
+    const desk = [...document.querySelectorAll<HTMLElement>("#icons .desk-icon")].map((el) => el.dataset.app);
+    expect(desk).toContain("games");
+    expect(desk).toContain("accessories");
+    for (const id of [...(FOLDERS["/games"] ?? []), ...(FOLDERS["/accessories"] ?? [])]) expect(desk).not.toContain(id);
+    expect(desk.length).toBeLessThanOrEqual(16);
+    document.querySelector<HTMLButtonElement>('.desk-icon[data-app="games"]')?.click();
+    const folder = [...document.querySelectorAll(".desk-win")].at(-1);
+    const items = [...(folder?.querySelectorAll<HTMLButtonElement>(".folder-item") ?? [])];
+    expect(items.map((item) => item.dataset.app)).toEqual(["snake", "tetris", "tron", "sweep"]);
+    expect(items.every((item) => item.querySelector("svg") && item.querySelector(".label")?.textContent)).toBe(true);
+    expect(folder?.querySelector(".window-body")?.classList.contains("doc")).toBe(false);
+    items[0]?.click();
+    expect(titles()).toContain("Snake");
+  });
+
+  it("uses the reading face only in document windows", () => {
+    const about = [...document.querySelectorAll(".desk-win")].find((win) => win.querySelector(".hero"));
+    expect(about?.querySelector(".window-body")?.classList.contains("doc")).toBe(true);
+    for (const path of ["/", "/jobs", "/work", "/work/maia", "/skills", "/certs", "/contact", "/notes/model-files", "/blog", "/colophon"]) {
+      expect(isDocPath(path), path).toBe(true);
+    }
+    for (const path of ["/snake", "/tetris", "/sweep", "/math", "/games", "/accessories", "/terminal", "/pad", "/login", "/hack", "/player"]) {
+      expect(isDocPath(path), path).toBe(false);
+    }
+    expect(APPS.filter((app) => app.desk).length).toBeLessThanOrEqual(16);
+  });
+
+  it("copies the email and says so, or says how to get it when copy fails", async () => {
+    const button = document.createElement("button");
+    button.dataset.copy = "goben.ca.pkn@hotmail.com";
+    const writeText = vi.fn(async () => undefined);
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+    expect(await copyText(button)).toBe(true);
+    expect(writeText).toHaveBeenCalledWith("goben.ca.pkn@hotmail.com");
+    expect(button.classList.contains("is-copied")).toBe(true);
+    Object.defineProperty(navigator, "clipboard", { value: { writeText: vi.fn(async () => Promise.reject(new Error("blocked"))) }, configurable: true });
+    expect(await copyText(button)).toBe(false);
+    expect(button.textContent).toContain("goben.ca.pkn@hotmail.com");
   });
 
   it("draws a distinct flag for every language", () => {

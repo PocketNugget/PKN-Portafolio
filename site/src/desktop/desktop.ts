@@ -94,7 +94,7 @@ interface Win {
   host: DeskApp | null;
 }
 
-const APPS: App[] = [
+export const APPS: App[] = [
   { id: "about", label: "About Me", path: "/", icon: "about", desk: true },
   { id: "jobs", label: "Jobs", path: "/jobs", icon: "jobs", desk: true },
   { id: "projects", label: "Projects", path: "/work", icon: "projects", desk: true },
@@ -107,18 +107,20 @@ const APPS: App[] = [
   { id: "links", label: "My Links", path: "/links", icon: "links", desk: false },
   { id: "contact", label: "Contact", path: "/contact", icon: "contact", desk: true },
   { id: "terminal", label: "Terminal", path: "/terminal", icon: "terminal", desk: true },
-  { id: "snake", label: "Snake", path: "/snake", icon: "snake", desk: true },
-  { id: "tetris", label: "Tetris", path: "/tetris", icon: "tetris", desk: true },
-  { id: "sweep", label: "Sweep", path: "/sweep", icon: "sweep", desk: true },
-  { id: "tron", label: "Tron", path: "/tron", icon: "tron", desk: true },
+  { id: "games", label: "Games", path: "/games", icon: "games", desk: true },
+  { id: "accessories", label: "Accessories", path: "/accessories", icon: "accessories", desk: true },
+  { id: "snake", label: "Snake", path: "/snake", icon: "snake", desk: false },
+  { id: "tetris", label: "Tetris", path: "/tetris", icon: "tetris", desk: false },
+  { id: "sweep", label: "Sweep", path: "/sweep", icon: "sweep", desk: false },
+  { id: "tron", label: "Tron", path: "/tron", icon: "tron", desk: false },
   { id: "pictures", label: "My Pictures", path: "/pictures", icon: "pictures", desk: true },
   { id: "awards", label: "Certificates", path: "/awards", icon: "awards", desk: true },
-  { id: "player", label: "Player", path: "/player", icon: "player", desk: true },
-  { id: "convert", label: "Converter", path: "/convert", icon: "convert", desk: true },
-  { id: "dice", label: "Dice", path: "/dice", icon: "dice", desk: true },
-  { id: "flip", label: "Flip", path: "/flip", icon: "flip", desk: true },
-  { id: "math", label: "Calculator", path: "/math", icon: "math", desk: true },
-  { id: "wheel", label: "Wheel", path: "/wheel", icon: "wheel", desk: true },
+  { id: "player", label: "Player", path: "/player", icon: "player", desk: false },
+  { id: "convert", label: "Converter", path: "/convert", icon: "convert", desk: false },
+  { id: "dice", label: "Dice", path: "/dice", icon: "dice", desk: false },
+  { id: "flip", label: "Flip", path: "/flip", icon: "flip", desk: false },
+  { id: "math", label: "Calculator", path: "/math", icon: "math", desk: false },
+  { id: "wheel", label: "Wheel", path: "/wheel", icon: "wheel", desk: false },
   { id: "facts", label: "Facts", path: "/facts", icon: "facts", desk: false },
   { id: "hack", label: "Hack", path: "/hack", icon: "hack", desk: true },
   { id: "buddy", label: "Nugget", path: "/buddy", icon: "buddy", desk: false },
@@ -137,6 +139,11 @@ const MENU_GROUPS = [
   ["terminal", "snake", "tetris", "sweep", "tron", "help", "display", "run", "find", "colophon", "legal"],
   ["pictures", "awards", "player", "convert", "dice", "flip", "math", "wheel", "facts", "hack", "buddy"],
 ];
+
+export const FOLDERS: Record<string, string[]> = {
+  "/games": ["snake", "tetris", "tron", "sweep"],
+  "/accessories": ["player", "convert", "math", "dice", "flip", "wheel"],
+};
 
 const WALLPAPERS = [
   { id: "sky", label: "Sky" },
@@ -159,6 +166,8 @@ const SIZES: Record<string, [number, number]> = {
   "/tetris": [480, 700],
   "/tron": [860, 600],
   "/legal": [560, 520],
+  "/games": [520, 260],
+  "/accessories": [520, 380],
   "/": [780, 720],
   "/jobs": [720, 640],
   "/work": [760, 680],
@@ -183,6 +192,12 @@ const SOCIAL: { label: string; href: string; icon: string }[] = [
   { label: "YouTube", href: linkPage.find((item) => item.label === "YouTube")?.href ?? "", icon: "/social/youtube.png" },
 ];
 
+const DOC_PATHS = ["/", "/jobs", "/work", "/skills", "/certs", "/contact", "/notes", "/blog", "/radio", "/colophon", "/legal", "/help", "/links"];
+
+export function isDocPath(path: string): boolean {
+  return DOC_PATHS.some((item) => path === item || (item !== "/" && path.startsWith(`${item}/`)));
+}
+
 const opens = openTable();
 
 function sessionGet(key: string): string | null {
@@ -201,6 +216,40 @@ function sessionSet(key: string, value: string): void {
   }
 }
 
+export interface Rect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/* Where a new window opens. On a phone it fills the desk. On a desktop it always fits whole
+   inside the desk: About centers, the rest cascade and get pulled back in if the step runs out. */
+export function initialRect(path: string, areaW: number, areaH: number, cascade: number, narrow: boolean): Rect {
+  const W = Math.max(1, Math.floor(areaW));
+  const H = Math.max(1, Math.floor(areaH));
+  if (narrow) return { x: 0, y: 0, w: W, h: H };
+  const preset = SIZES[path] ?? (path.startsWith("/work/") ? SIZES["/work"] : undefined);
+  const w = Math.min(preset?.[0] ?? 560, Math.max(Math.min(240, W), W - 36));
+  const h = Math.min(preset?.[1] ?? 420, Math.max(Math.min(180, H), H - 36));
+  let x: number;
+  let y: number;
+  if (path === "/hack") {
+    x = Math.min(220, Math.max(8, W - w - 220));
+    y = 36;
+  } else if (path === "/" && cascade === 0) {
+    x = Math.round((W - w) / 2);
+    y = Math.round((H - h) / 2);
+  } else {
+    const step = cascade % 8;
+    x = 24 + step * 22;
+    y = 12 + step * 20;
+  }
+  x = Math.min(Math.max(0, x), W - w);
+  y = Math.min(Math.max(0, y), H - h);
+  return { x, y, w, h };
+}
+
 function titleFor(path: string): string {
   const app = APPS.find((item) => item.path === path);
   if (app) return t(app.label === "Display" ? "Display Properties" : app.label);
@@ -215,6 +264,24 @@ function titleFor(path: string): string {
   if (path.startsWith("/blog/")) return t("Blog");
   if (path === "/admin") return t("Editor");
   return t("Window");
+}
+
+export async function copyText(button: HTMLButtonElement): Promise<boolean> {
+  const value = button.dataset.copy ?? "";
+  let ok = false;
+  try {
+    await navigator.clipboard.writeText(value);
+    ok = true;
+  } catch {
+    ok = false;
+  }
+  button.textContent = ok ? t("Copied") : t("Copy did not work. The address is goben.ca.pkn@hotmail.com.");
+  button.classList.toggle("is-copied", ok);
+  window.setTimeout(() => {
+    button.textContent = t("Copy email");
+    button.classList.remove("is-copied");
+  }, 2200);
+  return ok;
 }
 
 function control(label: string): HTMLButtonElement {
@@ -474,6 +541,13 @@ export function bootDesktop(): void {
     win.y = Math.min(Math.max(0, win.y), Math.max(0, areaH - 28));
   }
 
+  function contain(win: Win): void {
+    const areaW = Math.max(1, desktop.clientWidth);
+    const areaH = Math.max(1, desktop.clientHeight);
+    win.x = Math.round(Math.min(Math.max(0, win.x), Math.max(0, areaW - win.w)));
+    win.y = Math.round(Math.min(Math.max(0, win.y), Math.max(0, areaH - win.h)));
+  }
+
   function focusWindow(win: Win): void {
     zTop += 1;
     win.z = zTop;
@@ -493,6 +567,7 @@ export function bootDesktop(): void {
     win.host?.destroy();
     win.host = null;
     body.innerHTML = documentBody(win.path);
+    body.classList.toggle("doc", isDocPath(win.path));
     if (body.querySelector("#dynamic")) hydrate(win.path, body);
     const display = body.querySelector(".display-mount");
     if (display instanceof HTMLElement) mountDisplay(display);
@@ -527,6 +602,11 @@ export function bootDesktop(): void {
     if (runHost instanceof HTMLElement) win.host = mountRun(runHost, (href) => openHref(href));
     const findHost = body.querySelector(".find-mount");
     if (findHost instanceof HTMLElement) win.host = mountFind(findHost, (href) => openHref(href));
+    for (const button of body.querySelectorAll<HTMLButtonElement>("button[data-copy]")) {
+      button.addEventListener("click", () => void copyText(button));
+    }
+    const folderHost = body.querySelector(".folder-mount");
+    if (folderHost instanceof HTMLElement) mountFolder(folderHost, win.path);
     const heroHost = body.querySelector(".hero");
     if (heroHost instanceof HTMLElement) {
       win.host = mountHero(heroHost, matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -554,6 +634,22 @@ export function bootDesktop(): void {
         start,
       );
       if (matchMedia("(pointer: fine)").matches) win.term.focusInput();
+    }
+  }
+
+  function mountFolder(host: HTMLElement, path: string): void {
+    for (const id of FOLDERS[path] ?? []) {
+      const item = APPS.find((entry) => entry.id === id);
+      if (!item) continue;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "folder-item";
+      button.dataset.app = item.id;
+      button.innerHTML = `${ICONS[item.icon] ?? ""}<span class="label"></span>`;
+      const label = button.querySelector(".label");
+      if (label) label.textContent = t(item.label);
+      button.addEventListener("click", () => openHref(item.path));
+      host.append(button);
     }
   }
 
@@ -690,28 +786,12 @@ export function bootDesktop(): void {
     const narrow = phoneLayout();
     const areaW = desktop.clientWidth || window.innerWidth;
     const areaH = desktop.clientHeight || window.innerHeight - 30;
-    const cascade = windows.length;
-    const preset = SIZES[path] ?? (path.startsWith("/work/") ? SIZES["/work"] : undefined);
-    const wantW = preset?.[0] ?? 560;
-    const wantH = preset?.[1] ?? 420;
-    const fittedW = Math.min(wantW, Math.max(240, areaW - 36));
-    const fittedH = Math.min(wantH, Math.max(180, areaH - 36));
-    const parkHack = path === "/hack" && !narrow;
-    const center = path === "/" && !narrow && cascade === 0;
+    const rect = initialRect(path, areaW, areaH, windows.length, narrow);
     const win: Win = {
       id: ++seq,
       path,
       title: titleFor(path),
-      x: parkHack
-        ? Math.min(220, Math.max(8, areaW - fittedW - 220))
-        : narrow
-          ? 0
-          : center
-            ? Math.max(8, Math.round((areaW - fittedW) / 2))
-            : 24 + (cascade % 8) * 22,
-      y: parkHack ? 36 : narrow ? 0 : center ? Math.max(8, Math.round((areaH - fittedH) / 2)) : 12 + (cascade % 8) * 20,
-      w: narrow ? areaW : fittedW,
-      h: narrow ? areaH : fittedH,
+      ...rect,
       rx: 0,
       ry: 0,
       rw: 0,
@@ -1259,7 +1339,10 @@ export function bootDesktop(): void {
     for (const win of windows) {
       const maxBtn = win.el.querySelectorAll(".title-bar-controls button")[1];
       if (maxBtn instanceof HTMLButtonElement) maxBtn.hidden = phoneLayout();
-      if (!win.max) clamp(win);
+      if (!win.max) {
+        clamp(win);
+        contain(win);
+      }
       place(win);
     }
   };

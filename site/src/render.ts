@@ -73,7 +73,7 @@ function jobBlock(job: Job, full: boolean): string {
   const body = full
     ? `<p>${tx(job.summary)}</p>${job.body.map((paragraph) => `<p>${tx(paragraph)}</p>`).join("")}`
     : `<p>${tx(job.summary)}</p>`;
-  return `<article class="block">
+  return `<article class="block"${full ? ` id="job-${escapeHtml(job.id)}"` : ""}>
     <h2>${tx(job.role)}</h2>
     <p class="meta">${escapeHtml(job.org)} · ${tx(job.place)} · ${tx(job.date)}</p>
     ${shot(job.image)}
@@ -82,24 +82,52 @@ function jobBlock(job: Job, full: boolean): string {
   </article>`;
 }
 
+function glance(project: Project): string {
+  const rows = [
+    ["In short", tx(project.summary)],
+    ["When", tx(project.date)],
+    ["Stack", project.tools.length ? project.tools.map((tool) => escapeHtml(tool)).join(", ") : ""],
+    ["Links", links(project.links)],
+  ].filter(([, value]) => value);
+  const items = rows.map(([label, value]) => `<dt>${tx(label ?? "")}</dt><dd>${value}</dd>`).join("");
+  return `<fieldset class="glance"><legend>${tx("At a glance")}</legend><dl>${items}</dl></fieldset>`;
+}
+
 function projectBlock(project: Project, full: boolean): string {
   const title = full ? tx(project.title) : anchor(`/work/${project.slug}`, project.title);
-  const body = full
-    ? `<p>${tx(project.summary)}</p>${project.body.map((paragraph) => `<p>${tx(paragraph)}</p>`).join("")}`
-    : `<p>${tx(project.summary)}</p>`;
   const people = full && project.people ? `<p class="meta">${tx(project.people)}</p>` : "";
   const kind = projectKind[project.slug] ?? "apps";
+  if (full) {
+    return `<article class="block" id="${project.slug}" data-kind="${kind}">
+    <p class="path">~/work/${escapeHtml(project.slug)}</p>
+    <h2>${title}</h2>
+    ${glance(project)}
+    ${shot(project.image)}
+    ${project.body.map((paragraph) => `<p>${tx(paragraph)}</p>`).join("")}
+    ${points(project.points)}
+    ${people}
+  </article>`;
+  }
   return `<article class="block" id="${project.slug}" data-kind="${kind}">
     <p class="path">~/work/${escapeHtml(project.slug)}</p>
     <h2>${title}</h2>
     <p class="meta">${tx(project.date)}</p>
     ${links(project.links)}
     ${shot(project.image)}
-    ${body}
-    ${points(full ? project.points : undefined)}
-    ${people}
+    <p>${tx(project.summary)}</p>
     ${tools(project.tools)}
   </article>`;
+}
+
+function jobsPage(): string {
+  const rows = jobs
+    .map(
+      (job) =>
+        `<li><a href="#job-${escapeHtml(job.id)}"><b>${tx(job.role)}</b> <span class="org">${escapeHtml(job.org)}</span> <span class="when">${tx(job.date)}</span></a></li>`,
+    )
+    .join("");
+  return `<nav class="timeline" aria-label="${tx("At a glance")}"><h2>${tx("At a glance")}</h2><ol>${rows}</ol></nav>
+    ${jobs.map((job) => jobBlock(job, true)).join("")}`;
 }
 
 function nav(path: string): string {
@@ -169,10 +197,12 @@ function heroBlock(): string {
           <p class="hero-name">Goben Diego Constantino Aguirre</p>
           <p class="hero-role"><span class="hero-type">${tx(hero.roles[0] ?? "")}</span><span class="hero-caret" aria-hidden="true"></span></p>
           <p class="hero-open"><span class="hero-dot" aria-hidden="true"></span><b>${tx("Open to work")}</b> ${tx(hero.open)}</p>
+          <p class="hero-langs">${tx(hero.langs)}</p>
         </div>
       </div>
       <nav class="hero-cta">
         <a class="hero-go hero-mail" href="${escapeHtml(profiles.email.href)}">${tx("Email me")}</a>
+        <button type="button" class="hero-go copy-mail" data-copy="${escapeHtml(profiles.email.label)}">${tx("Copy email")}</button>
         ${out(profiles.linkedin.href, "LinkedIn")}
         ${out(profiles.github.href, "GitHub")}
         <a class="hero-go hero-jobs" href="/jobs" data-cmd="jobs">${tx("See the jobs")}</a>
@@ -305,7 +335,9 @@ function contactPage(): string {
         `<li>${anchor(profile.href, profile.label)}</li>`,
     )
     .join("");
-  return `<ul class="ls">${rows}</ul><p>${tx("No form. The address above is the one I read.")}</p>`;
+  return `<ul class="ls">${rows}</ul>
+    <p><button type="button" class="copy-mail" data-copy="${escapeHtml(profiles.email.label)}">${tx("Copy email")}</button></p>
+    <p>${tx("No form. The address above is the one I read.")}</p>`;
 }
 
 function radioPage(): string {
@@ -369,7 +401,7 @@ export function documentBody(pathname: string): string {
   const path = normalizePath(pathname);
   if (path === "/") return home();
   if (path === "/help") return helpPage();
-  if (path === "/jobs") return jobs.map((job) => jobBlock(job, true)).join("");
+  if (path === "/jobs") return jobsPage();
   if (path === "/work") return workPage();
   if (path.startsWith("/work/")) {
     const project = projects.find((item) => item.slug === path.slice("/work/".length));
@@ -407,6 +439,7 @@ export function documentBody(pathname: string): string {
   if (path === "/math") return `<div class="math-mount"></div>`;
   if (path === "/wheel") return `<div class="wheel-mount"></div>`;
   if (path === "/snake" || path === "/tetris" || path === "/tron") return `<div class="term-mount"></div>`;
+  if (path === "/games" || path === "/accessories") return `<div class="folder-mount" data-folder="${path.slice(1)}"></div>`;
   return notFound();
 }
 
@@ -448,6 +481,8 @@ export function commandFor(pathname: string): string {
   if (path === "/snake") return "snake";
   if (path === "/tetris") return "tetris";
   if (path === "/tron") return "tron";
+  if (path === "/games") return "games";
+  if (path === "/accessories") return "accessories";
   return "help";
 }
 
