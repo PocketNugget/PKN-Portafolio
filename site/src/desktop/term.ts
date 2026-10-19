@@ -11,6 +11,7 @@ import {
 import { t } from "../i18n";
 import { mountBoard, type BoardHandle } from "./board";
 import { createCycle, cycleAim, cyclePace, stepCycle, type CycleState } from "./cycle";
+import { CYCLE_CELL, paintCycle } from "./cyclepaint";
 import {
   createSnake,
   createTetris,
@@ -703,6 +704,7 @@ export class Terminal {
   }
 
   private cells(count: number): HTMLElement[] {
+    this.board.querySelector("canvas")?.remove();
     while (this.board.childElementCount < count) {
       const cell = document.createElement("span");
       cell.className = "play-cell";
@@ -770,31 +772,26 @@ export class Terminal {
 
   private drawCycle(state: CycleState): void {
     this.board.className = "play-board cycle";
-    this.board.style.aspectRatio = `${state.width} / ${state.height}`;
-    this.board.style.gridTemplateColumns = `repeat(${state.width}, minmax(0, 1fr))`;
-    this.board.style.gridTemplateRows = `repeat(${state.height}, minmax(0, 1fr))`;
-    const tiles = this.cells(state.width * state.height);
-    const youKey = `${state.you.x},${state.you.y}`;
-    const foeKey = state.foeAlive ? `${state.foe.x},${state.foe.y}` : "";
-    for (let index = 0; index < tiles.length; index += 1) {
-      const x = index % state.width;
-      const y = Math.floor(index / state.width);
-      const tile = tiles[index];
-      if (!tile) continue;
-      const key = `${x},${y}`;
-      const mark = state.trail[index] ?? 0;
-      if (key === youKey && !state.dead) tile.className = "play-cell you";
-      else if (key === foeKey) tile.className = "play-cell foe";
-      else if (mark === 1) tile.className = "play-cell ribbon";
-      else if (mark === 2) tile.className = "play-cell ribbon-foe";
-      else tile.className = "play-cell";
+    let canvas = this.board.querySelector("canvas");
+    if (!canvas) {
+      this.board.replaceChildren();
+      canvas = document.createElement("canvas");
+      canvas.className = "play-canvas";
+      this.board.append(canvas);
     }
+    const size = CYCLE_CELL;
+    if (canvas.width !== state.width * size) {
+      canvas.width = state.width * size;
+      canvas.height = state.height * size;
+    }
+    const ctx = canvas.getContext("2d");
+    if (ctx) paintCycle(ctx, state, size);
     const hint = state.won
       ? t("You cleared the grid.")
       : state.dead
         ? t("game over. r restarts. esc leaves")
         : state.fresh > 0
-          ? t("The other bike crashed. Both trails are gone.")
+          ? t(state.rounds > 0 && state.foes.every((foe) => foe.alive) ? "Round cleared. The next grid is faster." : "A bike crashed.")
           : this.touchPlay()
             ? t("buttons move. r restarts. exit leaves")
             : t("arrows move. r restarts. esc leaves");

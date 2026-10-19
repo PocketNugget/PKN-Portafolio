@@ -110,8 +110,7 @@ describe("game windows", () => {
     if (!(host instanceof HTMLElement)) throw new Error("host");
     const term = new Terminal(host, { openPath() {}, close() {} }, "tron");
     expect(host.classList.contains("is-cycle")).toBe(true);
-    expect(host.querySelector(".play-cell.you")).toBeTruthy();
-    expect(host.querySelector(".play-cell.foe")).toBeTruthy();
+    expect(host.querySelector("canvas.play-canvas")).toBeInstanceOf(HTMLCanvasElement);
     term.onKey("Enter", false);
     vi.advanceTimersByTime(200);
     expect(host.querySelector(".play-status")?.textContent).toContain("Score 1");

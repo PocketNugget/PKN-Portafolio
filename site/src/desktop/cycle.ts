@@ -16,9 +16,17 @@ const STEP: Record<Dir, Point> = {
 
 const DIRS: Dir[] = ["up", "down", "left", "right"];
 
-export const CYCLE_WIDTH = 28;
-export const CYCLE_HEIGHT = 16;
+export const CYCLE_WIDTH = 64;
+export const CYCLE_HEIGHT = 48;
+export const CYCLE_ROUNDS = 5;
 
+export interface Foe {
+  pos: Point;
+  dir: Dir;
+  alive: boolean;
+}
+
+/** Trail marks: 0 empty, 1 you, 2 the first enemy, 3 the second. */
 export interface CycleState {
   width: number;
   height: number;
@@ -26,25 +34,26 @@ export interface CycleState {
   youDir: Dir;
   pending?: Dir;
   buffered?: Dir;
-  foe: Point;
-  foeDir: Dir;
-  foeAlive: boolean;
+  foes: Foe[];
+  /** Where each bike turned, you first. The drawing joins these into one line per bike. */
+  corners: Point[][];
   trail: number[];
   score: number;
   level: number;
+  rounds: number;
   tick: number;
   dead: boolean;
   won: boolean;
   fresh: number;
 }
 
-export function cycleLevel(tick: number): number {
-  return 1 + Math.floor(Math.max(0, tick) / 20);
+export function cycleLevel(tick: number, rounds = 0): number {
+  return 1 + Math.max(0, Math.floor(rounds)) + Math.floor(Math.max(0, tick) / 100);
 }
 
 export function cyclePace(level: number): number {
   const step = Math.max(0, Math.floor(level) - 1);
-  return Math.max(68, 156 - step * 10);
+  return Math.max(62, 110 - step * 8);
 }
 
 function at(state: CycleState, point: Point): number {
@@ -63,29 +72,45 @@ function ahead(point: Point, dir: Dir): Point {
 function open(state: CycleState, point: Point, block: Point | null): boolean {
   if (!inside(state, point)) return false;
   if (block && block.x === point.x && block.y === point.y) return false;
-  const mark = state.trail[at(state, point)];
-  return mark === 0;
+  return state.trail[at(state, point)] === 0;
+}
+
+function startFoes(): Foe[] {
+  return [
+    { pos: { x: CYCLE_WIDTH - 9, y: 12 }, dir: "left", alive: true },
+    { pos: { x: CYCLE_WIDTH - 9, y: CYCLE_HEIGHT - 13 }, dir: "left", alive: true },
+  ];
+}
+
+function startGrid(width: number, height: number, foes: Foe[], you: Point): number[] {
+  const trail = Array.from({ length: width * height }, () => 0);
+  trail[you.y * width + you.x] = 1;
+  foes.forEach((foe, index) => {
+    trail[foe.pos.y * width + foe.pos.x] = index + 2;
+  });
+  return trail;
+}
+
+function startCorners(you: Point, foes: Foe[]): Point[][] {
+  return [[you], ...foes.map((foe) => [foe.pos])];
 }
 
 export function createCycle(): CycleState {
   const width = CYCLE_WIDTH;
   const height = CYCLE_HEIGHT;
-  const you = { x: 4, y: 8 };
-  const foe = { x: 23, y: 8 };
-  const trail = Array.from({ length: width * height }, () => 0);
-  trail[you.y * width + you.x] = 1;
-  trail[foe.y * width + foe.x] = 2;
+  const you = { x: 8, y: Math.floor(height / 2) };
+  const foes = startFoes();
   return {
     width,
     height,
     you,
     youDir: "right",
-    foe,
-    foeDir: "left",
-    foeAlive: true,
-    trail,
+    foes,
+    corners: startCorners(you, foes),
+    trail: startGrid(width, height, foes, you),
     score: 0,
     level: 1,
+    rounds: 0,
     tick: 0,
     dead: false,
     won: false,
@@ -101,14 +126,14 @@ export function cycleAim(state: CycleState, aim: Dir): CycleState {
 }
 
 function room(state: CycleState, from: Point, dir: Dir, block: Point | null): number {
-  const seen = new Set<string>();
+  const seen = new Set<number>();
   const queue = [ahead(from, dir)];
   let count = 0;
-  while (queue.length > 0 && count < 16) {
+  while (queue.length > 0 && count < 48) {
     const cell = queue.shift();
-    if (!cell) break;
-    const key = `${cell.x},${cell.y}`;
-    if (seen.has(key) || !open(state, cell, block)) continue;
+    if (!cell || !open(state, cell, block)) continue;
+    const key = at(state, cell);
+    if (seen.has(key)) continue;
     seen.add(key);
     count += 1;
     for (const dirNext of DIRS) queue.push(ahead(cell, dirNext));
@@ -116,19 +141,33 @@ function room(state: CycleState, from: Point, dir: Dir, block: Point | null): nu
   return count;
 }
 
-function chooseFoe(state: CycleState, block: Point): Dir {
-  let best = state.foeDir;
+function distance(a: Point, b: Point): number {
+  return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+}
+
+/** The first enemy hunts: it aims for the cell ahead of you. The second one plays for open space. */
+function chooseFoe(state: CycleState, foe: Foe, index: number, youNext: Point): Dir {
+  let best = foe.dir;
   let bestScore = -1;
+  const lead = { x: youNext.x, y: youNext.y };
+  if (index === 0) {
+    for (let step = 0; step < 6; step += 1) {
+      const probe = ahead(lead, state.youDir);
+      if (!inside(state, probe)) break;
+      lead.x = probe.x;
+      lead.y = probe.y;
+    }
+  }
   for (const dir of DIRS) {
-    if (dir === OPPOSITE[state.foeDir]) continue;
-    const next = ahead(state.foe, dir);
-    if (!open(state, next, block)) continue;
-    let score = room(state, state.foe, dir, block);
-    if (dir === state.foeDir) score += 2;
-    if (state.level >= 3) {
-      const now = Math.abs(state.foe.x - block.x) + Math.abs(state.foe.y - block.y);
-      const later = Math.abs(next.x - block.x) + Math.abs(next.y - block.y);
-      if (later < now) score += 3;
+    if (dir === OPPOSITE[foe.dir]) continue;
+    const next = ahead(foe.pos, dir);
+    if (!open(state, next, youNext)) continue;
+    let score = room(state, foe.pos, dir, youNext) * 2;
+    if (dir === foe.dir) score += 3;
+    if (index === 0) {
+      if (distance(next, lead) < distance(foe.pos, lead)) score += 6;
+    } else if (state.level >= 3 && distance(next, youNext) < distance(foe.pos, youNext)) {
+      score += 3;
     }
     if (score > bestScore) {
       best = dir;
@@ -138,42 +177,13 @@ function chooseFoe(state: CycleState, block: Point): Dir {
   return best;
 }
 
-function respawn(state: CycleState, trail: number[], you: Point): { foe: Point; foeDir: Dir } | null {
-  const look: CycleState = { ...state, trail, you };
-  let pick: { foe: Point; foeDir: Dir; far: number } | null = null;
-  for (let y = 1; y < state.height - 1; y += 2) {
-    for (let x = 1; x < state.width - 1; x += 3) {
-      const cell = { x, y };
-      if (!open(look, cell, null)) continue;
-      for (const dir of DIRS) {
-        const first = ahead(cell, dir);
-        const second = ahead(first, dir);
-        if (!open(look, first, null) || !open(look, second, null)) continue;
-        const far = Math.abs(x - you.x) + Math.abs(y - you.y);
-        if (!pick || far > pick.far) pick = { foe: cell, foeDir: dir, far };
-      }
-    }
-  }
-  return pick ? { foe: pick.foe, foeDir: pick.foeDir } : null;
-}
-
-function dropTrails(trail: number[], youKeep: number): void {
-  for (let index = 0; index < trail.length; index += 1) {
-    const mark = trail[index];
-    if (mark === 1 || mark === 2) trail[index] = 0;
-  }
-  trail[youKeep] = 1;
-}
-
 export function stepCycle(state: CycleState): CycleState {
   if (state.dead || state.won) return state;
   const youDir = state.pending ?? state.youDir;
   const queued = state.buffered;
   const youNext = ahead(state.you, youDir);
-  const youCrash = !open(state, youNext, null);
   const tick = state.tick + 1;
-  const level = cycleLevel(tick);
-  const score = state.score + state.level;
+  const level = cycleLevel(tick, state.rounds);
   const base: CycleState = {
     ...state,
     youDir,
@@ -181,41 +191,74 @@ export function stepCycle(state: CycleState): CycleState {
     buffered: undefined,
     tick,
     level,
-    score,
+    score: state.score + state.level,
     fresh: Math.max(0, state.fresh - 1),
   };
-  let foeDir = state.foeDir;
-  let foeNext = state.foe;
-  if (state.foeAlive && !youCrash) {
-    foeDir = chooseFoe(state, youNext);
-    foeNext = ahead(state.foe, foeDir);
-    if (foeNext.x === youNext.x && foeNext.y === youNext.y) {
-      return { ...base, foeDir, dead: true, foeAlive: false };
-    }
-  }
-  if (youCrash) return { ...base, dead: true };
+  if (!open(state, youNext, null)) return { ...base, dead: true };
+
   const trail = state.trail.slice();
+  const nexts = state.foes.map((foe, index) => {
+    if (!foe.alive) return { dir: foe.dir, next: foe.pos };
+    const dir = chooseFoe(state, foe, index, youNext);
+    return { dir, next: ahead(foe.pos, dir) };
+  });
+  let rammed = false;
+  const alive = state.foes.map((foe) => foe.alive);
+  nexts.forEach((move, index) => {
+    if (!alive[index]) return;
+    if (move.next.x === youNext.x && move.next.y === youNext.y) {
+      rammed = true;
+      alive[index] = false;
+    } else if (!open(state, move.next, null)) alive[index] = false;
+  });
+  nexts.forEach((move, index) => {
+    if (!alive[index]) return;
+    nexts.forEach((other, otherIndex) => {
+      if (otherIndex <= index || !alive[otherIndex]) return;
+      if (other.next.x === move.next.x && other.next.y === move.next.y) {
+        alive[index] = false;
+        alive[otherIndex] = false;
+      }
+    });
+  });
+  if (rammed) return { ...base, dead: true };
+
   trail[at(state, youNext)] = 1;
-  if (!state.foeAlive) return { ...base, trail, you: youNext, foeDir };
-  if (!open(state, foeNext, youNext)) {
-    dropTrails(trail, at(state, youNext));
-    const spawned = respawn(state, trail, youNext);
-    const bonus = score + 15 * state.level;
-    if (!spawned) {
-      return { ...base, trail, you: youNext, foeDir, foeAlive: false, score: bonus, won: true, fresh: 12 };
-    }
-    trail[at(state, spawned.foe)] = 2;
-    return {
-      ...base,
-      trail,
-      you: youNext,
-      foe: spawned.foe,
-      foeDir: spawned.foeDir,
-      foeAlive: true,
-      score: bonus,
-      fresh: 12,
-    };
-  }
-  trail[at(state, foeNext)] = 2;
-  return { ...base, trail, you: youNext, foe: foeNext, foeDir };
+  const foes: Foe[] = state.foes.map((foe, index) => {
+    const move = nexts[index];
+    if (!move || !foe.alive) return foe;
+    if (!alive[index]) return { ...foe, dir: move.dir, alive: false };
+    trail[at(state, move.next)] = index + 2;
+    return { pos: move.next, dir: move.dir, alive: true };
+  });
+  const crashed = state.foes.filter((foe, index) => foe.alive && !alive[index]).length;
+  const score = base.score + crashed * 25 * state.level;
+  const corners = state.corners.map((line) => line.slice());
+  if (youDir !== state.youDir) corners[0]?.push(state.you);
+  state.foes.forEach((foe, index) => {
+    const move = nexts[index];
+    if (move && foe.alive && alive[index] && move.dir !== foe.dir) corners[index + 1]?.push(foe.pos);
+  });
+  const moved: CycleState = { ...base, you: youNext, foes, corners, trail, score, fresh: crashed > 0 ? 12 : base.fresh };
+  if (foes.some((foe) => foe.alive)) return moved;
+
+  const rounds = state.rounds + 1;
+  const bonus = score + 100 * state.level;
+  if (rounds >= CYCLE_ROUNDS) return { ...moved, rounds, score: bonus, won: true, fresh: 12 };
+  const you = { x: 8, y: Math.floor(state.height / 2) };
+  const fresh = startFoes();
+  return {
+    ...moved,
+    you,
+    youDir: "right",
+    pending: undefined,
+    buffered: undefined,
+    foes: fresh,
+    corners: startCorners(you, fresh),
+    trail: startGrid(state.width, state.height, fresh, you),
+    rounds,
+    level: cycleLevel(tick, rounds),
+    score: bonus,
+    fresh: 12,
+  };
 }
