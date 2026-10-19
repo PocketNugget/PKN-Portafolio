@@ -4508,7 +4508,7 @@ p.hero-focus {
 @media (min-width: 701px) and (pointer: fine) {
   .desk-win .title-bar-controls button,
   .hack-pop .title-bar-controls button {
-    min-width: calc(24px / var(--ui-scale));
-    min-height: calc(24px / var(--ui-scale));
+    min-width: calc(24.5px / var(--ui-scale));
+    min-height: calc(24.5px / var(--ui-scale));
   }
 }
