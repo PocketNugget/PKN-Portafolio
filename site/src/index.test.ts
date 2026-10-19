@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import html from "../index.html?raw";
+import og from "../public/og.png?url";
+import { render } from "./render";
 
 function meta(attr: "name" | "property", key: string): string {
   const match = new RegExp(`<meta\\s+${attr}="${key.replace(/[:.]/g, "\\$&")}"\\s+content="([^"]*)"`).exec(html);
@@ -32,5 +34,17 @@ describe("index.html for link previews and search", () => {
     expect(html).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
     expect(html).not.toContain("—");
     expect(html).not.toMatch(/Netherlands|Ireland|Austria/);
+  });
+});
+
+describe("preview image and hero tape", () => {
+  it("ships the og.png that the meta tags point at", () => {
+    expect(og).toMatch(/og\.png/);
+  });
+
+  it("keeps the second tape copy separate so it can hide when motion is off", () => {
+    const home = render("/");
+    expect(home.match(/class="hero-half"/g)).toHaveLength(1);
+    expect(home.match(/class="hero-half hero-again"/g)).toHaveLength(1);
   });
 });

@@ -208,7 +208,7 @@ function heroBlock(): string {
         <a class="hero-go hero-jobs" href="/jobs" data-cmd="jobs">${tx("See the jobs")}</a>
       </nav>
       <div class="hero-stats">${stats}</div>
-      <div class="hero-ticker" aria-hidden="true"><div class="hero-tape">${tape}${tape}</div></div>
+      <div class="hero-ticker" aria-hidden="true"><div class="hero-tape"><span class="hero-half">${tape}</span><span class="hero-half hero-again">${tape}</span></div></div>
     </section>`;
 }
 

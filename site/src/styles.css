@@ -2795,11 +2795,15 @@ a.hero-stat:nth-child(6) { animation-delay: 780ms; }
   animation: hero-tape 36s linear infinite;
 }
 
-.hero-tape span {
+.hero-half {
+  display: inline-flex;
+}
+
+.hero-half > span {
   padding: 0 14px;
 }
 
-.hero-tape span::before {
+.hero-half > span::before {
   content: "> ";
   color: #ff0;
 }
@@ -3479,4 +3483,23 @@ p.play-over-text {
     grid-column: 2;
     width: auto;
   }
+}
+
+/* With motion off the tape stands still, so the second copy that closes the loop goes away. */
+.hero.is-still .hero-again {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-again {
+    display: none;
+  }
+
+  .hero-half {
+    flex-wrap: wrap;
+  }
+}
+
+.hero.is-still .hero-half {
+  flex-wrap: wrap;
 }
