@@ -19,6 +19,7 @@ import { newPostCount } from "../blog";
 import { NUGGET_TIPS } from "./facts";
 import { AWARDS, PICTURES } from "./media";
 import { phoneLayout } from "./phone";
+import { uiScale } from "./scale";
 import { mountPlayer } from "./player";
 import { mountSweep } from "./sweep";
 import { Terminal } from "./term";
@@ -406,17 +407,33 @@ export function bootDesktop(): void {
     }
   }
 
+  /** A CRT look over the whole screen: scanlines and darker corners. It sits outside the desk so the lines stay sharp. */
+  const crt = document.createElement("div");
+  crt.id = "crt";
+  crt.setAttribute("aria-hidden", "true");
+  crt.hidden = sessionGet("pkn-crt") !== "1";
+  document.body.append(crt);
+
+  function applyCrt(on: boolean): void {
+    crt.hidden = !on;
+    sessionSet("pkn-crt", on ? "1" : "0");
+    for (const input of desktop.querySelectorAll<HTMLInputElement>("input[name=crt]")) input.checked = on;
+  }
+
   function mountDisplay(host: HTMLElement): void {
     const current = wallpaperId();
     const rows = WALLPAPERS.map((item) => {
       const checked = item.id === current ? " checked" : "";
       return `<div class="field-row"><input type="radio" name="wallpaper" id="wp-${item.id}" value="${item.id}"${checked}><label for="wp-${item.id}">${t(item.label)}</label></div>`;
     }).join("");
+    const crtOn = !crt.hidden ? " checked" : "";
     host.innerHTML = `<fieldset><legend>${t("Wallpaper")}</legend>${rows}</fieldset>
+      <fieldset><legend>${t("Screen")}</legend><div class="field-row"><input type="checkbox" name="crt" id="crt-on"${crtOn}><label for="crt-on">${t("CRT filter on the whole screen")}</label></div></fieldset>
       <p class="meta">${t("Files live in public/wallpapers. Sky is the photo. Teal and Clouds are the older drawings. This tab remembers the choice. It is not a cookie.")}</p>`;
     host.addEventListener("change", (event) => {
       const target = event.target;
       if (target instanceof HTMLInputElement && target.name === "wallpaper") applyWallpaper(target.value);
+      if (target instanceof HTMLInputElement && target.name === "crt") applyCrt(target.checked);
     });
   }
 
@@ -730,8 +747,8 @@ export function bootDesktop(): void {
       const origY = win.y;
       title.setPointerCapture(event.pointerId);
       const move = (ev: PointerEvent) => {
-        win.x = origX + ev.clientX - startX;
-        win.y = origY + ev.clientY - startY;
+        win.x = origX + (ev.clientX - startX) / uiScale();
+        win.y = origY + (ev.clientY - startY) / uiScale();
         clamp(win);
         place(win);
       };
@@ -759,8 +776,8 @@ export function bootDesktop(): void {
       const orig = { x: win.x, y: win.y, w: win.w, h: win.h };
       handle.setPointerCapture(event.pointerId);
       const move = (ev: PointerEvent) => {
-        const dx = ev.clientX - startX;
-        const dy = ev.clientY - startY;
+        const dx = (ev.clientX - startX) / uiScale();
+        const dy = (ev.clientY - startY) / uiScale();
         let { x, y, w, h } = orig;
         if (edge.includes("e")) w = orig.w + dx;
         if (edge.includes("s")) h = orig.h + dy;
@@ -939,8 +956,8 @@ export function bootDesktop(): void {
         const startY = event.clientY;
         let dragging = false;
         const move = (ev: PointerEvent) => {
-          const dx = ev.clientX - startX;
-          const dy = ev.clientY - startY;
+          const dx = (ev.clientX - startX) / uiScale();
+          const dy = (ev.clientY - startY) / uiScale();
           if (!dragging && dx * dx + dy * dy < 16) return;
           dragging = true;
           spots[item.id] = { x: origin.x + dx, y: origin.y + dy };
@@ -1208,7 +1225,7 @@ export function bootDesktop(): void {
     lang.setAttribute("aria-expanded", "true");
     const box = lang.getBoundingClientRect();
     const bar = taskbar.getBoundingClientRect();
-    langMenu.style.right = `${Math.max(4, Math.round(bar.right - box.right))}px`;
+    langMenu.style.right = `${Math.max(4, Math.round((bar.right - box.right) / uiScale()))}px`;
     const current = langMenu.querySelector<HTMLButtonElement>(`button[data-lang="${getLang()}"]`);
     current?.focus();
   }
@@ -1266,8 +1283,9 @@ export function bootDesktop(): void {
     event.preventDefault();
     deskMenu.hidden = false;
     const host = app.getBoundingClientRect();
-    deskMenu.style.left = `${Math.min(Math.max(0, event.clientX - host.left), Math.max(0, host.width - 180))}px`;
-    deskMenu.style.top = `${Math.min(Math.max(0, event.clientY - host.top), Math.max(0, host.height - 120))}px`;
+    const k = uiScale();
+    deskMenu.style.left = `${Math.min(Math.max(0, (event.clientX - host.left) / k), Math.max(0, host.width / k - 180))}px`;
+    deskMenu.style.top = `${Math.min(Math.max(0, (event.clientY - host.top) / k), Math.max(0, host.height / k - 120))}px`;
   });
 
   start.addEventListener("click", (event) => {

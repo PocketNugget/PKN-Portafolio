@@ -1,3 +1,4 @@
+import { uiScale } from "./scale";
 import { NUGGET_LINES, NUGGET_SCARE } from "./facts";
 import { t } from "../i18n";
 import { phoneLayout } from "./phone";
@@ -104,7 +105,7 @@ export function mountClippy(desktop: HTMLElement): Clippy {
       if (social instanceof HTMLElement) {
         const host = desktop.getBoundingClientRect();
         const band = social.getBoundingClientRect();
-        const socialTop = band.top - host.top;
+        const socialTop = (band.top - host.top) / uiScale();
         if (socialTop > 40) top = Math.max(8, Math.min(top, socialTop - height - 8));
       }
     }
@@ -161,8 +162,8 @@ export function mountClippy(desktop: HTMLElement): Clippy {
   });
   pic.addEventListener("pointermove", (event) => {
     if (!drag) return;
-    const dx = event.clientX - drag.x;
-    const dy = event.clientY - drag.y;
+    const dx = (event.clientX - drag.x) / uiScale();
+    const dy = (event.clientY - drag.y) / uiScale();
     if (dx * dx + dy * dy < 9) return;
     dragged = true;
     moveTo(Math.max(0, drag.left + dx), Math.max(0, drag.top + dy));
@@ -178,7 +179,13 @@ export function mountClippy(desktop: HTMLElement): Clippy {
     const height = root.offsetHeight || 240;
     const hits = (left: number, top: number) => {
       const host = desktop.getBoundingClientRect();
-      const mine = { left: host.left + left, right: host.left + left + width, top: host.top + top, bottom: host.top + top + height };
+      const k = uiScale();
+      const mine = {
+        left: host.left + left * k,
+        right: host.left + (left + width) * k,
+        top: host.top + top * k,
+        bottom: host.top + (top + height) * k,
+      };
       return blocks.some((el) => {
         const other = el.getBoundingClientRect();
         if (other.width < 2 || other.height < 2) return false;

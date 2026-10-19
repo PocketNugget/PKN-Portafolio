@@ -19,6 +19,7 @@ body {
 
 :root {
   --bar: 30px;
+  --ui-scale: 0.9;
 }
 
 #app {
@@ -29,6 +30,17 @@ body {
   height: var(--app-h, 100svh);
   overflow: hidden;
   touch-action: manipulation;
+}
+
+/* On a desktop browser the desk is drawn at 90%, the size it looks right at, and laid out on a canvas that much
+   bigger so it still fills the window. Phones and tablets keep 100%. */
+@media (min-width: 701px) and (pointer: fine) {
+  #app {
+    width: calc(100vw / var(--ui-scale));
+    height: calc(var(--app-h, 100svh) / var(--ui-scale));
+    transform: scale(var(--ui-scale));
+    transform-origin: 0 0;
+  }
 }
 
 #boot {
@@ -2159,7 +2171,8 @@ button#lang,
   #taskbar,
   #start-menu,
   #clippy,
-  #desk-menu {
+  #desk-menu,
+  #crt {
     display: none !important;
   }
 
@@ -4473,4 +4486,29 @@ p.hero-focus {
 
 .window-body:has(.notepad-mount)::-webkit-scrollbar {
   display: none;
+}
+
+/* CRT filter, from Display. Scanlines and darker corners over the whole screen, outside the scaled desk so the lines
+   stay one pixel sharp. It never takes a click. */
+#crt {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.38) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1' height='3'%3E%3Crect y='2' width='1' height='1' fill='%23000' fill-opacity='.22'/%3E%3C/svg%3E");
+}
+
+#crt[hidden] {
+  display: none;
+}
+
+/* The desk is drawn at 90%, so the window buttons are made bigger in layout units to still measure 24px on screen. */
+@media (min-width: 701px) and (pointer: fine) {
+  .desk-win .title-bar-controls button,
+  .hack-pop .title-bar-controls button {
+    min-width: calc(24px / var(--ui-scale));
+    min-height: calc(24px / var(--ui-scale));
+  }
 }

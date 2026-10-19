@@ -113,7 +113,11 @@ const windowCheck = async ({ touch, dense }) => {
   const phone = matchMedia("(max-width: 700px), (pointer: coarse) and (max-height: 500px)").matches;
   const name = (el) => (el.className && typeof el.className === "string" ? el.className.split(" ")[0] : el.tagName) + "[" + (el.textContent || el.getAttribute("aria-label") || "").trim().slice(0, 14) + "]";
   if (r.left < area.left - 1 || r.top < area.top - 1 || r.right > area.right + 1 || r.bottom > area.bottom + 1) out.push("window outside the desk " + [r.left, r.top, r.right, r.bottom].map(Math.round).join(","));
-  for (const v of [r.left - area.left, r.top - area.top, r.width, r.height]) if (Math.abs(v - Math.round(v)) > 0.05) { out.push("window on a fraction of a pixel " + v.toFixed(2)); break; }
+  // The desk is drawn at --ui-scale on a desktop browser, so whole pixels are counted in layout units.
+  const scale = matchMedia("(min-width: 701px) and (pointer: fine)").matches
+    ? parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--ui-scale")) || 1
+    : 1;
+  for (const v of [r.left - area.left, r.top - area.top, r.width, r.height].map((n) => n / scale)) if (Math.abs(v - Math.round(v)) > 0.05) { out.push("window on a fraction of a pixel " + v.toFixed(2)); break; }
   const tr = title.getBoundingClientRect();
   for (const b of title.querySelectorAll(".title-bar-controls button")) {
     const br = b.getBoundingClientRect();

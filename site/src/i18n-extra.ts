@@ -1145,6 +1145,8 @@ const rows: readonly (readonly [string, string, string, string])[] = [
   ["buttons move. turn and drop. r restarts. exit leaves", "los botones mueven. girar y soltar. r reinicia. salir sale", "Tasten bewegen. Drehen und fallen. R startet neu. Ende beendet", "les boutons déplacent. tourner et lâcher. r relance. quitter sort"],
   ["A mine. Again starts over.", "Una mina. Otra vez empieza de nuevo.", "Eine Mine. Nochmal fängt neu an.", "Une mine. Recommencer relance."],
   ["Name", "Nombre", "Name", "Nom"],
+  ["Screen", "Pantalla", "Bildschirm", "Écran"],
+  ["CRT filter on the whole screen", "Filtro CRT en toda la pantalla", "CRT-Filter auf dem ganzen Bildschirm", "Filtre CRT sur tout l'écran"],
   ["Email", "Correo", "E-Mail", "E-mail"],
   ["Message", "Mensaje", "Nachricht", "Message"],
   ["Send message", "Enviar mensaje", "Nachricht senden", "Envoyer le message"],
