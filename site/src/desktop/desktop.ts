@@ -181,7 +181,7 @@ const SIZES: Record<string, [number, number]> = {
   "/hack": [520, 480],
   "/run": [320, 160],
   "/find": [420, 320],
-  "/pad": [420, 480],
+  "/pad": [460, 600],
   "/login": [360, 520],
   "/admin/login": [360, 520],
   "/admin": [560, 640],

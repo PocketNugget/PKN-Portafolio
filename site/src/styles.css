@@ -4463,3 +4463,14 @@ p.hero-focus {
   color: #800000;
   font-weight: 700;
 }
+
+/* Give your opinion: no side scrollbar. The page still scrolls with the wheel or a swipe, and the window is tall enough
+   for the form and the first comments. */
+.window-body:has(.notepad-mount) {
+  scrollbar-width: none;
+  overflow-x: hidden;
+}
+
+.window-body:has(.notepad-mount)::-webkit-scrollbar {
+  display: none;
+}
