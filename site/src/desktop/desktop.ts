@@ -1101,6 +1101,7 @@ export function bootDesktop(): void {
   saver.hidden = true;
   const saverPic = document.createElement("img");
   saverPic.src = "/buddy/nugget.png";
+  saverPic.loading = "lazy";
   saverPic.alt = "";
   saver.append(saverPic);
   saverPic.style.left = "12px";

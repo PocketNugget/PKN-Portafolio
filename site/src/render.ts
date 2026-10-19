@@ -66,7 +66,7 @@ function tx(value: string): string {
 
 function shot(src: string | undefined): string {
   if (!src || !/^\/media\/[A-Za-z0-9._-]+$/.test(src)) return "";
-  return `<img class="shot" src="${escapeHtml(src)}" alt="" />`;
+  return `<img class="shot" src="${escapeHtml(src)}" alt="" loading="lazy" decoding="async" />`;
 }
 
 function jobBlock(job: Job, full: boolean): string {
@@ -191,7 +191,7 @@ function heroBlock(): string {
   const tape = hero.ticker.map((item) => `<span>${escapeHtml(item)}</span>`).join("");
   return `<section class="hero">
       <div class="hero-top">
-        <img class="hero-pic" src="/media/me.png" alt="Goben Diego Constantino Aguirre" />
+        <img class="hero-pic" src="/media/me.png" width="116" height="116" alt="Goben Diego Constantino Aguirre" decoding="async" />
         <div class="hero-id">
           <p class="hero-prompt"><span class="user">goben</span>@<span class="host">pkn</span>:~$ whoami</p>
           <p class="hero-name">Goben Diego Constantino Aguirre</p>

@@ -52,6 +52,8 @@ export function mountGallery(host: HTMLElement, shots: Shot[], intro: string): D
     tile.className = "thumb";
     const thumb = document.createElement("img");
     thumb.src = shot.src;
+    thumb.loading = "lazy";
+    thumb.decoding = "async";
     thumb.alt = t(shot.title);
     const name = document.createElement("span");
     name.textContent = t(shot.title);
