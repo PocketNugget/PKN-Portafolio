@@ -174,12 +174,13 @@ describe("desktop for a recruiter", () => {
     expect(menu?.hidden).toBe(true);
   });
 
-  it("keeps the games in one folder and the accessories in Start only", () => {
+  it("keeps the games in one folder and the tools loose on the desktop", () => {
     const desk = [...document.querySelectorAll<HTMLElement>("#icons .desk-icon")].map((el) => el.dataset.app);
     expect(desk).toContain("games");
     expect(desk).not.toContain("accessories");
-    for (const id of [...(FOLDERS["/games"] ?? []), ...(FOLDERS["/accessories"] ?? [])]) expect(desk).not.toContain(id);
-    expect(desk.length).toBeLessThanOrEqual(16);
+    for (const id of FOLDERS["/games"] ?? []) expect(desk).not.toContain(id);
+    for (const id of FOLDERS["/accessories"] ?? []) expect(desk).toContain(id);
+    expect(desk.length).toBeLessThanOrEqual(24);
     document.querySelector<HTMLButtonElement>('.desk-icon[data-app="games"]')?.click();
     const folder = [...document.querySelectorAll(".desk-win")].at(-1);
     const items = [...(folder?.querySelectorAll<HTMLButtonElement>(".folder-item") ?? [])];
@@ -199,7 +200,7 @@ describe("desktop for a recruiter", () => {
     for (const path of ["/snake", "/tetris", "/sweep", "/math", "/games", "/accessories", "/terminal", "/pad", "/login", "/hack", "/player"]) {
       expect(isDocPath(path), path).toBe(false);
     }
-    expect(APPS.filter((app) => app.desk).length).toBeLessThanOrEqual(16);
+    expect(APPS.filter((app) => app.desk).length).toBeLessThanOrEqual(20);
   });
 
   it("copies the email and says so, or says how to get it when copy fails", async () => {
