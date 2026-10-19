@@ -21,6 +21,7 @@ import {
   stepSnake,
   tetrisActive,
   tetrisDown,
+  tetrisGhost,
   tetrisHard,
   tetrisLeft,
   tetrisLevel,
@@ -45,6 +46,9 @@ const ARROWS: Record<string, Dir> = {
   ArrowRight: "right",
 };
 
+// WASD steers like the arrows, the way most browser games accept both.
+const WASD: Record<string, string> = { w: "ArrowUp", a: "ArrowLeft", s: "ArrowDown", d: "ArrowRight" };
+
 export interface TermHost {
   openPath: (href: string) => void;
   close: () => void;
@@ -52,6 +56,8 @@ export interface TermHost {
 
 type PlayMode = "snake" | "tetris" | "tron";
 type Mode = "shell" | PlayMode;
+
+const TITLES: Record<PlayMode, string> = { snake: "Snake", tetris: "Tetris", tron: "Tron" };
 
 export class Terminal {
   private readonly pre: HTMLElement;
@@ -76,7 +82,17 @@ export class Terminal {
   private scoreGame: GameId | null = null;
   private pace = 0;
   private paused = false;
+  private ready = false;
+  private said = "";
   private held = false;
+  private readonly over: HTMLElement;
+  private readonly live: HTMLElement;
+  private readonly onHide = () => {
+    if (document.hidden && this.running()) {
+      this.paused = true;
+      this.paint();
+    }
+  };
   private timer = 0;
   private dasKey = "";
   private dasTimer = 0;
@@ -91,8 +107,18 @@ export class Terminal {
     host.classList.add("term-mount");
     host.innerHTML = `<pre class="dos" tabindex="0"></pre>
       <div class="play-stage" hidden>
-        <div class="play-fit"><div class="play-board"></div></div>
+        <div class="play-fit"><div class="play-board" role="img"></div>
+          <div class="play-over window" hidden>
+            <p class="play-over-title"></p>
+            <p class="play-over-text"></p>
+            <div class="play-over-act">
+              <button type="button" class="play-over-go"></button>
+              <button type="button" class="play-over-exit" data-key="Escape"></button>
+            </div>
+          </div>
+        </div>
         <p class="play-status"></p>
+        <p class="play-live" aria-live="polite"></p>
       </div>
       <form class="term-line" autocomplete="off">
         <label for="term-cmd">goben@pkn:~$</label>
@@ -134,6 +160,19 @@ export class Terminal {
     this.stage = stage;
     this.board = board;
     this.status = status;
+    const over = host.querySelector(".play-over");
+    const live = host.querySelector(".play-live");
+    if (!(over instanceof HTMLElement) || !(live instanceof HTMLElement)) throw new Error("terminal markup missing");
+    this.over = over;
+    this.live = live;
+    over.addEventListener("click", (event) => {
+      const button = event.target instanceof Element ? event.target.closest("button") : null;
+      const key = button instanceof HTMLButtonElement ? button.dataset.key : "";
+      if (!key) return;
+      this.onKey(key, false);
+      if (this.inGame()) this.pre.focus();
+    });
+    document.addEventListener("visibilitychange", this.onHide);
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       const value = input.value;
@@ -156,6 +195,14 @@ export class Terminal {
     return this.mode !== "shell";
   }
 
+  private finished(): boolean {
+    return Boolean(this.snake?.dead || this.tetris?.over || this.tron?.dead || this.tron?.won);
+  }
+
+  private running(): boolean {
+    return this.inGame() && !this.ready && !this.paused && !this.finished();
+  }
+
   focusInput(): void {
     if (!this.gone && !this.inGame()) this.input.focus();
   }
@@ -175,6 +222,7 @@ export class Terminal {
   }
 
   destroy(): void {
+    document.removeEventListener("visibilitychange", this.onHide);
     this.gone = true;
     this.stopLoop();
     this.stopDas();
@@ -310,8 +358,9 @@ export class Terminal {
     });
   }
 
-  onKey(key: string, repeat: boolean): boolean {
+  onKey(raw: string, repeat: boolean): boolean {
     if (this.gone || this.mode === "shell") return false;
+    const key = WASD[raw.toLowerCase()] ?? raw;
     if (key === "Escape") {
       this.endGame();
       return true;
@@ -319,11 +368,25 @@ export class Terminal {
     if (key === "Again" || key === "r" || key === "R") {
       if (!repeat) {
         this.stopDas();
-        this.begin(this.mode);
+        this.begin(this.mode, false);
       }
       return true;
     }
-    if (key === "p" || key === "P") {
+    if (this.ready) {
+      if (repeat) return true;
+      const go = key === "Start" || key === "Enter" || key === " " || key in ARROWS;
+      if (!go) return key === "p" || key === "P";
+      this.ready = false;
+      this.paint();
+      this.syncPace();
+      if (key === "Start" || key === "Enter" || key === " " || this.mode === "tetris") return true;
+    }
+    if (this.finished() && (key === "Enter" || key === "Start")) {
+      if (!repeat) this.begin(this.mode, false);
+      return true;
+    }
+    if (key === "p" || key === "P" || (this.paused && (key === "Enter" || key === "Start"))) {
+      if (this.finished()) return true;
       this.paused = !this.paused;
       this.paint();
       return true;
@@ -465,9 +528,10 @@ export class Terminal {
     }
   }
 
-  private begin(mode: PlayMode): void {
+  private begin(mode: PlayMode, ready = true): void {
     this.mode = mode;
     this.paused = false;
+    this.ready = ready;
     this.pace = 0;
     this.snake = mode === "snake" ? createSnake() : null;
     this.tetris = mode === "tetris" ? createTetris() : null;
@@ -524,7 +588,7 @@ export class Terminal {
   }
 
   private tick(): void {
-    if (this.paused || this.held || this.gone) return;
+    if (this.paused || this.ready || this.held || this.gone) return;
     if (this.snake && !this.snake.dead) {
       this.snake = stepSnake(this.snake);
       this.paint();
@@ -575,6 +639,67 @@ export class Terminal {
       this.pre.textContent = this.lines.join("\n");
     }
     this.pre.scrollTop = this.pre.scrollHeight;
+    this.paintOverlay();
+  }
+
+  private score(): number {
+    return this.snake?.score ?? this.tetris?.score ?? this.tron?.score ?? 0;
+  }
+
+  private paintOverlay(): void {
+    const pause = this.root.querySelector<HTMLButtonElement>(".pad-act button[data-key='p']");
+    if (pause) {
+      pause.textContent = t(this.paused ? "Resume" : "Pause");
+      pause.setAttribute("aria-label", pause.textContent);
+      pause.setAttribute("aria-pressed", String(this.paused));
+    }
+    if (this.mode === "shell") {
+      this.over.hidden = true;
+      this.say("");
+      return;
+    }
+    this.board.setAttribute("aria-label", `${TITLES[this.mode]}. ${t("Score")} ${this.score()}`);
+    const title = this.over.querySelector(".play-over-title");
+    const text = this.over.querySelector(".play-over-text");
+    const go = this.over.querySelector<HTMLButtonElement>(".play-over-go");
+    const exit = this.over.querySelector<HTMLButtonElement>(".play-over-exit");
+    if (!title || !text || !go || !exit) return;
+    exit.textContent = t("Exit");
+    const touch = this.touchPlay();
+    let state = "";
+    if (this.ready) {
+      state = "ready";
+      title.textContent = TITLES[this.mode];
+      text.textContent = touch
+        ? t(this.mode === "tetris" ? "Swipe or use the buttons. Tap the board to turn." : "Swipe or use the buttons to steer.")
+        : t(this.mode === "tetris" ? "Arrows or WASD move. Up turns, space drops. P pauses, R restarts." : "Arrows or WASD steer. P pauses, R restarts.");
+      go.textContent = t("Play");
+      go.dataset.key = "Start";
+    } else if (this.finished()) {
+      state = "over";
+      title.textContent = this.tron?.won ? t("You cleared the grid.") : t("Game over");
+      text.textContent = `${t("Score")} ${this.score()}`;
+      go.textContent = t("Play again");
+      go.dataset.key = "Again";
+    } else if (this.paused) {
+      state = "paused";
+      title.textContent = t("Paused");
+      text.textContent = `${t("Score")} ${this.score()}`;
+      go.textContent = t("Resume");
+      go.dataset.key = "p";
+    }
+    this.over.hidden = !state;
+    this.over.dataset.state = state;
+    if (state === "over") this.say(`${title.textContent} ${text.textContent}`);
+    else if (state === "paused") this.say(t("Paused"));
+    else if (state === "ready") this.say(`${TITLES[this.mode]}. ${text.textContent}`);
+    else this.say("");
+  }
+
+  private say(message: string): void {
+    if (message === this.said) return;
+    this.said = message;
+    if (message) this.live.textContent = message;
   }
 
   private cells(count: number): HTMLElement[] {
@@ -618,6 +743,7 @@ export class Terminal {
     this.board.className = "play-board tetris";
     this.board.style.aspectRatio = `${state.width} / ${state.height}`;
     const active = new Set(tetrisActive(state).map((cell) => `${cell.x},${cell.y}`));
+    const ghost = new Set(tetrisGhost(state).map((cell) => `${cell.x},${cell.y}`));
     const tiles = this.cells(state.width * state.height);
     for (let index = 0; index < tiles.length; index += 1) {
       const x = index % state.width;
@@ -627,6 +753,7 @@ export class Terminal {
       const falling = active.has(`${x},${y}`);
       if (falling) tile.className = `play-cell k${state.kind}`;
       else if (state.grid[index]) tile.className = "play-cell locked";
+      else if (ghost.has(`${x},${y}`)) tile.className = "play-cell ghost";
       else tile.className = "play-cell";
     }
     const hint = state.over
@@ -636,7 +763,8 @@ export class Terminal {
         : t("arrows, space drops. r restarts. esc leaves");
     const hold = this.paused ? `  ${t("paused")}` : "";
     const level = tetrisLevel(state.lines);
-    this.status.textContent = `${t("Score")} ${state.score}  ${t("Lines")} ${state.lines}  ${t("Level")} ${level}  ${hint}${hold}`;
+    const next = state.queue[0] ? `  ${t("Next")} ${state.queue[0]}` : "";
+    this.status.textContent = `${t("Score")} ${state.score}  ${t("Lines")} ${state.lines}  ${t("Level")} ${level}${next}  ${hint}${hold}`;
     this.scores?.setOffer(state.score, level, state.over);
   }
 

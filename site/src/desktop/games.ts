@@ -487,6 +487,14 @@ export function tetrisHard(state: TetrisState): TetrisState {
   return lock(next);
 }
 
+/** Where the falling piece would land: the ghost a modern Tetris draws under the piece. */
+export function tetrisGhost(state: TetrisState): Point[] {
+  if (state.over) return [];
+  let y = state.y;
+  while (fits(state, state.kind, state.rot, state.x, y + 1)) y += 1;
+  return (ROT[state.kind][state.rot] ?? []).map((cell) => ({ x: cell.x + state.x, y: cell.y + y }));
+}
+
 export function tetrisActive(state: TetrisState): Point[] {
   if (state.over) return [];
   return (ROT[state.kind][state.rot] ?? []).map((cell) => ({

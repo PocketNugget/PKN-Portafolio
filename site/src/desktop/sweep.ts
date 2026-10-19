@@ -117,6 +117,40 @@ export function sweepFlag(state: SweepState, index: number): SweepState {
   return { ...state, cells };
 }
 
+/** Classic chord: on an open number whose flags already match, open every other neighbor. */
+export function sweepChord(state: SweepState, index: number): SweepState {
+  if (!state.alive || state.won) return state;
+  const cell = state.cells[index];
+  if (!cell || !cell.open || cell.near === 0) return state;
+  const around = neighbors(state, index);
+  const flags = around.filter((near) => state.cells[near]?.flag).length;
+  if (flags !== cell.near) return state;
+  let next = state;
+  for (const near of around) {
+    const target = next.cells[near];
+    if (!target || target.open || target.flag) continue;
+    if (target.mine) {
+      const cells = next.cells.map((item) => ({ ...item, open: item.mine ? true : item.open }));
+      return { ...next, cells, alive: false };
+    }
+    next = reveal(next, near);
+  }
+  return next;
+}
+
+/** What a screen reader hears for one cell. */
+export function sweepCellLabel(state: SweepState, index: number): string {
+  const cell = state.cells[index];
+  const row = Math.floor(index / state.width) + 1;
+  const col = (index % state.width) + 1;
+  const where = `${t("Row")} ${row}, ${t("column")} ${col}`;
+  if (!cell) return where;
+  if (cell.open && cell.mine) return `${where}: ${t("mine")}`;
+  if (cell.open) return `${where}: ${cell.near ? `${cell.near} ${t("near")}` : t("empty")}`;
+  if (cell.flag) return `${where}: ${t("flagged")}`;
+  return `${where}: ${t("hidden")}`;
+}
+
 export function sweepFlagsLeft(state: SweepState): number {
   const flags = state.cells.filter((cell) => cell.flag).length;
   return state.mines - flags;
@@ -205,6 +239,89 @@ export function mountSweep(host: HTMLElement): DeskApp {
       paint();
     }, 1000);
   };
+  let focus = 0;
+  let built = "";
+  const coarse = () => matchMedia("(pointer: coarse), (max-width: 700px)").matches;
+  const act = (index: number, mark: boolean) => {
+    rose = false;
+    const cell = state.cells[index];
+    if (mark) state = sweepFlag(state, index);
+    else if (cell?.open) state = sweepChord(state, index);
+    else state = flagMode ? sweepFlag(state, index) : sweepOpen(state, index);
+    if (state.won && level < SWEEP_MAX) {
+      bank += sweepPoints(sweepSafeOpen(state), level, true);
+      level += 1;
+      state = sweepBoard(level);
+      seconds = 0;
+      stop();
+      rose = true;
+      focus = 0;
+    } else if (!state.alive || state.won) stop();
+    else start();
+    paint();
+  };
+  const build = () => {
+    built = `${state.width}x${state.height}`;
+    grid.style.gridTemplateColumns = `repeat(${state.width}, minmax(0, 1fr))`;
+    grid.setAttribute("role", "grid");
+    grid.setAttribute("aria-label", t("Minefield"));
+    grid.replaceChildren();
+    state.cells.forEach((_, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "sweep-cell";
+      button.dataset.index = String(index);
+      let hold = 0;
+      const clearHold = () => {
+        if (!hold) return;
+        window.clearTimeout(hold);
+        hold = 0;
+      };
+      button.addEventListener("pointerdown", (event) => {
+        if (event.pointerType === "mouse" && event.button !== 0) return;
+        focus = index;
+        clearHold();
+        hold = window.setTimeout(() => {
+          hold = 0;
+          suppressUntil = performance.now() + 400;
+          act(index, true);
+        }, 380);
+      });
+      button.addEventListener("pointerup", clearHold);
+      button.addEventListener("pointercancel", clearHold);
+      button.addEventListener("click", () => {
+        clearHold();
+        if (performance.now() < suppressUntil) return;
+        focus = index;
+        act(index, false);
+      });
+      button.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+        focus = index;
+        act(index, true);
+      });
+      grid.append(button);
+    });
+  };
+  grid.addEventListener("keydown", (event) => {
+    const moves: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    const move = moves[event.key];
+    if (move) {
+      event.preventDefault();
+      event.stopPropagation();
+      const x = Math.min(state.width - 1, Math.max(0, (focus % state.width) + move[0]));
+      const y = Math.min(state.height - 1, Math.max(0, Math.floor(focus / state.width) + move[1]));
+      focus = y * state.width + x;
+      paint();
+      grid.querySelector<HTMLButtonElement>(`[data-index="${focus}"]`)?.focus();
+      return;
+    }
+    if (event.key === "f" || event.key === "F") {
+      event.preventDefault();
+      act(focus, true);
+      grid.querySelector<HTMLButtonElement>(`[data-index="${focus}"]`)?.focus();
+    }
+  });
   const paint = () => {
     const left = sweepFlagsLeft(state);
     mines.textContent = String(left).padStart(3, "0");
@@ -218,61 +335,27 @@ export function mountSweep(host: HTMLElement): DeskApp {
       : state.won
         ? t("You cleared the last grid.")
         : state.alive
-          ? `${t("Open a cell. Flag marks a guess.")} ${t("Hold a cell to flag it.")}`
+          ? coarse()
+            ? t("Tap opens. Hold a cell or turn on Flag to mark a mine.")
+            : t("Click opens, right-click flags. Arrows and F work too.")
           : t("A mine. Again starts over.");
     status.textContent = `${t("Score")} ${total()}  ${t("Level")} ${level}  ${message}`;
     board.setOffer(total(), level, done);
-    grid.style.gridTemplateColumns = `repeat(${state.width}, minmax(0, 1fr))`;
-    grid.replaceChildren();
+    if (built !== `${state.width}x${state.height}` || grid.childElementCount !== state.cells.length) build();
+    const buttons = grid.querySelectorAll<HTMLButtonElement>(".sweep-cell");
     state.cells.forEach((cell, index) => {
-      const button = document.createElement("button");
-      button.type = "button";
+      const button = buttons[index];
+      if (!button) return;
       button.className = "sweep-cell";
       if (cell.open) button.classList.add("open");
       if (cell.mine && cell.open) button.classList.add("mine");
-      button.textContent = cell.flag && !cell.open ? "F" : cell.open && cell.mine ? "*" : cell.open && cell.near ? String(cell.near) : "";
-      button.setAttribute("aria-label", `Cell ${index + 1}`);
-      let hold = 0;
-      const clearHold = () => {
-        if (!hold) return;
-        window.clearTimeout(hold);
-        hold = 0;
-      };
-      button.addEventListener("pointerdown", (event) => {
-        if (event.pointerType === "mouse" && event.button !== 0) return;
-        clearHold();
-        hold = window.setTimeout(() => {
-          hold = 0;
-          state = sweepFlag(state, index);
-          suppressUntil = performance.now() + 400;
-          if (!state.alive || state.won) stop();
-          paint();
-        }, 380);
-      });
-      button.addEventListener("pointerup", clearHold);
-      button.addEventListener("pointercancel", clearHold);
-      button.addEventListener("click", () => {
-        clearHold();
-        if (performance.now() < suppressUntil) return;
-        rose = false;
-        state = flagMode ? sweepFlag(state, index) : sweepOpen(state, index);
-        if (state.won && level < SWEEP_MAX) {
-          bank += sweepPoints(sweepSafeOpen(state), level, true);
-          level += 1;
-          state = sweepBoard(level);
-          seconds = 0;
-          stop();
-          rose = true;
-        } else if (!state.alive || state.won) stop();
-        else start();
-        paint();
-      });
-      button.addEventListener("contextmenu", (event) => {
-        event.preventDefault();
-        state = sweepFlag(state, index);
-        paint();
-      });
-      grid.append(button);
+      if (cell.flag && !cell.open) button.classList.add("flag");
+      if (cell.open && !cell.mine && cell.near) button.classList.add(`n${cell.near}`);
+      const text = cell.flag && !cell.open ? "\u2691" : cell.open && cell.mine ? "\u2739" : cell.open && cell.near ? String(cell.near) : "";
+      if (button.textContent !== text) button.textContent = text;
+      const label = sweepCellLabel(state, index);
+      if (button.getAttribute("aria-label") !== label) button.setAttribute("aria-label", label);
+      button.tabIndex = index === focus ? 0 : -1;
     });
   };
   flag.addEventListener("click", () => {
@@ -287,6 +370,7 @@ export function mountSweep(host: HTMLElement): DeskApp {
     state = sweepBoard(level);
     seconds = 0;
     flagMode = false;
+    focus = 0;
     paint();
   });
   paint();

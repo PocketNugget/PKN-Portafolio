@@ -3346,3 +3346,137 @@ button.hero-go.copy-mail {
     min-height: 30px;
   }
 }
+
+/* Game overlay: a 98 message box over the board for Start, Paused, and Game over. */
+.play-fit > .play-board,
+.play-fit > .play-over {
+  grid-area: 1 / 1;
+}
+
+.play-over {
+  z-index: 2;
+  place-self: center;
+  box-sizing: border-box;
+  width: min(300px, 92%);
+  padding: 14px 16px;
+  text-align: center;
+  color: #222;
+  font-family: Tahoma, Verdana, "Segoe UI", "DejaVu Sans", sans-serif;
+  -webkit-font-smoothing: auto;
+}
+
+.play-over[hidden] {
+  display: none;
+}
+
+p.play-over-title {
+  margin: 0 0 6px;
+  font-family: "Pixelated MS Sans Serif", Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #000080;
+  -webkit-font-smoothing: none;
+}
+
+p.play-over-text {
+  margin: 0 0 12px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.play-over-act {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.play-over-act button {
+  min-width: 96px;
+  min-height: 34px;
+  font-size: 15px;
+  color: #000;
+  text-shadow: none;
+}
+
+.play-over-go {
+  font-weight: 700;
+  outline: 1px solid #000;
+}
+
+.play-cell.ghost {
+  background: #101410;
+  box-shadow: inset 0 0 0 2px #4a6a6a;
+}
+
+.play-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  .play-over-act button {
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
+
+/* Sweep: classic number colors, a visible flag, and a focus ring for keyboard play. */
+.sweep-cell.n1 { color: #0000ff; }
+.sweep-cell.n2 { color: #007b00; }
+.sweep-cell.n3 { color: #ff0000; }
+.sweep-cell.n4 { color: #00007b; }
+.sweep-cell.n5 { color: #7b0000; }
+.sweep-cell.n6 { color: #007b7b; }
+.sweep-cell.n7 { color: #000000; }
+.sweep-cell.n8 { color: #4a4a4a; }
+
+.sweep-cell.open,
+.sweep-cell.flag {
+  font-weight: 700;
+  text-shadow: none;
+}
+
+.sweep-cell.flag {
+  color: #c00000;
+}
+
+.sweep-cell.mine {
+  color: #000;
+  background: #ff5050;
+}
+
+.sweep-cell:focus-visible {
+  outline: 2px solid #000080;
+  outline-offset: -3px;
+}
+
+@media (max-height: 520px) and (min-width: 560px) {
+  .sweep-app {
+    display: grid;
+    grid-template-columns: auto minmax(180px, 1fr);
+    grid-template-rows: auto auto 1fr;
+    column-gap: 12px;
+    align-items: start;
+  }
+
+  .sweep-app > .sweep-grid {
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    width: max(200px, calc(100cqh - 16px));
+  }
+
+  .sweep-app > .sweep-bar,
+  .sweep-app > .meta,
+  .sweep-app > .top-scores {
+    grid-column: 2;
+    width: auto;
+  }
+}
