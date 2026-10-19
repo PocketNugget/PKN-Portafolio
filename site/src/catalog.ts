@@ -602,7 +602,7 @@ export const hero = {
     "President of Hackztecs since 2024",
     "First of 22 teams at the AI and Mobility Hackathon",
   ],
-  langs: "Spanish native · English C1+ · French A2 · German A1",
+  langs: "Spanish native · English C1+ · French A2 · German A2",
   stats: [
     {
       big: "52",

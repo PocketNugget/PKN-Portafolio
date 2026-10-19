@@ -83,8 +83,8 @@ const es: Record<string, string> = {
     "El paper de MICAI 2024, Easy for Us, Complex for AI, está en Springer LNCS 15246, páginas 198 a 209. Coautoría con Zobeida Guzmán.",
   "A coding agent can draft a change. I still read the diff.":
     "Un agente de código puede redactar un cambio. Yo sigo leyendo el diff.",
-  "Spanish, native. English, C1+. French, A2. German, A1.":
-    "Español, nativo. Inglés, C1+. Francés, A2. Alemán, A1.",
+  "Spanish, native. English, C1+. French, A2. German, A2.":
+    "Español, nativo. Inglés, C1+. Francés, A2. Alemán, A2.",
   "Or send a message here. It lands in my editor, and I read it.":
     "O mándame un mensaje aquí. Llega a mi editor y lo leo.",
   "Tools from the jobs, in the order those jobs are listed.":
@@ -154,8 +154,8 @@ const de: Record<string, string> = {
     "Seit April 2025 bei TBSeK. Teilzeit als Jr. SOC bis Juli 2026: Alerts für 7 oder mehr Kunden, Playbooks, False Positives, und Python und Node.js, die die Berichtszeit um etwa 70% senkten. Die Vollzeitstelle SOC/MDR ist Splunk, Darktrace, CrowdStrike, Cisco AMP, Cisco Umbrella und GroupIB, plus Korrelation und die ersten Containment-Schritte.",
   "A coding agent can draft a change. I still read the diff.":
     "Ein Coding-Agent kann eine Änderung entwerfen. Ich lese den Diff trotzdem.",
-  "Spanish, native. English, C1+. French, A2. German, A1.":
-    "Spanisch, Muttersprache. Englisch, C1+. Französisch, A2. Deutsch, A1.",
+  "Spanish, native. English, C1+. French, A2. German, A2.":
+    "Spanisch, Muttersprache. Englisch, C1+. Französisch, A2. Deutsch, A2.",
   "Or send a message here. It lands in my editor, and I read it.":
     "Oder schick mir hier eine Nachricht. Sie landet in meinem Editor, und ich lese sie.",
   "STEM UDLAP was February 2024 to June 2026. I wrote the MICAI paper, published the dataset, and kept the lab server on a Mac Mini. Cloudflare Tunnels published the registration services. Older Angular and Node apps moved into Docker. I also taught a hands-on Docker session: one container, then Compose.":
@@ -227,8 +227,8 @@ const fr: Record<string, string> = {
     "Chez TBSeK depuis avril 2025. Le poste junior à temps partiel a duré jusqu'en juillet 2026: triage d'alertes pour 7 clients ou plus, playbooks, faux positifs, et Python et Node.js qui ont baissé le temps des rapports d'environ 70%. Le poste SOC/MDR à temps plein, c'est Splunk, Darktrace, CrowdStrike, Cisco AMP, Cisco Umbrella et GroupIB, plus la corrélation et les premiers pas de confinement.",
   "A coding agent can draft a change. I still read the diff.":
     "Un agent de code peut rédiger un changement. Je lis quand même le diff.",
-  "Spanish, native. English, C1+. French, A2. German, A1.":
-    "Espagnol, langue maternelle. Anglais, C1+. Français, A2. Allemand, A1.",
+  "Spanish, native. English, C1+. French, A2. German, A2.":
+    "Espagnol, langue maternelle. Anglais, C1+. Français, A2. Allemand, A2.",
   "Or send a message here. It lands in my editor, and I read it.":
     "Ou envoie-moi un message ici. Il arrive dans mon éditeur, et je le lis.",
   "STEM UDLAP was February 2024 to June 2026. I wrote the MICAI paper, published the dataset, and kept the lab server on a Mac Mini. Cloudflare Tunnels published the registration services. Older Angular and Node apps moved into Docker. I also taught a hands-on Docker session: one container, then Compose.":

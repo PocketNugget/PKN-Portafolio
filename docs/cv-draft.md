@@ -46,7 +46,7 @@ President, Hackztecs (UDLAP security group), since February 2024 (member before)
 - **Infrastructure:** Linux, Docker, Docker Compose, Cloudflare Tunnels and Workers, Git, Raspberry Pi. Known, not used in a paid role: Kubernetes, CI/CD, Ansible, Puppet, Chef.
 - **Software:** Python, TypeScript, JavaScript, Node.js, React, Next.js, Angular, Kotlin, Swift, SQL (SQLite, MySQL).
 - **In progress (not earned):** CompTIA Security+, AWS Cloud Practitioner, GCP, Terraform.
-- **Languages:** Spanish (native), English (C1+), French (A2), German (A1).
+- **Languages:** Spanish (native), English (C1+), French (A2), German (A2).
 
 ## Education and courses
 Computer systems engineering, UDLAP, 2021 to 2025, 9.0/10. Hack The Box courses: Using the Metasploit Framework (July 2025), macOS Fundamentals (July 2025). [COMPLETAR: otras insignias de HTB que quieras listar.]

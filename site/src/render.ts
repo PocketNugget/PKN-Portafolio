@@ -313,7 +313,7 @@ function certsPage(): string {
     </article>
     <article class="block">
       <h2>${tx("Languages")}</h2>
-      <p>${tx("Spanish, native. English, C1+. French, A2. German, A1.")}</p>
+      <p>${tx("Spanish, native. English, C1+. French, A2. German, A2.")}</p>
     </article>
     <article class="block">
       <h2>ORCID</h2>
@@ -412,7 +412,7 @@ function skillsPage(): string {
     <p>${tx("Not earned and not work experience. These are what I am studying now.")}</p>
     ${list(skillGroups.learning)}
     <h2>${tx("Languages")}</h2>
-    <p>${tx("Spanish, native. English, C1+. French, A2. German, A1.")}</p>
+    <p>${tx("Spanish, native. English, C1+. French, A2. German, A2.")}</p>
     <h2>${tx("Agents")}</h2>
     <p>${tx("A coding agent can draft a change. I still read the diff. The pipelines I will talk about are the report scripts, the radio tools, and the prototypes already under projects.")}</p>`;
 }

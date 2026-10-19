@@ -13,7 +13,7 @@ export const FACTS: string[] = [
   "November 2024, team Los Zepedas took the ÖBB challenge at MAIA. First of 22. The prize was a trip to Austria.",
   "ColorScore, November 2025, first place at Enactus Changemakers with team Xcookers. SwiftUI, k-means, geometric marks.",
   "The MICAI 2024 paper Easy for Us, Complex for AI is in Springer LNCS 15246, pages 198 to 209. Co-authored with Zobeida Guzmán.",
-  "Spanish is native. English is C1+. French is A2. German is A1.",
+  "Spanish is native. English is C1+. French is A2. German is A2.",
   "On the bench: a HackRF One and a Nuand bladeRF 2.0, mostly 2.4 to 5.8 GHz. Separately, an iMac G4 restoration.",
   "A coding agent can draft a change. He still has to read the diff.",
 ];
@@ -29,7 +29,7 @@ export const NUGGET_LINES: string[] = [
   "November 2024, if you are looking at MAIA: team Los Zepedas took the ÖBB challenge. First of 22. The prize was a trip to Austria. The hackathon was in Mexico City.",
   "You can open ColorScore under Projects. November 2025, first place at Enactus Changemakers with team Xcookers. SwiftUI, k-means, geometric marks.",
   "There is a paper if you need it. MICAI 2024, Easy for Us, Complex for AI, Springer LNCS 15246, pages 198 to 209. He wrote it with Zobeida Guzmán.",
-  "Languages, since you will ask: Spanish is native. English is C1+. French is A2. German is A1.",
+  "Languages, since you will ask: Spanish is native. English is C1+. French is A2. German is A2.",
   "On the bench, if you open Radio: a HackRF One and a Nuand bladeRF 2.0, mostly 2.4 to 5.8 GHz. The iMac G4 restoration is a separate pile.",
   "One habit you should know. A coding agent can draft a change. He still has to read the diff.",
 ];
