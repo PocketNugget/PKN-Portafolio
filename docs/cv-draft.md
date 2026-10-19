@@ -19,7 +19,7 @@ SOC/MDR analyst in cybersecurity since April 2025. Computer systems engineering 
 - [COMPLETAR: una cifra verificable del turno (alertas por turno o semana, clientes cubiertos, tiempo de triage o de escalamiento). Las vacantes de SOC/MDR la usan para distinguir niveles.] [REVISAR NDA: confirmar qué se puede decir de los clientes.]
 
 **Jr. SOC analyst, TBSeK** (remote, part-time). April 2025 to July 2026
-- Triaged alerts across 7 or more client environments and wrote follow-up until a case had an owner; filtered false positives; applied and helped shape the incident-response playbook.
+- Triaged alerts across 7 or more client environments and wrote follow-up until a case had an owner; filtered false positives; followed the incident-response playbook.
 - Automated shift reports with Python, Node.js, Streamlit, and Selenium: about 70% less time on those reports.
 - Dark-web OSINT for leaked credentials and impersonation.
 - Tools: Splunk, Python, Node.js, Streamlit, Selenium. [COMPLETAR: Datadog, solo si lo usaste de verdad.]
