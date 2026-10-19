@@ -161,7 +161,7 @@ function updateSongLabel() {
 
 function updateStatusLabel() {
     let statusLabelText = "";
-    let listText = " " + (player.getPlaylistIndex() + 1) + "/" + player.getPlaylist().length;
+    let listText = " " + (player.getPlaylistIndex() + 1) + "/" + (player.getPlaylist() || []).length;
     let timeText = "0:00/0:00";
 
     seekBar.setAttribute("max", player.getDuration());

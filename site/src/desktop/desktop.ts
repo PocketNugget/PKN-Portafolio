@@ -510,8 +510,8 @@ export function bootDesktop(): void {
       if (narrow && win.path === "/hack") {
         win.el.style.top = "auto";
         win.el.style.bottom = "0";
-        win.el.style.height = "auto";
-        win.el.style.maxHeight = `${Math.round(desktop.clientHeight * 0.54)}px`;
+        win.el.style.height = `${Math.round(desktop.clientHeight * 0.54)}px`;
+        win.el.style.maxHeight = "";
         return;
       }
       if (narrow && win.path === "/player") {
@@ -1031,6 +1031,22 @@ export function bootDesktop(): void {
 
   function openLanding(): void {
     openHref(`${location.pathname}${location.search}`, false);
+    // If the stylesheet was still loading, the desk had no height when the first window was sized.
+    // Size it again once layout settles, unless the visitor already moved it.
+    const first = windows[0];
+    if (first) {
+      const sized = { x: first.x, y: first.y, w: first.w, h: first.h };
+      const again = () => {
+        if (!windows.includes(first) || first.max || phoneLayout()) return;
+        if (first.x !== sized.x || first.y !== sized.y || first.w !== sized.w || first.h !== sized.h) return;
+        const rect = initialRect(first.path, desktop.clientWidth, desktop.clientHeight, 0, false);
+        Object.assign(first, rect, { rx: rect.x, ry: rect.y, rw: rect.w, rh: rect.h });
+        Object.assign(sized, rect);
+        place(first);
+      };
+      requestAnimationFrame(again);
+      if (document.readyState !== "complete") window.addEventListener("load", again, { once: true });
+    }
     if (normalizePath(location.pathname) !== "/") return;
     const icon = icons.querySelector<HTMLElement>('.desk-icon[data-app="about"]');
     icon?.classList.add("attn");
