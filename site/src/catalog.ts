@@ -41,7 +41,15 @@ export interface ArchiveItem {
   href: string;
 }
 
-export const profiles = {
+export interface CourseItem {
+  id: string;
+  title: string;
+  body: string;
+  linkLabel?: string;
+  linkHref?: string;
+}
+
+export const profiles: Record<"email" | "github" | "linkedin" | "x", Link> = {
   email: {
     label: "goben.ca.pkn@hotmail.com",
     href: "mailto:goben.ca.pkn@hotmail.com",
@@ -58,7 +66,7 @@ export const profiles = {
     label: "X",
     href: "https://x.com/cyberpkn",
   },
-} as const;
+};
 
 export const linkPage: { label: string; href: string }[] = [
   profiles.email,
@@ -592,7 +600,52 @@ export const skillGroups = {
   learning: ["CompTIA Security+", "AWS Cloud Practitioner", "GCP", "Terraform"],
 };
 
+export const skillNotes = {
+  languages: "Spanish, native. English, C1+. French, A2. German, A2.",
+  agents:
+    "A coding agent can draft a change. I still read the diff. The pipelines I will talk about are the report scripts, the radio tools, and the prototypes already under projects.",
+};
+
+export const courses: CourseItem[] = [
+  {
+    id: "udlap",
+    title: "UDLAP",
+    body: "Computer systems engineering, 2021 to 2025. Graduated. The internships required for the degree are done.",
+  },
+  {
+    id: "htb",
+    title: "Hack The Box",
+    body: "Using the Metasploit Framework, July 2025. macOS Fundamentals, July 2025. Other course badges are on LinkedIn. Scans of event certificates are in Certificates.",
+    linkLabel: "Certificates",
+    linkHref: "/awards",
+  },
+  {
+    id: "secplus",
+    title: "CompTIA Security+",
+    body: "In progress. Not earned.",
+  },
+  {
+    id: "cloud",
+    title: "AWS Cloud Practitioner, GCP, Terraform",
+    body: "In progress. Not earned.",
+  },
+  {
+    id: "languages",
+    title: "Languages",
+    body: "Spanish, native. English, C1+. French, A2. German, A2.",
+  },
+  {
+    id: "orcid",
+    title: "ORCID",
+    body: "",
+    linkLabel: "0009-0002-4819-7773",
+    linkHref: "https://orcid.org/0009-0002-4819-7773",
+  },
+];
+
 export const hero = {
+  name: "Goben Diego Constantino Aguirre",
+  avatar: "/media/me.png",
   title: "SOC/MDR analyst at TBSeK",
   focus: "Security operations, research, DevOps, and software development.",
   since: "In cybersecurity since April 2025. Computer systems engineering, UDLAP, 2021 to 2025.",

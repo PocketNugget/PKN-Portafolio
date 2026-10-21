@@ -1,5 +1,5 @@
 import { linkPage, notes, openTable, profiles, projects } from "../catalog";
-import { hydrate, setNavigator } from "../client";
+import { hydrate, setNavigator, setPortfolioChangeListener, syncPortfolio } from "../client";
 import { detectLang, getLang, setLang, t, type Lang } from "../i18n";
 import { normalizePath } from "../paths";
 import { documentBody } from "../render";
@@ -185,24 +185,24 @@ const SIZES: Record<string, [number, number]> = {
   "/pad": [460, 600],
   "/login": [360, 520],
   "/admin/login": [360, 520],
-  "/admin": [560, 640],
+  "/admin": [860, 700],
 };
 
-const SOCIAL: { label: string; href: string; icon: string }[] = [
-  { label: "GitHub", href: profiles.github.href, icon: "/social/github.png" },
-  { label: "LinkedIn", href: profiles.linkedin.href, icon: "/social/linkedin.png" },
-  { label: "X", href: profiles.x.href, icon: "/social/x.png" },
-  { label: "Instagram", href: linkPage.find((item) => item.label === "Instagram")?.href ?? "", icon: "/social/instagram.png" },
-  { label: "YouTube", href: linkPage.find((item) => item.label === "YouTube")?.href ?? "", icon: "/social/youtube.png" },
-];
+function socialItems(): { label: string; href: string; icon: string }[] {
+  return [
+    { label: "GitHub", href: profiles.github.href, icon: "/social/github.png" },
+    { label: "LinkedIn", href: profiles.linkedin.href, icon: "/social/linkedin.png" },
+    { label: "X", href: profiles.x.href, icon: "/social/x.png" },
+    { label: "Instagram", href: linkPage.find((item) => item.label === "Instagram")?.href ?? "", icon: "/social/instagram.png" },
+    { label: "YouTube", href: linkPage.find((item) => item.label === "YouTube")?.href ?? "", icon: "/social/youtube.png" },
+  ];
+}
 
 const DOC_PATHS = ["/", "/jobs", "/work", "/skills", "/certs", "/contact", "/notes", "/blog", "/radio", "/colophon", "/legal", "/help", "/links"];
 
 export function isDocPath(path: string): boolean {
   return DOC_PATHS.some((item) => path === item || (item !== "/" && path.startsWith(`${item}/`)));
 }
-
-const opens = openTable();
 
 function sessionGet(key: string): string | null {
   try {
@@ -1041,7 +1041,8 @@ export function bootDesktop(): void {
   }
 
   function loadSocial(): void {
-    for (const item of SOCIAL) {
+    social.replaceChildren();
+    for (const item of socialItems()) {
       if (!item.href) continue;
       const link = document.createElement("a");
       link.className = "social-link";
@@ -1202,6 +1203,20 @@ export function bootDesktop(): void {
   paintPrint();
   paintClock();
   window.setInterval(paintClock, 10000);
+  setPortfolioChangeListener(() => {
+    loadSocial();
+    paintPrint();
+    for (const win of windows) {
+      if (win.path === "/admin" || win.path === "/login" || win.path === "/admin/login") continue;
+      win.title = titleFor(win.path);
+      const text = win.el.querySelector(".title-bar-text");
+      if (text) text.textContent = win.title;
+      win.el.querySelector(".window-body")?.setAttribute("aria-label", win.title);
+      fill(win);
+    }
+    renderTasks();
+  });
+  void syncPortfolio();
 
   function paintLang(): void {
     const current = getLang();
@@ -1321,7 +1336,7 @@ export function bootDesktop(): void {
     event.preventDefault();
     const cmd = anchor.dataset.cmd;
     if (cmd) {
-      const step = parseCommand(cmd, opens);
+      const step = parseCommand(cmd, openTable());
       if (step.type === "nav") openHref(step.path);
       if (step.type === "external") location.assign(step.href);
       return;

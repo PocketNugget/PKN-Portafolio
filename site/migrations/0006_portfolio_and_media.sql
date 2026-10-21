@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS portfolio_state (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  data TEXT NOT NULL,
+  updated INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS media (
+  name TEXT PRIMARY KEY,
+  mime TEXT NOT NULL,
+  data TEXT NOT NULL,
+  size INTEGER NOT NULL,
+  created INTEGER NOT NULL
+);

@@ -1,6 +1,7 @@
 import {
   archive,
   bio,
+  courses,
   earlier,
   hero,
   jobs,
@@ -11,6 +12,7 @@ import {
   projects,
   radio,
   skillGroups,
+  skillNotes,
   type Job,
   type Project,
 } from "./catalog";
@@ -190,12 +192,13 @@ function heroBlock(): string {
     )
     .join("");
   const tape = hero.ticker.map((item) => `<span>${escapeHtml(item)}</span>`).join("");
+  const avatar = /^\/media\/[A-Za-z0-9._-]+$/.test(hero.avatar) ? hero.avatar : "/media/me.png";
   return `<section class="hero">
       <div class="hero-top">
-        <img class="hero-pic" src="/media/me.png" width="116" height="116" alt="Goben Diego Constantino Aguirre" decoding="async" />
+        <img class="hero-pic" src="${escapeHtml(avatar)}" width="116" height="116" alt="${escapeHtml(hero.name)}" decoding="async" />
         <div class="hero-id">
           <p class="hero-prompt"><span class="user">goben</span>@<span class="host">pkn</span>:~$ whoami</p>
-          <p class="hero-name">Goben Diego Constantino Aguirre</p>
+          <p class="hero-name">${escapeHtml(hero.name)}</p>
           <p class="hero-title">${tx(hero.title)}</p>
           <p class="hero-since">${tx(hero.since)}</p>
           <p class="hero-focus">${tx(hero.focus)}</p>
@@ -294,31 +297,16 @@ function notesPage(): string {
 }
 
 function certsPage(): string {
-  return `<article class="block">
-      <h2>UDLAP</h2>
-      <p>${tx("Computer systems engineering, 2021 to 2025. Graduated. The internships required for the degree are done.")}</p>
-    </article>
-    <article class="block">
-      <h2>Hack The Box</h2>
-      <p>${tx("Using the Metasploit Framework, July 2025. macOS Fundamentals, July 2025. Other course badges are on LinkedIn. Scans of event certificates are in Certificates.")}</p>
-      <p><a href="/awards">${tx("Certificates")}</a></p>
-    </article>
-    <article class="block">
-      <h2>CompTIA Security+</h2>
-      <p>${tx("In progress. Not earned.")}</p>
-    </article>
-    <article class="block">
-      <h2>AWS Cloud Practitioner, GCP, Terraform</h2>
-      <p>${tx("In progress. Not earned.")}</p>
-    </article>
-    <article class="block">
-      <h2>${tx("Languages")}</h2>
-      <p>${tx("Spanish, native. English, C1+. French, A2. German, A2.")}</p>
-    </article>
-    <article class="block">
-      <h2>ORCID</h2>
-      <p><a rel="noreferrer" href="https://orcid.org/0009-0002-4819-7773">0009-0002-4819-7773</a></p>
+  return courses
+    .map((course) => {
+      const body = course.body ? `\n      <p>${tx(course.body)}</p>` : "";
+      const link =
+        course.linkHref && course.linkLabel ? `\n      <p>${anchor(course.linkHref, course.linkLabel)}</p>` : "";
+      return `<article class="block">
+      <h2>${tx(course.title)}</h2>${body}${link}
     </article>`;
+    })
+    .join("\n    ");
 }
 
 function linksPage(): string {
@@ -412,9 +400,9 @@ function skillsPage(): string {
     <p>${tx("Not earned and not work experience. These are what I am studying now.")}</p>
     ${list(skillGroups.learning)}
     <h2>${tx("Languages")}</h2>
-    <p>${tx("Spanish, native. English, C1+. French, A2. German, A2.")}</p>
+    <p>${tx(skillNotes.languages)}</p>
     <h2>${tx("Agents")}</h2>
-    <p>${tx("A coding agent can draft a change. I still read the diff. The pipelines I will talk about are the report scripts, the radio tools, and the prototypes already under projects.")}</p>`;
+    <p>${tx(skillNotes.agents)}</p>`;
 }
 
 function notFound(): string {

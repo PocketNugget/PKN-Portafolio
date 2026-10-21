@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { handleApi, readCookie, slugify } from "./api";
+import { setLang, t } from "./i18n";
 import { sha256Hex } from "./password";
+import { getPortfolioData, resetPortfolioData } from "./portfolio";
 import { renderNote } from "./notes";
+import { render } from "./render";
 import { MemoryStore } from "./store";
 import { sealSecret, totpAt } from "./totp";
 import { handle, type Env } from "./worker";
@@ -600,5 +603,185 @@ describe("contact messages", () => {
     await store.insertNote({ name: "Ada", body: "Nice", created: NOW });
     const res = await handleApi(new Request("https://pocketnugget.com/api/comments"), store, { user: "", hash: "" }, NOW);
     expect(((await res.json()) as { count: number }).count).toBe(1);
+  });
+});
+
+describe("media and portfolio api", () => {
+  const TINY_PNG =
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+
+  async function adminSession(store: MemoryStore): Promise<{ hash: string; cookie: string }> {
+    const hash = await authHash();
+    const code = await totpAt(SECRET, Math.floor(Date.now() / 1000));
+    const loginRes = await handle(
+      post("/api/auth", { username: "goben", password: PASSWORD, code }),
+      env(hash, TOTP_KEY),
+      undefined,
+      store,
+    );
+    const setCookie = loginRes.headers.get("set-cookie") ?? "";
+    const token = /pkn_session=([^;]+)/.exec(setCookie)?.[1] ?? "";
+    return { hash, cookie: `pkn_session=${token}` };
+  }
+
+  it("uploads, lists, serves, and deletes an image in D1 and rejects non-images", async () => {
+    const store = await readyStore();
+    const { hash, cookie } = await adminSession(store);
+    const workerEnv = env(hash, TOTP_KEY);
+
+    const unauth = await handle(
+      post("/api/media", { name: "diagram.png", data: TINY_PNG }),
+      workerEnv,
+      undefined,
+      store,
+    );
+    expect(unauth.status).toBe(401);
+
+    const fake = await handle(
+      post("/api/media", { name: "evil.png", data: btoa("<script>alert(1)</script>") }, cookie),
+      workerEnv,
+      undefined,
+      store,
+    );
+    expect(fake.status).toBe(400);
+
+    const uploaded = await handle(
+      post("/api/media", { name: "My Blog Photo.png", data: `data:image/png;base64,${TINY_PNG}` }, cookie),
+      workerEnv,
+      undefined,
+      store,
+    );
+    expect(uploaded.status).toBe(201);
+    const meta = (await uploaded.json()) as { name: string; url: string; mime: string };
+    expect(meta.name).toBe("my-blog-photo.png");
+    expect(meta.url).toBe("/media/my-blog-photo.png");
+    expect(meta.mime).toBe("image/png");
+
+    const served = await handle(
+      new Request("https://pocketnugget.com/media/my-blog-photo.png"),
+      workerEnv,
+      undefined,
+      store,
+    );
+    expect(served.status).toBe(200);
+    expect(served.headers.get("content-type")).toBe("image/png");
+    expect((await served.arrayBuffer()).byteLength).toBeGreaterThan(20);
+
+    const listRes = await handle(
+      new Request("https://pocketnugget.com/api/media", { headers: { cookie } }),
+      workerEnv,
+      undefined,
+      store,
+    );
+    expect(listRes.status).toBe(200);
+    const listBody = (await listRes.json()) as { uploaded: { name: string }[]; builtin: string[] };
+    expect(listBody.uploaded.map((u) => u.name)).toEqual(["my-blog-photo.png"]);
+    expect(listBody.builtin).toContain("/media/me.png");
+
+    const delRes = await handle(
+      new Request("https://pocketnugget.com/api/media/my-blog-photo.png", {
+        method: "DELETE",
+        headers: { origin: "https://pocketnugget.com", cookie },
+      }),
+      workerEnv,
+      undefined,
+      store,
+    );
+    expect(delRes.status).toBe(204);
+  });
+
+  it("saves, updates, translates, and resets the curriculum and experience state", async () => {
+    const store = await readyStore();
+    const { hash, cookie } = await adminSession(store);
+    const workerEnv = env(hash, TOTP_KEY);
+
+    try {
+      const draft = getPortfolioData();
+      draft.jobs.unshift({
+        id: "sec-lead",
+        role: "Senior Detection Engineer",
+        org: "CyberLab",
+        place: "Remote",
+        date: "2027 to present",
+        summary: "Automated threat hunting and custom Sigma rules.",
+        body: ["Built detection pipelines."],
+        tools: ["Sigma", "Elastic"],
+      });
+      draft.projects.unshift({
+        slug: "sigma-engine",
+        title: "Sigma Engine",
+        date: "2027",
+        kind: "detection",
+        summary: "Fast rule compiler.",
+        body: ["Compiles rules in milliseconds."],
+        tools: ["Rust"],
+        links: [{ label: "Repository", href: "https://github.com/PocketNugget/sigma-engine" }],
+        people: "",
+        aliases: ["sigma"],
+      });
+      draft.skillGroups.learning.push("eBPF");
+      draft.courses.unshift({
+        id: "oscp",
+        title: "OSCP",
+        body: "Earned in 2027.",
+      });
+      draft.translations.es["Senior Detection Engineer"] = "Ingeniero Senior de Detección";
+
+      const saveRes = await handle(
+        new Request("https://pocketnugget.com/api/portfolio", {
+          method: "PUT",
+          headers: {
+            origin: "https://pocketnugget.com",
+            "content-type": "application/json",
+            cookie,
+          },
+          body: JSON.stringify(draft),
+        }),
+        workerEnv,
+        undefined,
+        store,
+      );
+      expect(saveRes.status).toBe(204);
+
+      expect(render("/jobs")).toContain("Senior Detection Engineer");
+      expect(render("/work")).toContain("Sigma Engine");
+      expect(render("/skills")).toContain("eBPF");
+      expect(render("/certs")).toContain("OSCP");
+
+      setLang("es");
+      expect(t("Senior Detection Engineer")).toBe("Ingeniero Senior de Detección");
+      setLang("en");
+
+      const docRes = await handle(
+        new Request("https://pocketnugget.com/work/sigma-engine"),
+        workerEnv,
+        undefined,
+        store,
+      );
+      expect(docRes.status).toBe(200);
+
+      const mapRes = await handle(
+        new Request("https://pocketnugget.com/sitemap.xml"),
+        workerEnv,
+        undefined,
+        store,
+      );
+      expect(await mapRes.text()).toContain("https://pocketnugget.com/work/sigma-engine");
+
+      const resetRes = await handle(
+        new Request("https://pocketnugget.com/api/portfolio", {
+          method: "DELETE",
+          headers: { origin: "https://pocketnugget.com", cookie },
+        }),
+        workerEnv,
+        undefined,
+        store,
+      );
+      expect(resetRes.status).toBe(204);
+      expect(render("/jobs")).not.toContain("Senior Detection Engineer");
+    } finally {
+      setLang("en");
+      resetPortfolioData();
+    }
   });
 });

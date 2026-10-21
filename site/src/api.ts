@@ -2,6 +2,7 @@ import { excerptOf } from "./blog";
 import { renderNote } from "./markup";
 import { randomToken, safeEqual, sha256Hex, verifyPassword } from "./password";
 import { cleanBlock, cleanLine, cleanTags, NOTE_BODY_MAX, NOTE_LINES, NOTE_NAME_MAX, scrubInvisible } from "./plain";
+import { applyPortfolioData, BUILTIN_MEDIA, cleanPortfolioData, resetPortfolioData } from "./portfolio";
 import { parseGame, parseLevel, parseScore, parseScoreName, SCORE_LIMIT, TOP_N } from "./scores";
 import type { Message, Note, Store } from "./store";
 import { openSecret, otpauthUri, totpMatches } from "./totp";
@@ -16,6 +17,8 @@ const MESSAGE_LINES = 20;
 const EMAIL_MAX = 120;
 const SESSION_MS = 12 * 60 * 60 * 1000;
 const MAX_BODY = 100_000;
+const MAX_ADMIN_BODY = 2_500_000;
+const MAX_IMAGE_BYTES = 1_500_000;
 
 export interface AuthConfig {
   user: string;
@@ -67,12 +70,12 @@ function configured(auth: AuthConfig): boolean {
   return auth.user.length > 0 && /^sha256\$[0-9a-f]{64}$/.test(auth.hash);
 }
 
-async function readJson(request: Request): Promise<unknown | Response> {
+async function readJson(request: Request, maxLen = MAX_BODY): Promise<unknown | Response> {
   if (!(request.headers.get("content-type") ?? "").toLowerCase().startsWith("application/json")) {
     return text(415, "content-type must be application/json\n");
   }
   const raw = await request.text();
-  if (raw.length > MAX_BODY) return text(413, "too large\n");
+  if (raw.length > maxLen) return text(413, "too large\n");
   try {
     return JSON.parse(raw) as unknown;
   } catch {
@@ -368,6 +371,135 @@ async function update(request: Request, store: Store, auth: AuthConfig, now: num
   return text(204, "");
 }
 
+export function decodeBase64Bytes(raw: string): Uint8Array | null {
+  const cleaned = raw.replace(/^data:image\/[a-z0-9.+-]+;base64,/i, "").replace(/\s+/g, "");
+  if (!cleaned || cleaned.length % 4 !== 0 || !/^[A-Za-z0-9+/]+={0,2}$/.test(cleaned)) return null;
+  try {
+    const bin = atob(cleaned);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  } catch {
+    return null;
+  }
+}
+
+function detectImageMime(bytes: Uint8Array): "image/png" | "image/jpeg" | "image/webp" | "image/gif" | null {
+  if (bytes.length < 12) return null;
+  if (
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47 &&
+    bytes[4] === 0x0d &&
+    bytes[5] === 0x0a &&
+    bytes[6] === 0x1a &&
+    bytes[7] === 0x0a
+  ) {
+    return "image/png";
+  }
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+    return "image/jpeg";
+  }
+  if (
+    bytes[0] === 0x52 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x46 &&
+    bytes[8] === 0x57 &&
+    bytes[9] === 0x45 &&
+    bytes[10] === 0x42 &&
+    bytes[11] === 0x50
+  ) {
+    return "image/webp";
+  }
+  if (
+    bytes[0] === 0x47 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x38 &&
+    (bytes[4] === 0x37 || bytes[4] === 0x39) &&
+    bytes[5] === 0x61
+  ) {
+    return "image/gif";
+  }
+  return null;
+}
+
+function extForMime(mime: "image/png" | "image/jpeg" | "image/webp" | "image/gif"): string {
+  if (mime === "image/png") return ".png";
+  if (mime === "image/jpeg") return ".jpg";
+  if (mime === "image/gif") return ".gif";
+  return ".webp";
+}
+
+async function uploadMedia(request: Request, store: Store, auth: AuthConfig, now: number): Promise<Response> {
+  const denied = await requireUser(request, store, auth, now);
+  if (denied) return denied;
+  const body = await readJson(request, MAX_ADMIN_BODY);
+  if (body instanceof Response) return body;
+  const record = body as { name?: unknown; data?: unknown };
+  const rawName = typeof record.name === "string" ? record.name : "image";
+  const rawData = typeof record.data === "string" ? record.data : "";
+  const bytes = decodeBase64Bytes(rawData);
+  if (!bytes || bytes.byteLength > MAX_IMAGE_BYTES) return text(400, "invalid or oversized image\n");
+  const mime = detectImageMime(bytes);
+  if (!mime) return text(400, "unsupported image format\n");
+  const ext = extForMime(mime);
+  const stem =
+    rawName
+      .replace(/\.[a-z0-9]+$/i, "")
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9_-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 48) || "img";
+  let candidate = `${stem}${ext}`;
+  let seq = 2;
+  const builtinNames = new Set(BUILTIN_MEDIA.map((p) => p.replace(/^\/media\//, "")));
+  while (builtinNames.has(candidate) || (await store.getMedia(candidate)) !== null) {
+    candidate = `${stem.slice(0, 42)}-${seq}${ext}`;
+    seq += 1;
+    if (seq > 200) return text(409, "name collision\n");
+  }
+  const pureBase64 = rawData.replace(/^data:image\/[a-z0-9.+-]+;base64,/i, "").replace(/\s+/g, "");
+  await store.putMedia({
+    name: candidate,
+    mime,
+    data: pureBase64,
+    size: bytes.byteLength,
+    created: now,
+  });
+  return json(201, {
+    name: candidate,
+    url: `/media/${candidate}`,
+    mime,
+    size: bytes.byteLength,
+    created: new Date(now).toISOString(),
+  });
+}
+
+async function savePortfolio(request: Request, store: Store, auth: AuthConfig, now: number): Promise<Response> {
+  const denied = await requireUser(request, store, auth, now);
+  if (denied) return denied;
+  const body = await readJson(request, MAX_ADMIN_BODY);
+  if (body instanceof Response) return body;
+  const cleaned = cleanPortfolioData(body);
+  if (!cleaned) return text(400, "bad portfolio data\n");
+  await store.savePortfolioState(JSON.stringify(cleaned), now);
+  applyPortfolioData(cleaned);
+  return text(204, "");
+}
+
+async function resetPortfolio(request: Request, store: Store, auth: AuthConfig, now: number): Promise<Response> {
+  const denied = await requireUser(request, store, auth, now);
+  if (denied) return denied;
+  await store.savePortfolioState("", now);
+  resetPortfolioData();
+  return text(204, "");
+}
+
 export async function handleApi(
   request: Request,
   store: Store,
@@ -384,6 +516,44 @@ export async function handleApi(
   if (path === "/api/session" && method === "GET") {
     if (!(await sessionUser(request, store, auth, now))) return text(401, "no\n");
     return json(200, { user: auth.user });
+  }
+  if (path === "/api/portfolio" && method === "GET") {
+    const saved = await store.getPortfolioState();
+    if (!saved || !saved.data) return json(200, { state: null, updated: null });
+    const parsed = (() => {
+      try {
+        return cleanPortfolioData(JSON.parse(saved.data));
+      } catch {
+        return null;
+      }
+    })();
+    return json(200, {
+      state: parsed,
+      updated: parsed ? new Date(saved.updated).toISOString() : null,
+    });
+  }
+  if (path === "/api/portfolio" && method === "PUT") return savePortfolio(request, store, auth, now);
+  if (path === "/api/portfolio" && method === "DELETE") return resetPortfolio(request, store, auth, now);
+  if (path === "/api/media" && method === "GET") {
+    if (!(await sessionUser(request, store, auth, now))) return text(401, "no\n");
+    const uploaded = (await store.listMedia()).map((item) => ({
+      name: item.name,
+      url: `/media/${item.name}`,
+      mime: item.mime,
+      size: item.size,
+      created: new Date(item.created).toISOString(),
+    }));
+    return json(200, { uploaded, builtin: BUILTIN_MEDIA });
+  }
+  if (path === "/api/media" && method === "POST") return uploadMedia(request, store, auth, now);
+  const mediaItem = /^\/api\/media\/([A-Za-z0-9._-]+)$/.exec(path);
+  if (mediaItem) {
+    if (method !== "DELETE") return text(405, "method not allowed\n");
+    const denied = await requireUser(request, store, auth, now);
+    if (denied) return denied;
+    const removed = await store.deleteMedia(mediaItem[1]);
+    if (!removed) return text(404, "no such media\n");
+    return text(204, "");
   }
   if (path === "/api/blog" && method === "GET") {
     const posts = await store.listPosts();

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { hydrate, setNavigator } from "./client";
 import { mountPad, paintNotes } from "./desktop/pad";
 import { phoneLayout } from "./desktop/phone";
+import { resetPortfolioData } from "./portfolio";
 
 const CREATED = "2026-10-14T12:00:00.000Z";
 
@@ -237,5 +238,65 @@ describe("blog client", () => {
     expect(calls).toContain("DELETE /api/comments/1");
     expect(root.querySelector(".notepad-line")).toBeNull();
     expect(visited).toEqual([]);
+  });
+
+  it("renders the CV & experience tabs in admin, adds a job, and saves to /api/portfolio", async () => {
+    const calls: string[] = [];
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = init?.method ?? "GET";
+      calls.push(`${method} ${url}`);
+      if (url === "/api/session") return json({ user: "goben" });
+      if (url === "/api/portfolio" && method === "GET") return json({ state: null, updated: null });
+      if (url === "/api/portfolio" && method === "PUT") return new Response(null, { status: 204 });
+      if (url === "/api/blog") return json({ posts: [] });
+      if (url === "/api/comments") return json({ notes: [] });
+      if (url === "/api/contact") return json({ messages: [] });
+      return new Response("no", { status: 404 });
+    });
+
+    try {
+      const scope = document.createElement("div");
+      const root = document.createElement("div");
+      root.id = "dynamic";
+      scope.append(root);
+      hydrate("/admin", scope);
+      await flush();
+
+      const tabButtons = [...root.querySelectorAll<HTMLButtonElement>(".admin-tabs button")].map((b) => b.textContent);
+      expect(tabButtons).toEqual([
+        "Blog & Inbox",
+        "Profile & Hero",
+        "Experience (Jobs)",
+        "Projects",
+        "Skills & Courses",
+        "Galleries & Nugget",
+        "Account & Backup",
+      ]);
+
+      const toolLabels = [...root.querySelectorAll<HTMLButtonElement>(".editor-tools button")].map((b) => b.textContent);
+      expect(toolLabels).toContain("upload image");
+      expect(toolLabels).toContain("media library");
+
+      const jobsTab = root.querySelector<HTMLButtonElement>('button[data-tab="jobs"]');
+      jobsTab!.click();
+      const addJobBtn = [...root.querySelectorAll<HTMLButtonElement>("button")].find(
+        (b) => b.textContent === "+ Add new job / experience",
+      );
+      expect(addJobBtn).toBeTruthy();
+      addJobBtn!.click();
+
+      const saveCvBtn = [...root.querySelectorAll<HTMLButtonElement>(".admin-save-bar button")].find(
+        (b) => b.textContent === "Save CV & Experience changes",
+      );
+      expect(saveCvBtn).toBeTruthy();
+      saveCvBtn!.click();
+      await flush();
+
+      expect(calls).toContain("PUT /api/portfolio");
+      expect(root.querySelector(".admin-save-bar")?.textContent).toContain("Saved!");
+    } finally {
+      resetPortfolioData();
+    }
   });
 });

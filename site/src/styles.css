@@ -4661,3 +4661,210 @@ p.hero-focus {
     order: 3;
   }
 }
+
+/* Admin Panel Tabs, CV Cards, Chips, and Media Picker */
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.admin-user {
+  margin: 0;
+  font-weight: 700;
+}
+
+.admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #808080;
+}
+
+.admin-tabs button.active-tab,
+.editor-tools button.active-tab {
+  background: #000080;
+  color: #fff;
+  font-weight: 700;
+}
+
+.admin-save-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 6px 8px;
+  background: #dfdfdf;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+}
+
+.admin-save-bar button {
+  font-weight: 700;
+}
+
+.admin-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-panel[hidden],
+.admin-save-bar[hidden] {
+  display: none !important;
+}
+
+.admin-fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 10px;
+}
+
+.admin-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.admin-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  align-items: end;
+}
+
+.admin-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  align-items: end;
+}
+
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+}
+
+.admin-field > span {
+  font-weight: 700;
+}
+
+.admin-field input,
+.admin-field textarea,
+.admin-field select,
+.admin-line-item input,
+.admin-line-item textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+
+.admin-card {
+  padding: 8px 10px;
+  background: #ececec;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+details.admin-card > summary {
+  cursor: pointer;
+  font-weight: 700;
+  padding: 4px 2px;
+}
+
+.admin-line-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  background: #f6f6f6;
+  border: 1px solid #808080;
+}
+
+.admin-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  background: #fff;
+  border: 1px solid #000080;
+  font-size: 13px;
+}
+
+.admin-chip button.chip-btn {
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0 4px;
+  font-size: 12px;
+}
+
+.admin-image-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  background: #f4f4f4;
+  border: 1px solid #808080;
+}
+
+.media-picker {
+  padding: 8px;
+  background: #fff;
+  border: 2px solid #000080;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.media-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.media-tile {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px;
+  border-bottom: 1px solid #ccc;
+}
+
+.admin-i18n {
+  padding: 6px 8px;
+  background: #dfe7f2;
+  border: 1px solid #000080;
+}
+
+.admin-i18n > summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+

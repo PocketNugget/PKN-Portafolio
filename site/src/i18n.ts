@@ -250,6 +250,43 @@ Object.assign(fr, extraFr);
 
 const tables: Record<Exclude<Lang, "en">, Record<string, string>> = { es, de, fr };
 
+const customTables: Record<Exclude<Lang, "en">, Record<string, string>> = {
+  es: {},
+  de: {},
+  fr: {},
+};
+
+export type CustomTranslationMap = Partial<Record<Exclude<Lang, "en">, Record<string, string>>>;
+
+export function setCustomTranslations(next: CustomTranslationMap | undefined): void {
+  for (const lang of ["es", "de", "fr"] as const) {
+    customTables[lang] = {};
+    const source = next?.[lang];
+    if (!source || typeof source !== "object") continue;
+    for (const [key, value] of Object.entries(source)) {
+      if (typeof key === "string" && typeof value === "string" && key.trim() && value.trim()) {
+        customTables[lang][key] = value;
+      }
+    }
+  }
+}
+
+export function getCustomTranslations(): Record<Exclude<Lang, "en">, Record<string, string>> {
+  return {
+    es: { ...customTables.es },
+    de: { ...customTables.de },
+    fr: { ...customTables.fr },
+  };
+}
+
+export function getTranslationsFor(text: string): Record<Exclude<Lang, "en">, string> {
+  return {
+    es: customTables.es[text] ?? tables.es[text] ?? "",
+    de: customTables.de[text] ?? tables.de[text] ?? "",
+    fr: customTables.fr[text] ?? tables.fr[text] ?? "",
+  };
+}
+
 export function getLang(): Lang {
   return current;
 }
@@ -269,5 +306,5 @@ export function setLang(lang: string): void {
 
 export function t(text: string): string {
   if (current === "en") return text;
-  return tables[current][text] ?? text;
+  return customTables[current][text] ?? tables[current][text] ?? text;
 }

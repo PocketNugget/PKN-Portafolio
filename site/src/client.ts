@@ -1,9 +1,10 @@
+import { renderAdminPanel } from "./admin";
 import { isNew } from "./blog";
 import { t } from "./i18n";
-import { readNotes } from "./desktop/pad";
 import { assertSafeHtml, renderNote } from "./notes";
 import { normalizePath } from "./paths";
 import { cleanLine, cleanTags } from "./plain";
+import { applyPortfolioData } from "./portfolio";
 import { drawQr } from "./qr";
 
 type Go = (path: string) => void;
@@ -12,8 +13,29 @@ let go: Go = (path) => {
   location.assign(path);
 };
 
+let onPortfolioChanged: (() => void) | undefined;
+
 export function setNavigator(fn: Go): void {
   go = fn;
+}
+
+export function setPortfolioChangeListener(fn: () => void): void {
+  onPortfolioChanged = fn;
+}
+
+export async function syncPortfolio(): Promise<boolean> {
+  try {
+    const response = await api("/api/portfolio");
+    if (!response.ok) return false;
+    const data = (await readJson(response)) as { state?: unknown } | null;
+    if (data?.state && applyPortfolioData(data.state)) {
+      onPortfolioChanged?.();
+      return true;
+    }
+  } catch {
+    /* ignore when offline or unconfigured */
+  }
+  return false;
 }
 
 interface PostSummary {
@@ -252,304 +274,8 @@ function renderLogin(root: HTMLElement): void {
   root.append(form);
 }
 
-function field(label: string, node: HTMLInputElement | HTMLTextAreaElement): HTMLElement {
-  const wrap = document.createElement("label");
-  wrap.append(el("span", label), node);
-  return wrap;
-}
-
 async function renderAdmin(root: HTMLElement): Promise<void> {
-  root.replaceChildren();
-  const session = await api("/api/session");
-  if (session.status === 401) {
-    const anchor = document.createElement("a");
-    anchor.href = "/login";
-    anchor.textContent = "login";
-    const note = el("p", "No session. ");
-    note.append(anchor);
-    root.append(note);
-    return;
-  }
-  if (!session.ok) {
-    line(root, "the blog store did not answer.");
-    return;
-  }
-  const who = (await session.json()) as { user: string };
-  root.append(el("p", who.user));
-
-  const form = document.createElement("form");
-  form.className = "editor";
-  const title = document.createElement("input");
-  title.required = true;
-  title.maxLength = 160;
-  title.setAttribute("aria-label", "Title");
-  const tags = document.createElement("input");
-  tags.maxLength = 200;
-  tags.setAttribute("aria-label", "Tags");
-  const content = document.createElement("textarea");
-  content.required = true;
-  content.maxLength = 40000;
-  content.setAttribute("aria-label", "Markdown");
-  const save = document.createElement("button");
-  save.type = "submit";
-  save.textContent = "save";
-  const status = el("p", "");
-  status.className = "err";
-  status.setAttribute("role", "status");
-  const previewBtn = document.createElement("button");
-  previewBtn.type = "button";
-  previewBtn.textContent = "preview";
-  const preview = document.createElement("div");
-  preview.className = "note blog-post";
-  const paint = () => {
-    preview.replaceChildren();
-    try {
-      const html = renderNote(content.value);
-      assertSafeHtml(html);
-      preview.innerHTML = html;
-    } catch {
-      preview.textContent = "This post failed the HTML check.";
-    }
-  };
-  previewBtn.addEventListener("click", paint);
-  content.addEventListener("input", paint);
-  const wrap = (before: string, after: string, sample: string) => {
-    const from = content.selectionStart;
-    const to = content.selectionEnd;
-    const picked = content.value.slice(from, to) || sample;
-    content.setRangeText(`${before}${picked}${after}`, from, to, "select");
-    content.focus();
-    paint();
-  };
-  const tools = document.createElement("div");
-  tools.className = "editor-tools";
-  const buttons: [string, () => void][] = [
-    ["bold", () => wrap("**", "**", "bold")],
-    ["italic", () => wrap("*", "*", "italic")],
-    ["heading", () => wrap("## ", "", "Heading")],
-    ["subheading", () => wrap("### ", "", "Subheading")],
-    ["list", () => wrap("- ", "", "item")],
-    ["numbered", () => wrap("1. ", "", "item")],
-    ["quote", () => wrap("> ", "", "quote")],
-    ["code", () => wrap("`", "`", "code")],
-    ["code block", () => wrap("```\n", "\n```", "code")],
-    ["link", () => wrap("[", "](https://)", "text")],
-    ["image", () => wrap("![", "](/media/)", "description")],
-    ["rule", () => wrap("\n---\n", "", "")],
-  ];
-  for (const [label, run] of buttons) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.textContent = label;
-    button.addEventListener("click", run);
-    tools.append(button);
-  }
-  const help = el(
-    "p",
-    "Markdown: # heading, ### subheading, **bold**, *italic*, - list, 1. numbered, > quote, `code`, ``` code block, [text](url), ![alt](/media/file.jpg) for a local image, --- rule.",
-  );
-  help.className = "meta";
-  form.append(field("title", title), field("tags", tags), tools, field("markdown", content), help, save, previewBtn, status, preview);
-
-  const params = new URLSearchParams(location.search);
-  const editing = params.get("slug");
-  if (editing && /^[a-z0-9-]+$/.test(editing)) {
-    const existing = await api(`/api/blog/${editing}`);
-    if (existing.ok) {
-      const post = (await existing.json()) as PostFull;
-      title.value = post.title;
-      tags.value = post.tags;
-      content.value = post.content;
-      save.textContent = "update";
-    }
-  }
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    void (async () => {
-      status.textContent = "";
-      const payload = JSON.stringify({
-        title: title.value,
-        tags: tags.value,
-        content: content.value,
-      });
-      const response = editing
-        ? await api(`/api/blog/${editing}`, { method: "PUT", body: payload })
-        : await api("/api/blog", { method: "POST", body: payload });
-      if (response.status === 201) {
-        const created = (await response.json()) as { slug: string };
-        go(`/blog/${created.slug}`);
-        return;
-      }
-      if (response.status === 204) {
-        go(`/blog/${editing}`);
-        return;
-      }
-      status.textContent = response.status === 401 ? "session ended." : "save failed.";
-    })();
-  });
-
-  const list = document.createElement("ul");
-  list.className = "ls";
-  const posts = await api("/api/blog");
-  let armed = "";
-  if (posts.ok) {
-    const data = (await posts.json()) as { posts: PostSummary[] };
-    for (const post of data.posts) {
-      const item = document.createElement("li");
-      const open = document.createElement("a");
-      open.href = `/blog/${post.slug}`;
-      open.textContent = post.title;
-      const edit = document.createElement("a");
-      edit.href = `/admin?slug=${post.slug}`;
-      edit.textContent = "edit";
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.textContent = "delete";
-      remove.addEventListener("click", () => {
-        void (async () => {
-          if (armed !== post.slug) {
-            armed = post.slug;
-            remove.textContent = "delete, again";
-            return;
-          }
-          const response = await api(`/api/blog/${post.slug}`, { method: "DELETE" });
-          if (response.status === 204) go("/admin");
-          else status.textContent = "delete failed.";
-        })();
-      });
-      item.append(open, document.createTextNode(" "), edit, document.createTextNode(" "), remove);
-      list.append(item);
-    }
-  }
-
-  const logout = document.createElement("button");
-  logout.type = "button";
-  logout.textContent = "logout";
-  logout.addEventListener("click", () => {
-    void (async () => {
-      await api("/api/logout", { method: "POST" });
-      go("/");
-    })();
-  });
-
-  const passForm = document.createElement("form");
-  passForm.className = "editor";
-  const current = document.createElement("input");
-  current.type = "password";
-  current.autocomplete = "current-password";
-  current.required = true;
-  current.setAttribute("aria-label", "Current password");
-  const next = document.createElement("input");
-  next.type = "password";
-  next.autocomplete = "new-password";
-  next.required = true;
-  next.minLength = 16;
-  next.setAttribute("aria-label", "New password");
-  const change = document.createElement("button");
-  change.type = "submit";
-  change.textContent = "change password";
-  const passStatus = el("p", "");
-  passStatus.className = "err";
-  passForm.append(field("current password", current), field("new password", next), change, passStatus);
-  passForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    void (async () => {
-      passStatus.textContent = "";
-      const response = await api("/api/password", {
-        method: "POST",
-        body: JSON.stringify({ current: current.value, password: next.value }),
-      });
-      current.value = "";
-      next.value = "";
-      if (response.status === 204) passStatus.textContent = "password updated.";
-      else if (response.status === 400) passStatus.textContent = "use 16 to 200 characters.";
-      else passStatus.textContent = "password change failed.";
-    })();
-  });
-
-  const notesHead = el("h2", "Suggestions");
-  const notesWrap = document.createElement("div");
-  notesWrap.className = "notepad";
-  const noteResponse = await api("/api/comments");
-  let armedNote = 0;
-  if (!noteResponse.ok) {
-    notesWrap.append(el("p", "The suggestions did not load."));
-  } else {
-    const notes = readNotes(await noteResponse.json());
-    if (notes.length === 0) notesWrap.append(el("p", "No suggestions yet."));
-    for (const note of notes) {
-      const row = document.createElement("article");
-      row.className = "notepad-line";
-      const who = el("p", `${note.name}  ${note.created.slice(0, 10)}`);
-      who.className = "notepad-who";
-      const text = el("p", note.body);
-      text.className = "notepad-body";
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.textContent = "delete";
-      remove.addEventListener("click", () => {
-        void (async () => {
-          if (armedNote !== note.id) {
-            armedNote = note.id;
-            remove.textContent = "delete, again";
-            return;
-          }
-          const response = await api(`/api/comments/${note.id}`, { method: "DELETE" });
-          if (response.status === 204) row.remove();
-          else status.textContent = "delete failed.";
-        })();
-      });
-      row.append(who, text, remove);
-      notesWrap.append(row);
-    }
-  }
-
-  const mailHead = el("h2", "Messages");
-  const mailWrap = document.createElement("div");
-  mailWrap.className = "notepad";
-  const mailResponse = await api("/api/contact");
-  let armedMail = 0;
-  if (!mailResponse.ok) {
-    mailWrap.append(el("p", "The messages did not load."));
-  } else {
-    const data = (await readJson(mailResponse)) as { messages?: unknown } | null;
-    const mails = Array.isArray(data?.messages) ? (data.messages as Record<string, unknown>[]) : [];
-    if (mails.length === 0) mailWrap.append(el("p", "No messages yet."));
-    for (const mail of mails) {
-      const id = typeof mail.id === "number" ? mail.id : 0;
-      if (!id || typeof mail.name !== "string" || typeof mail.email !== "string" || typeof mail.body !== "string") continue;
-      const created = typeof mail.created === "string" ? dateLabel(mail.created) : "";
-      const row = document.createElement("article");
-      row.className = "notepad-line";
-      const who = el("p", `${mail.name}  ${created}`);
-      who.className = "notepad-who";
-      const reply = document.createElement("a");
-      reply.href = `mailto:${encodeURIComponent(mail.email).replace(/%40/g, "@")}`;
-      reply.textContent = mail.email;
-      const text = el("p", mail.body);
-      text.className = "notepad-body";
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.textContent = "delete";
-      remove.addEventListener("click", () => {
-        void (async () => {
-          if (armedMail !== id) {
-            armedMail = id;
-            remove.textContent = "delete, again";
-            return;
-          }
-          const response = await api(`/api/contact/${id}`, { method: "DELETE" });
-          if (response.status === 204) row.remove();
-          else status.textContent = "delete failed.";
-        })();
-      });
-      row.append(who, reply, text, remove);
-      mailWrap.append(row);
-    }
-  }
-
-  root.append(form, el("h2", "posts"), list, mailHead, mailWrap, notesHead, notesWrap, passForm, logout);
+  await renderAdminPanel(root, go, () => onPortfolioChanged?.());
 }
 
 export function hydrate(pathname: string, scope: ParentNode = document): void {

@@ -41,6 +41,22 @@ export interface SavedScore extends ScoreRow {
   best: boolean;
 }
 
+export interface PortfolioStateRow {
+  data: string;
+  updated: number;
+}
+
+export interface MediaMeta {
+  name: string;
+  mime: string;
+  size: number;
+  created: number;
+}
+
+export interface MediaRow extends MediaMeta {
+  data: string;
+}
+
 export interface Store {
   ensure(): Promise<void>;
   listPosts(): Promise<Post[]>;
@@ -77,6 +93,12 @@ export interface Store {
   countScoreAttempts(since: number): Promise<number>;
   addScoreAttempt(at: number): Promise<void>;
   clearScoreAttempts(before: number): Promise<void>;
+  getPortfolioState(): Promise<PortfolioStateRow | null>;
+  savePortfolioState(data: string, updated: number): Promise<void>;
+  listMedia(): Promise<MediaMeta[]>;
+  getMedia(name: string): Promise<MediaRow | null>;
+  putMedia(row: MediaRow): Promise<void>;
+  deleteMedia(name: string): Promise<boolean>;
 }
 
 interface D1Statement {
@@ -102,6 +124,8 @@ const SCHEMA = [
   "CREATE TABLE IF NOT EXISTS message_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL)",
   "CREATE TABLE IF NOT EXISTS scores (game TEXT NOT NULL, name TEXT NOT NULL, score INTEGER NOT NULL, level INTEGER NOT NULL, created INTEGER NOT NULL, PRIMARY KEY (game, name))",
   "CREATE TABLE IF NOT EXISTS score_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT, at INTEGER NOT NULL)",
+  "CREATE TABLE IF NOT EXISTS portfolio_state (id INTEGER PRIMARY KEY CHECK (id = 1), data TEXT NOT NULL, updated INTEGER NOT NULL)",
+  "CREATE TABLE IF NOT EXISTS media (name TEXT PRIMARY KEY, mime TEXT NOT NULL, data TEXT NOT NULL, size INTEGER NOT NULL, created INTEGER NOT NULL)",
 ];
 
 export class D1Store implements Store {
@@ -373,6 +397,51 @@ export class D1Store implements Store {
   async clearScoreAttempts(before: number): Promise<void> {
     await this.db.prepare("DELETE FROM score_attempts WHERE at < ?").bind(before).run();
   }
+
+  async getPortfolioState(): Promise<PortfolioStateRow | null> {
+    return this.db
+      .prepare("SELECT data, updated FROM portfolio_state WHERE id = 1")
+      .first<PortfolioStateRow>();
+  }
+
+  async savePortfolioState(data: string, updated: number): Promise<void> {
+    await this.db
+      .prepare(
+        "INSERT INTO portfolio_state (id, data, updated) VALUES (1, ?, ?) ON CONFLICT(id) DO UPDATE SET data = excluded.data, updated = excluded.updated",
+      )
+      .bind(data, updated)
+      .run();
+  }
+
+  async listMedia(): Promise<MediaMeta[]> {
+    const rows = await this.db
+      .prepare("SELECT name, mime, size, created FROM media ORDER BY created DESC, name ASC LIMIT 200")
+      .all<MediaMeta>();
+    return rows.results ?? [];
+  }
+
+  async getMedia(name: string): Promise<MediaRow | null> {
+    return this.db
+      .prepare("SELECT name, mime, data, size, created FROM media WHERE name = ?")
+      .bind(name)
+      .first<MediaRow>();
+  }
+
+  async putMedia(row: MediaRow): Promise<void> {
+    await this.db
+      .prepare(
+        "INSERT INTO media (name, mime, data, size, created) VALUES (?, ?, ?, ?, ?) ON CONFLICT(name) DO UPDATE SET mime = excluded.mime, data = excluded.data, size = excluded.size, created = excluded.created",
+      )
+      .bind(row.name, row.mime, row.data, row.size, row.created)
+      .run();
+  }
+
+  async deleteMedia(name: string): Promise<boolean> {
+    const existing = await this.db.prepare("SELECT name FROM media WHERE name = ?").bind(name).first<{ name: string }>();
+    if (!existing) return false;
+    await this.db.prepare("DELETE FROM media WHERE name = ?").bind(name).run();
+    return true;
+  }
 }
 
 function decodeAuth(passwordHash: string, totpCipher: string, totpReady: number, recovery: string): AuthRow {
@@ -397,6 +466,8 @@ export class MemoryStore implements Store {
   messageAttempts: number[] = [];
   scores: ScoreRow[] = [];
   scoreAttempts: number[] = [];
+  portfolioState: PortfolioStateRow | null = null;
+  media = new Map<string, MediaRow>();
   private noteSeq = 1;
   private messageSeq = 1;
 
@@ -579,5 +650,33 @@ export class MemoryStore implements Store {
 
   async clearScoreAttempts(before: number): Promise<void> {
     this.scoreAttempts = this.scoreAttempts.filter((at) => at >= before);
+  }
+
+  async getPortfolioState(): Promise<PortfolioStateRow | null> {
+    return this.portfolioState ? { ...this.portfolioState } : null;
+  }
+
+  async savePortfolioState(data: string, updated: number): Promise<void> {
+    this.portfolioState = { data, updated };
+  }
+
+  async listMedia(): Promise<MediaMeta[]> {
+    return [...this.media.values()]
+      .sort((a, b) => b.created - a.created || a.name.localeCompare(b.name))
+      .slice(0, 200)
+      .map(({ name, mime, size, created }) => ({ name, mime, size, created }));
+  }
+
+  async getMedia(name: string): Promise<MediaRow | null> {
+    const row = this.media.get(name);
+    return row ? { ...row } : null;
+  }
+
+  async putMedia(row: MediaRow): Promise<void> {
+    this.media.set(row.name, { ...row });
+  }
+
+  async deleteMedia(name: string): Promise<boolean> {
+    return this.media.delete(name);
   }
 }

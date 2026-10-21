@@ -1,6 +1,7 @@
-import { handleApi, type AuthConfig } from "./api";
+import { decodeBase64Bytes, handleApi, type AuthConfig } from "./api";
 import { buildInfo } from "./build-info";
-import { isDocumentPath, sitemapXml } from "./paths";
+import { allDocumentPaths, isDocumentPath, normalizePath, sitemapXml } from "./paths";
+import { cleanPortfolioData } from "./portfolio";
 import { SECURITY_TXT, withSecurity } from "./security";
 import { D1Store, type D1Like, type Store } from "./store";
 
@@ -32,6 +33,15 @@ export async function handle(
       try {
         await db.ensure();
         extra = (await db.listPosts()).map((post) => `/blog/${post.slug}`);
+        const saved = await db.getPortfolioState();
+        if (saved?.data) {
+          const parsed = cleanPortfolioData(JSON.parse(saved.data));
+          const known = new Set(allDocumentPaths());
+          for (const project of parsed?.projects ?? []) {
+            const p = `/work/${project.slug}`;
+            if (!known.has(p)) extra.push(p);
+          }
+        }
       } catch {
         extra = [];
       }
@@ -86,7 +96,47 @@ export async function handle(
       }),
     );
   }
-  if (isDocumentPath(url.pathname)) {
+  const mediaMatch = /^\/media\/([A-Za-z0-9._-]+)$/.exec(url.pathname);
+  if (mediaMatch && db) {
+    try {
+      await db.ensure();
+      const row = await db.getMedia(mediaMatch[1]);
+      if (row) {
+        const bytes = decodeBase64Bytes(row.data);
+        if (bytes) {
+          return withSecurity(
+            new Response(request.method === "HEAD" ? null : bytes as unknown as BodyInit, {
+              status: 200,
+              headers: {
+                "content-type": row.mime,
+                "cache-control": "public, max-age=31536000, immutable",
+              },
+            }),
+            url.pathname,
+          );
+        }
+      }
+    } catch {
+      /* fall through to static assets */
+    }
+  }
+  let docOk = isDocumentPath(url.pathname);
+  if (!docOk && db) {
+    const workMatch = /^\/work\/([a-z0-9-]+)$/.exec(normalizePath(url.pathname));
+    if (workMatch) {
+      try {
+        await db.ensure();
+        const saved = await db.getPortfolioState();
+        if (saved?.data) {
+          const parsed = cleanPortfolioData(JSON.parse(saved.data));
+          if (parsed?.projects.some((p) => p.slug === workMatch[1])) docOk = true;
+        }
+      } catch {
+        docOk = false;
+      }
+    }
+  }
+  if (docOk) {
     const index = new URL("/index.html", url.origin);
     const response = await env.ASSETS.fetch(
       new Request(index.toString(), { method: request.method }),
