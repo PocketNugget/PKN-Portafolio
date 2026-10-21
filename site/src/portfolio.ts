@@ -2,10 +2,14 @@ import {
   archive,
   bio,
   courses,
+  customTranslations,
   earlier,
+  FACTS,
   hero,
   jobs,
   linkPage,
+  NUGGET_LINES,
+  NUGGET_TIPS,
   profiles,
   projectKind,
   projects,
@@ -20,14 +24,7 @@ import {
   type Project,
   type ProjectKind,
 } from "./catalog";
-import { FACTS, NUGGET_LINES, NUGGET_TIPS } from "./desktop/facts";
 import { AWARDS, PICTURES, type Shot } from "./desktop/media";
-import {
-  getCustomTranslations,
-  getTranslationsFor,
-  setCustomTranslations,
-  type CustomTranslationMap,
-} from "./i18n";
 import { safeUrl } from "./markup";
 import { cleanLine, scrubInvisible } from "./plain";
 
@@ -105,64 +102,6 @@ function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
-function collectTranslatableStrings(data: Omit<PortfolioData, "translations">): string[] {
-  const set = new Set<string>();
-  const add = (val: string | undefined) => {
-    if (val && val.trim()) set.add(val);
-  };
-  add(data.hero.title);
-  add(data.hero.focus);
-  add(data.hero.since);
-  add(data.hero.langs);
-  for (const r of data.hero.roles) add(r);
-  for (const s of data.hero.stats) {
-    add(s.unit);
-    add(s.label);
-  }
-  for (const p of data.bio) add(p);
-  for (const j of data.jobs) {
-    add(j.role);
-    add(j.place);
-    add(j.date);
-    add(j.summary);
-    for (const b of j.body) add(b);
-  }
-  for (const p of data.projects) {
-    add(p.title);
-    add(p.date);
-    add(p.summary);
-    add(p.people);
-    for (const b of p.body) add(b);
-    for (const pt of p.points ?? []) add(pt);
-    for (const l of p.links) add(l.label);
-  }
-  for (const e of data.earlier) {
-    add(e.date);
-    add(e.text);
-  }
-  add(data.skillGroups.languages);
-  add(data.skillGroups.agents);
-  for (const c of data.courses) {
-    add(c.title);
-    add(c.body);
-    add(c.linkLabel);
-  }
-  add(data.radio.title);
-  for (const p of data.radio.paragraphs) add(p);
-  for (const pic of data.pictures) {
-    add(pic.title);
-    add(pic.caption);
-  }
-  for (const aw of data.awards) {
-    add(aw.title);
-    add(aw.caption);
-  }
-  for (const f of data.facts) add(f);
-  for (const n of data.nuggetLines) add(n);
-  for (const tip of Object.values(data.nuggetTips)) add(tip);
-  return [...set];
-}
-
 export function getPortfolioData(): PortfolioData {
   const base: Omit<PortfolioData, "translations"> = {
     hero: clone(hero),
@@ -192,20 +131,14 @@ export function getPortfolioData(): PortfolioData {
     nuggetTips: clone(NUGGET_TIPS),
   };
 
-  const custom = getCustomTranslations();
-  const translations: Record<"es" | "de" | "fr", Record<string, string>> = {
-    es: { ...custom.es },
-    de: { ...custom.de },
-    fr: { ...custom.fr },
+  return {
+    ...base,
+    translations: {
+      es: { ...customTranslations.es },
+      de: { ...customTranslations.de },
+      fr: { ...customTranslations.fr },
+    },
   };
-  for (const str of collectTranslatableStrings(base)) {
-    const tr = getTranslationsFor(str);
-    if (tr.es) translations.es[str] = tr.es;
-    if (tr.de) translations.de[str] = tr.de;
-    if (tr.fr) translations.fr[str] = tr.fr;
-  }
-
-  return { ...base, translations };
 }
 
 const DEFAULT_SNAPSHOT: PortfolioData = getPortfolioData();
@@ -657,12 +590,16 @@ export function applyPortfolioData(raw: unknown): boolean {
   Object.assign(NUGGET_TIPS, data.nuggetTips);
 
   // Update custom translations
-  setCustomTranslations(data.translations as CustomTranslationMap);
+  for (const lang of ["es", "de", "fr"] as const) {
+    customTranslations[lang] = { ...data.translations[lang] };
+  }
 
   return true;
 }
 
 export function resetPortfolioData(): void {
   applyPortfolioData(DEFAULT_SNAPSHOT);
-  setCustomTranslations({});
+  customTranslations.es = {};
+  customTranslations.de = {};
+  customTranslations.fr = {};
 }

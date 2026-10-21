@@ -1,4 +1,5 @@
 import { readNotes } from "./desktop/pad";
+import { getTranslationsFor } from "./i18n";
 import { assertSafeHtml, renderNote } from "./notes";
 import {
   applyPortfolioData,
@@ -460,10 +461,11 @@ function createTranslationEditor(
     }
     for (const entry of entries) {
       const key = entry.text.trim();
+      const existing = getTranslationsFor(key)[activeLang];
       const input = key.length > 90 ? document.createElement("textarea") : document.createElement("input");
       if (input instanceof HTMLTextAreaElement) input.rows = 2;
-      input.placeholder = `Fallback: ${key}`;
-      input.value = draft.translations[activeLang][key] ?? "";
+      input.placeholder = existing ? `Default [${activeLang.toUpperCase()}]: ${existing}` : `Fallback: ${key}`;
+      input.value = draft.translations[activeLang][key] ?? existing ?? "";
       input.addEventListener("input", () => {
         const val = input.value.trim();
         if (val) draft.translations[activeLang][key] = val;
